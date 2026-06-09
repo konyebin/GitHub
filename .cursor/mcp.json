@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "roomos": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["${workspaceFolder}/test/device-mcp-server/dist/index.js"],
+      "envFile": "${workspaceFolder}/.env"
+    },
+    "wxops": {
+      "command": "${workspaceFolder}/wxops/scripts/run-mcp-stdio.sh",
+      "cwd": "${workspaceFolder}/wxops"
+    }
+  }
+}

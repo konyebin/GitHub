@@ -20,9 +20,9 @@ cd ~/Documents/GitHub && python3 -m venv .venv
 ```bash
 cd ~/Documents/GitHub/wxops
 python3.13 -m venv .venv
-.venv/bin/pip install mcp httpx pandas requests python-dotenv
-.venv/bin/pip install -e .
+.venv/bin/pip install -e ".[mcp]"
 ```
+The **`mcp`** optional extra installs MCP server deps (`mcp`, `httpx`, `pandas`, `python-dotenv`) and editable **wxcli**. For Cursor, **`/.cursor/mcp.json`** already registers the **wxops** stdio server (same `mcp_server.py`, **`envFile`** → root **`~/Documents/GitHub/.env`**).
 
 ### 2. Shell Alias for wxcli
 
@@ -39,10 +39,12 @@ The `.env` file at `~/Documents/GitHub/.env` holds the shared OAuth token. Requi
 ```
 WEBEX_CLIENT_ID=...
 WEBEX_CLIENT_SECRET=...
-WEBEX_SCOPES=spark:all spark-admin:devices_read spark-admin:devices_write spark-admin:telephony_config_read spark-admin:telephony_config_write
+WEBEX_SCOPES=spark:all spark:xapi_commands spark:xapi_statuses spark:calls_write spark:calls_read spark:webrtc_calling spark:applications_token spark:people_write spark:devices_write spark:devices_read spark:telephony_config_write spark:telephony_config_read spark:places_write spark:places_read spark:organizations_read spark:mcp spark:webhooks_read spark:webhooks_write spark:recordings_write spark:recordings_read spark-admin:messages_write spark-admin:messages_read spark-admin:calling_cdr_read spark-admin:recordings_write spark-admin:recordings_read spark-admin:reports_write spark-admin:reports_read spark-admin:people_write spark-admin:people_read spark-admin:licenses_read spark-admin:roles_read spark-admin:telephony_config_write spark-admin:telephony_config_read spark-admin:telephony_pstn_write spark-admin:telephony_pstn_read spark-admin:workspaces_write spark-admin:workspaces_read spark-admin:workspace_locations_write spark-admin:workspace_locations_read spark-admin:workspace_metrics_read spark-admin:places_write spark-admin:places_read spark-admin:locations_write spark-admin:locations_read spark-admin:devices_write spark-admin:devices_read spark-admin:organizations_write spark-admin:organizations_read spark-admin:resource_groups_read spark-admin:resource_group_memberships_write spark-admin:resource_group_memberships_read spark-admin:call_qualities_read spark-admin:calls_write spark-admin:calls_read spark-admin:broadworks_billing_reports_write spark-admin:broadworks_billing_reports_read spark-admin:broadworks_subscribers_write spark-admin:broadworks_subscribers_read spark-admin:broadworks_enterprises_write spark-admin:broadworks_enterprises_read spark-admin:wholesale_billing_reports_write spark-admin:wholesale_billing_reports_read spark-admin:wholesale_sub_partners_write spark-admin:wholesale_sub_partners_read spark-admin:wholesale_customers_write spark-admin:wholesale_customers_read spark-admin:wholesale_subscribers_write spark-admin:wholesale_subscribers_read spark-admin:wholesale_workspace_write spark-compliance:events_read spark-compliance:messages_write spark-compliance:messages_read spark-compliance:recordings_write spark-compliance:recordings_read spark-compliance:memberships_write spark-compliance:memberships_read spark-compliance:meetings_write spark-compliance:meetings_read spark-compliance:rooms_write spark-compliance:rooms_read spark-compliance:teams_read spark-compliance:team_memberships_write spark-compliance:team_memberships_read spark-compliance:webhooks_write spark-compliance:webhooks_read audit:events_read analytics:read_all identity:tokens_write identity:tokens_read identity:people_rw identity:people_read identity:groups_rw identity:groups_read identity:organizations_rw identity:organizations_read Identity:contact Identity:one_time_password identity:placeonetimepassword_create Identity:Config Identity:Organization meeting:admin_recordings_write meeting:admin_recordings_read meeting:admin_transcripts_read meeting:admin_participants_read meeting:admin_schedule_write meeting:admin_schedule_read meeting:admin_preferences_write meeting:admin_preferences_read meeting:admin_config_write meeting:admin_config_read application:webhooks_write application:webhooks_read wxc-dedicateduc:admin_perfmon_read webexsquare:admin cjp:config cjp:config_write cjp:config_read cjp:user cjp:task_write cjp:task_read cjds:admin_org_read cjds:admin_org_write cloud-contact-center:pod_conv
 WEBEX_ACCESS_TOKEN=...
 WEBEX_REFRESH_TOKEN=...
 ```
+
+> **Scope rule:** `WEBEX_SCOPES` must exactly match the scopes enabled in the Webex Developer Portal — no more, no less. When adding a scope, only append; never remove existing ones unless the user explicitly says a scope is not in the portal (unofficial/unsupported). After any edit, verify the previous scopes are intact. Re-run `webex_oauth.py` after any scope change to get a token with the updated set.
 
 Run the OAuth flow once to populate the tokens:
 ```bash
@@ -80,13 +82,67 @@ claude mcp add --scope user wxops \
   /Users/konyebin/Documents/GitHub/wxops/mcp_server.py
 ```
 
+Equivalent using the **`wxops-mcp`** console entry (after `pip install -e ".[mcp]"`):
+```bash
+claude mcp add --scope user wxops \
+  /Users/konyebin/Documents/GitHub/wxops/.venv/bin/wxops-mcp
+```
+
 Verify with: `claude mcp list` — wxops should show `✓ Connected`.
 
 This exposes 5 tools to every Claude Code session: `wxops_fetch_report`, `wxops_list_reports`, `wxops_run_command`, `wxops_billing_context`, `wxops_analyze_csv`.
 
+**Before using any wxops reporting tool** (CDR, reports, recordings), read these reference docs first — they contain the correct base URLs, API constraints, field names, and gotchas:
+- `~/Documents/GitHub/wxops/docs/reference/reporting-analytics.md` — CDR base URL, report template IDs, 30-day retention, 12-hour window limit, gotchas
+- `~/Documents/GitHub/wxops/.claude/skills/reporting/SKILL.md` — full workflow, CLI commands, 75 CDR recipes
+
+Key facts to know before any CDR call:
+- CDR base URL: `https://analytics-calling.webexapis.com/v1/cdr_feed` — **NOT** `webexapis.com`
+- EU orgs return HTTP 451 with the correct regional URL — always follow the redirect
+- Max 12-hour window per CDR request; 30-day retention
+- Use `wxops_fetch_report` for pre-built reports — do not manually queue via `/v1/reports` API
+- Run at most **2 `wxops_fetch_report` calls in parallel** — more causes connection drops
+
 ### 6. Deleted Devices Log
 
 `~/Documents/GitHub/devices_deleted.csv` — running log of all deleted Webex devices. Append to this file (do not overwrite) when deleting devices. Columns: `displayName, model, mac, serial, ip, connectionStatus, created, lastSeen, deviceId`.
+
+---
+
+## Requirements: root, wxops, and test/device-mcp-server
+
+These three targets use **different runtimes**: root scripts use **Python 3.14**; **wxops** uses **Python 3.13** in its own venv (do not use 3.14 for wxops — pydantic-core build issues); **test/device-mcp-server** uses **Node.js 18+**. All can share the same Webex **access token** if your OAuth integration’s scopes cover each surface (Calling/admin for wxops; `spark:xapi_*` and device scopes for RoomOS MCP — align scopes in the Developer Portal with what you plan to call).
+
+### Root (`~/Documents/GitHub`)
+
+| Need | Detail |
+|------|--------|
+| Python | **3.14** — `python3 -m venv .venv` at repo root |
+| Packages | `.venv/bin/pip install requests python-dotenv` |
+| Webex app | Integration at [developer.webex.com](https://developer.webex.com) with redirect **`http://localhost:8080/callback`** (must match `webex_oauth.py`) |
+| Secrets | **`~/Documents/GitHub/.env`** — at minimum `WEBEX_CLIENT_ID`, `WEBEX_CLIENT_SECRET`, `WEBEX_SCOPES`, `WEBEX_ACCESS_TOKEN`, `WEBEX_REFRESH_TOKEN` (see §3 above for the full scope string used here) |
+| Run OAuth | `cd ~/Documents/GitHub && .venv/bin/python webex_oauth.py` (browser opens; local listener on port **8080**) |
+
+### wxops (`~/Documents/GitHub/wxops`)
+
+| Need | Detail |
+|------|--------|
+| Python | **3.13** only — `python3.13 -m venv .venv` inside `wxops/` |
+| Install | `cd ~/Documents/GitHub/wxops && .venv/bin/pip install -e ".[mcp]"` (installs wxcli + MCP extras; Python **3.13** venv) |
+| Token | Same root `.env` token synced into **`~/.wxcli/config.json`** (§4) **or** `wxcli configure` / paste token; must include scopes for the APIs you use |
+| Shell | **`wxcli` alias** pointing at `~/Documents/GitHub/wxops/.venv/bin/wxcli` (§2) |
+| Optional | **Claude Code** + global MCP registration (§5); **Cursor** → **`/.cursor/mcp.json`** server **`wxops`** |
+
+### test/device-mcp-server (`~/Documents/GitHub/test/device-mcp-server`)
+
+| Need | Detail |
+|------|--------|
+| Node.js | **18 or higher** |
+| Install / build | `cd ~/Documents/GitHub/test/device-mcp-server && npm install && npm run build` |
+| Token | **`WEBEX_ACCESS_TOKEN`** (and scopes) from **`~/Documents/GitHub/.env`** after **`~/Documents/GitHub/.venv/bin/python webex_oauth.py`** — same as the rest of the workspace; include xAPI + device read scopes (see `test/device-mcp-server/OAUTH_SETUP_GUIDE.md`). Optional: `node oauth-helper.js` in this folder only if you are not using root OAuth. |
+| Devices | **Webex device IDs** for RoomOS endpoints you control; token must allow Cloud API / xAPI access as documented in `test/device-mcp-server/README.md` |
+| Run | Default **stdio** when started as `node dist/index.js` (Cursor **roomos** MCP). For HTTP MCP: `TRANSPORT=http npm start` — **`PORT`** defaults to **3001** unless set. |
+| **Cursor** | **`/.cursor/mcp.json`** registers **`roomos`** with **`envFile`** → **`${workspaceFolder}/.env`** (GitHub root). Run `npm run build` under `test/device-mcp-server` first; reload MCP after token changes. |
 
 ---
 
@@ -111,6 +167,9 @@ This exposes 5 tools to every Claude Code session: `wxops_fetch_report`, `wxops_
 | OCR a dashboard screenshot into Excel | `Lookback` | `cd ~/Documents/GitHub/Lookback && claude` |
 | Discover what MCP servers are available on this machine | `my-orchestrator` | `cd ~/Documents/GitHub/my-orchestrator && claude` |
 | Run the Webex OAuth flow to get a fresh token | Root GitHub folder | `cd ~/Documents/GitHub && .venv/bin/python webex_oauth.py` |
+| Control RoomOS devices via MCP (HTTP/stdio, token-based) | `test/device-mcp-server` | `cd ~/Documents/GitHub/test/device-mcp-server` — see README; requirements in **Requirements: root, wxops, and test/device-mcp-server** above |
+
+Human-readable project pages (browser): run `cd ~/Documents/GitHub/docs && npm run docs:dev` — VitePress site with one page per top-level folder under `docs/projects/`.
 
 ### Routing Rules for Claude
 
