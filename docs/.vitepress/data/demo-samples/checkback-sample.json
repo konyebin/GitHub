@@ -1,0 +1,22 @@
+{
+  "account": "Acme Corporation",
+  "renewalDate": "2026-09-30",
+  "kpis": [
+    { "label": "Adoption Health", "value": "Yellow", "status": "yellow" },
+    { "label": "License Utilization", "value": "67%", "status": "yellow" },
+    { "label": "Active Users", "value": "1,247", "status": "green" },
+    { "label": "Unused Licenses", "value": "423", "status": "red" }
+  ],
+  "licenses": [
+    { "name": "Webex Calling", "purchased": 800, "assigned": 612, "active": 534 },
+    { "name": "Webex Meetings", "purchased": 1200, "assigned": 980, "active": 891 },
+    { "name": "Webex Contact Center", "purchased": 150, "assigned": 89, "active": 72 },
+    { "name": "Webex Devices", "purchased": 200, "assigned": 178, "active": 165 }
+  ],
+  "accounts": [
+    { "name": "Acme HQ", "health": "green", "utilization": 82 },
+    { "name": "Acme West", "health": "yellow", "utilization": 58 },
+    { "name": "Acme East", "health": "red", "utilization": 34 },
+    { "name": "Acme APAC", "health": "green", "utilization": 91 }
+  ]
+}

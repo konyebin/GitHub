@@ -1,0 +1,30 @@
+[
+  {
+    "name": "wxops",
+    "transport": "stdio",
+    "tools": 5,
+    "description": "Webex Calling reports, CDR, billing context, and wxcli passthrough.",
+    "readme": "Exposes wxops_fetch_report, wxops_list_reports, wxops_run_command, wxops_billing_context, wxops_analyze_csv."
+  },
+  {
+    "name": "roomos",
+    "transport": "stdio",
+    "tools": 12,
+    "description": "RoomOS xAPI control for Webex devices — dial, mute, camera, standby.",
+    "readme": "Control RoomOS endpoints via Cloud API. Requires device IDs and xAPI scopes."
+  },
+  {
+    "name": "vidcast",
+    "transport": "http",
+    "tools": 29,
+    "description": "Search and retrieve Vidcast recordings, playlists, and transcripts.",
+    "readme": "Hosted at mcp.webexapis.com/mcp/vidcast. OAuth required."
+  },
+  {
+    "name": "my-orchestrator",
+    "transport": "stdio",
+    "tools": 4,
+    "description": "Meta-MCP for discovering other MCP servers on the machine.",
+    "readme": "Tools: ping, list_servers, discover_server, discover_all."
+  }
+]

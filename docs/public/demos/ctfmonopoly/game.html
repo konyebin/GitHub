@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI for Everyone: The Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-100 to-indigo-200 flex flex-col items-center justify-center p-4">
+    <!-- New container for title and restart button -->
+    <div class="flex flex-col items-center mb-8">
+        <h1 class="text-4xl font-extrabold text-blue-800 drop-shadow-md text-center mb-4">
+            AI for Everyone: The Game
+        </h1>
+        <!-- Restart Game button moved here -->
+        <button id="restart-game-btn" class="px-6 py-3 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors">
+            Restart Game
+        </button>
+    </div>
+
+    <div id="game-container" class="w-full max-w-7xl relative">
+        <div id="board-section" class="relative p-4 bg-green-700 border-8 border-green-900 rounded-lg shadow-xl aspect-square w-full mx-auto">
+            <!-- Tiles will be injected here by JavaScript -->
+            <!-- Player token will be injected here by JavaScript -->
+
+            <!-- Central Game Controls (now only dice and current tile info) -->
+            <div id="central-game-controls" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center z-10 p-4">
+                <p class="font-bold text-gray-800 mb-4 drop-shadow-lg">Current Tile: <span id="current-tile-info" class="font-bold"></span></p>
+                
+                <div class="flex flex-col items-center p-4 bg-white bg-opacity-90 rounded-lg shadow-lg">
+                    <button id="roll-dice-btn" class="px-6 py-3 rounded-full text-white font-bold text-lg bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all duration-300 ease-in-out w-full">
+                        Roll Dice
+                    </button>
+                    <p id="last-roll-display" class="mt-4 text-3xl font-extrabold text-gray-800"></p>
+                    <!-- Restart Game button removed from here -->
+                </div>
+            </div>
+
+            <!-- Game Won Overlay (positioned over the board ONLY) -->
+            <div id="game-won-overlay" class="hidden absolute inset-0 flex items-center justify-center bg-black bg-opacity-70 rounded-lg z-20">
+                <div class="text-center p-8 bg-white rounded-lg shadow-2xl max-w-md">
+                    <p class="text-4xl font-extrabold text-green-600 mb-4 animate-pulse">
+                        Congratulations!
+                    </p>
+                    <p class="text-xl text-gray-700 mb-6">
+                        You've completed your mission. Talk to an AI agent to validate your questions!
+                    </p>
+                    <button id="play-again-overlay-btn" class="px-8 py-4 bg-purple-600 text-white rounded-full font-bold text-xl hover:bg-purple-700 transition-colors">
+                        Play Again
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal (still centered on the entire board) -->
+            <div id="modal" class="hidden absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-30">
+                <div class="bg-white rounded-lg p-6 shadow-xl max-w-md w-full relative transform transition-all duration-300 ease-out scale-100 opacity-100">
+                    <button id="modal-close-btn" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-2xl font-bold">
+                        &times;
+                    </button>
+                    <h2 id="modal-title" class="text-2xl font-bold mb-4 text-blue-700"></h2>
+                    <p id="modal-content" class="text-gray-700 mb-4"></p>
+                    <a id="modal-link" href="#" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline block mt-2 hidden">
+                        Learn More / Hands-on
+                    </a>
+                    <button id="modal-continue-btn" class="mt-6 w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors">
+                        Continue
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- The old controls-section is now completely removed -->
+
+    <script src="script.js"></script>
+</body>
+</html>

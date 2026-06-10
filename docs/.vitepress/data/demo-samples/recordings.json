@@ -1,0 +1,34 @@
+[
+  {
+    "id": "rec-001",
+    "title": "Webex Calling Migration Overview",
+    "duration": "42:18",
+    "date": "2026-05-12",
+    "presenter": "Sarah Chen",
+    "transcript": "Welcome everyone. Today we'll walk through the CUCM to Webex Calling migration process. First, let's review the assessment phase..."
+  },
+  {
+    "id": "rec-002",
+    "title": "CDR Analytics Deep Dive",
+    "duration": "28:45",
+    "date": "2026-05-08",
+    "presenter": "Mike Torres",
+    "transcript": "In this session we cover CDR feed endpoints, the 12-hour window constraint, and how to pull usage reports programmatically..."
+  },
+  {
+    "id": "rec-003",
+    "title": "RoomOS Device Management",
+    "duration": "35:02",
+    "date": "2026-04-22",
+    "presenter": "Alex Rivera",
+    "transcript": "RoomOS devices connect via Cloud API. We'll demonstrate xAPI commands for dial, camera presets, and standby control..."
+  },
+  {
+    "id": "rec-004",
+    "title": "Contact Center Best Practices",
+    "duration": "51:30",
+    "date": "2026-04-15",
+    "presenter": "Jordan Lee",
+    "transcript": "Setting up call queues, auto attendants, and hunt groups in Webex Calling. Let's start with queue overflow routing..."
+  }
+]
