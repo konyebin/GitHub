@@ -235,6 +235,17 @@ body {
 .panel--capabilities { background: var(--bg-primary); }
 .panel--journey { background: var(--bg-secondary); }
 .panel--setup { background: var(--bg-primary); }
+.panel--demo {
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 40%, rgba(0, 80, 160, 0.18), transparent),
+    linear-gradient(180deg, #061428, #0a1628);
+}
+
+.panel--demo .panel-inner {
+  align-items: flex-start;
+  padding-top: 36px;
+  padding-bottom: 36px;
+}
 
 .panel--footer {
   background: linear-gradient(180deg, var(--bg-primary), #060912);
@@ -477,6 +488,90 @@ body {
   line-height: 1.4;
 }
 
+.panel--wide .panel-content { max-width: 1280px; }
+
+.panel-content.panel--wide { max-width: 1280px; }
+
+.demo-flow {
+  width: 100%;
+  padding: clamp(28px, 4vw, 40px);
+  border-radius: 20px;
+  border: 1px solid rgba(0, 100, 180, 0.35);
+  background: linear-gradient(165deg, rgba(8, 32, 68, 0.95), rgba(4, 18, 40, 0.98));
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+}
+
+.demo-flow-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-blue);
+  margin-bottom: 8px;
+}
+
+.demo-flow-title {
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 700;
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+
+.demo-flow-lead {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+
+.demo-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 14px;
+}
+
+.demo-row:last-child { margin-bottom: 0; }
+
+.demo-box {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 14px 18px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #1a4a7a 0%, #0f2f52 100%);
+  border: 1px solid rgba(0, 140, 220, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.demo-box--solo {
+  flex: 0 1 220px;
+}
+
+.demo-label {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.25;
+}
+
+.demo-value {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--accent-blue);
+  line-height: 1.35;
+}
+
+.demo-connector {
+  flex: 0 0 28px;
+  height: 3px;
+  background: linear-gradient(90deg, #0088cc, #00bceb);
+  border-radius: 2px;
+  margin: 0 2px;
+}
+
 .footer-content { text-align: center; }
 
 .footer-content h2 {
@@ -520,4 +615,8 @@ body {
   .panel-inner { padding: 28px 20px 72px; }
   .compare-grid,
   .three-pillars { grid-template-columns: 1fr; }
+  .demo-row { flex-wrap: wrap; gap: 8px; }
+  .demo-connector { display: none; }
+  .demo-box,
+  .demo-box--solo { flex: 1 1 100%; }
 }
