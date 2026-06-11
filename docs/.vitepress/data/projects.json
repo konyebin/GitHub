@@ -1,0 +1,158 @@
+{
+  "categories": [
+    { "id": "webex", "label": "Webex", "color": "#00bceb" },
+    { "id": "mcp", "label": "MCP", "color": "#7c3aed" },
+    { "id": "data", "label": "Data", "color": "#00d4a0" },
+    { "id": "games", "label": "Games", "color": "#ff6b35" },
+    { "id": "hardware", "label": "Hardware", "color": "#fbbf24" },
+    { "id": "experiments", "label": "Experiments", "color": "#94a3b8" }
+  ],
+  "projects": [
+    {
+      "id": "wxops",
+      "name": "wxops",
+      "tagline": "Webex Calling playbook — wxcli CLI, agents, CDR/reporting, MCP server.",
+      "description": "Programmatic Webex Calling administration: provisioning, routing, devices, contact center, reporting, billing, and CUCM migration.",
+      "categories": ["webex", "mcp"],
+      "path": "/projects/wxops",
+      "repoPath": "wxops/",
+      "demo": { "type": "component", "component": "WxopsDemo" },
+      "runCommand": "cd ~/Documents/GitHub/wxops && .venv/bin/wxcli whoami",
+      "routingTasks": ["Webex Calling admin (users, devices, routing, queues, CDR, billing)"]
+    },
+    {
+      "id": "vidcastmcp",
+      "name": "vidcastmcp",
+      "tagline": "Vidcast MCP — recordings, playlists, transcripts via OAuth.",
+      "description": "Connects Claude to the Webex Vidcast MCP server with 29 tools for searching, browsing, and retrieving recordings, playlists, and transcripts.",
+      "categories": ["webex", "mcp"],
+      "path": "/projects/vidcastmcp",
+      "repoPath": "vidcastmcp/",
+      "demo": { "type": "component", "component": "VidcastmcpDemo" },
+      "runCommand": "cd ~/Documents/GitHub/vidcastmcp && python src/tools/mcp_connect.py",
+      "routingTasks": ["Vidcast recordings, playlists, meeting transcripts"]
+    },
+    {
+      "id": "device-mcp-server",
+      "name": "device-mcp-server",
+      "tagline": "RoomOS xAPI control for Webex devices (Cursor roomos MCP).",
+      "description": "Control RoomOS endpoints via Cloud API — dial, hold, mute, camera presets, standby, and xAPI commands.",
+      "categories": ["webex", "mcp"],
+      "path": "/projects/device-mcp-server",
+      "repoPath": "test/device-mcp-server/",
+      "demo": { "type": "component", "component": "DeviceMcpDemo" },
+      "runCommand": "cd ~/Documents/GitHub/test/device-mcp-server && npm run build && node dist/index.js",
+      "routingTasks": ["RoomOS device control (dial, xAPI, standby)"]
+    },
+    {
+      "id": "scrapeweb",
+      "name": "scrapeweb",
+      "tagline": "BFS web crawler → structured JSON per page.",
+      "description": "Crawl a website breadth-first and export rich structured page data — headings, links, tables — to JSON.",
+      "categories": ["data"],
+      "path": "/projects/scrapeweb",
+      "repoPath": "scrapeweb/",
+      "demo": { "type": "component", "component": "ScrapewebDemo" },
+      "runCommand": "cd ~/Documents/GitHub/scrapeweb && .venv/bin/python3 src/scraper.py --url https://example.com --depth 2",
+      "routingTasks": ["Crawl a website to JSON"]
+    },
+    {
+      "id": "lookback",
+      "name": "Lookback",
+      "tagline": "OCR dashboard screenshots → Excel metrics.",
+      "description": "OCR Control Hub (or any card-based) dashboard screenshots into structured Excel metrics with confidence scoring.",
+      "categories": ["data", "webex"],
+      "path": "/projects/lookback",
+      "repoPath": "Lookback/",
+      "demo": { "type": "component", "component": "LookbackDemo" },
+      "runCommand": "cd ~/Documents/GitHub/Lookback && bash run.sh",
+      "routingTasks": ["OCR Control Hub screenshots to Excel"]
+    },
+    {
+      "id": "my-orchestrator",
+      "name": "my-orchestrator",
+      "tagline": "Meta-MCP — discover other MCP servers on the machine.",
+      "description": "Lets an LLM discover and read READMEs of other MCP servers without connecting to them directly.",
+      "categories": ["mcp"],
+      "path": "/projects/my-orchestrator",
+      "repoPath": "my-orchestrator/",
+      "demo": { "type": "component", "component": "OrchestratorDemo" },
+      "runCommand": "cd ~/Documents/GitHub/my-orchestrator && npx tsx src/index.ts",
+      "routingTasks": ["List/discover local MCP servers"]
+    },
+    {
+      "id": "check-back-intelligence",
+      "name": "check-back-intelligence",
+      "tagline": "Customer adoption analytics — PDFs → Check Back spreadsheet → dashboard.",
+      "description": "Track whether Webex customers use what they pay for. Populate Check Back workbooks from PDFs/screenshots and explore adoption health in an interactive dashboard.",
+      "categories": ["webex", "data"],
+      "path": "/projects/check-back-intelligence",
+      "repoPath": "check-back-intelligence/",
+      "demo": { "type": "component", "component": "CheckBackDemo" },
+      "runCommand": "cd ~/Documents/GitHub/check-back-intelligence && ./check-back dashboard",
+      "routingTasks": []
+    },
+    {
+      "id": "test",
+      "name": "test",
+      "tagline": "Experiments — OCR bot and integration subprojects.",
+      "description": "Mixed experiments including a Webex space bot that OCRs dashboard screenshots and appends rows to Excel.",
+      "categories": ["experiments", "webex"],
+      "path": "/projects/test",
+      "repoPath": "test/",
+      "demo": { "type": "component", "component": "TestDemo" },
+      "runCommand": "cd ~/Documents/GitHub/test && python bot.py",
+      "routingTasks": ["Experimental Webex OCR bot"]
+    },
+    {
+      "id": "genai-bootcamp",
+      "name": "GenAI-Bootcamp",
+      "tagline": "Three-day GenAI curriculum and lab materials.",
+      "description": "3-day GenAI bootcamp covering HuggingFace, OpenAI, RAG, and LLM app deployment with hands-on labs.",
+      "categories": ["data"],
+      "path": "/projects/genai-bootcamp",
+      "repoPath": "GenAI-Bootcamp/",
+      "demo": { "type": "component", "component": "GenaiDemo" },
+      "runCommand": "cd ~/Documents/GitHub/GenAI-Bootcamp && ls Day1/",
+      "routingTasks": ["GenAI bootcamp labs"]
+    },
+    {
+      "id": "ctfmonopoly",
+      "name": "CTFMonopoly",
+      "tagline": "Static browser mini-game (HTML/JS).",
+      "description": "Monopoly-style CTF-themed browser game. No backend — open and play locally.",
+      "categories": ["games"],
+      "path": "/projects/ctfmonopoly",
+      "repoPath": "CTFMonopoly/",
+      "demo": { "type": "iframe", "src": "/demos/ctfmonopoly/game.html", "height": "480px" },
+      "runCommand": "open ~/Documents/GitHub/CTFMonopoly/game.html",
+      "routingTasks": ["Browser Monopoly-style game"]
+    },
+    {
+      "id": "autonomous-ai-drone-scripts",
+      "name": "Autonomous-Ai-drone-scripts",
+      "tagline": "Jetson Nano autonomous drone and person-following stack.",
+      "description": "Autonomous drone navigation and person-following on Jetson Nano using MobileNet, LiDAR, and PID control with ArduPilot/Pixhawk.",
+      "categories": ["hardware"],
+      "path": "/projects/autonomous-ai-drone-scripts",
+      "repoPath": "Autonomous-Ai-drone-scripts/",
+      "demo": { "type": "component", "component": "DroneDemo" },
+      "runCommand": "cd ~/Documents/GitHub/Autonomous-Ai-drone-scripts && sudo python3 follow_person_main.py --mode=test",
+      "routingTasks": ["Autonomous drone AI (Jetson)"]
+    }
+  ],
+  "routing": [
+    { "task": "Webex Calling admin (users, devices, routing, queues, CDR, billing)", "projectId": "wxops" },
+    { "task": "Vidcast recordings, playlists, meeting transcripts", "projectId": "vidcastmcp" },
+    { "task": "RoomOS device control (dial, xAPI, standby)", "projectId": "device-mcp-server" },
+    { "task": "Crawl a website to JSON", "projectId": "scrapeweb" },
+    { "task": "OCR Control Hub screenshots to Excel", "projectId": "lookback" },
+    { "task": "List/discover local MCP servers", "projectId": "my-orchestrator" },
+    { "task": "Customer adoption analytics dashboard", "projectId": "check-back-intelligence" },
+    { "task": "Shared Webex OAuth token", "projectId": null, "link": "/shared/root-setup" },
+    { "task": "Experimental Webex OCR bot", "projectId": "test" },
+    { "task": "GenAI bootcamp labs", "projectId": "genai-bootcamp" },
+    { "task": "Browser Monopoly-style game", "projectId": "ctfmonopoly" },
+    { "task": "Autonomous drone AI (Jetson)", "projectId": "autonomous-ai-drone-scripts" }
+  ]
+}
