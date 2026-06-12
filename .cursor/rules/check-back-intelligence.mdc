@@ -1,0 +1,30 @@
+---
+description: Check Back Intelligence — populate pipeline, dashboard, no secrets in commits
+globs: check-back-intelligence/**/*
+alwaysApply: false
+---
+
+# check-back-intelligence
+
+Read [`check-back-intelligence/CLAUDE.md`](~/Documents/GitHub/check-back-intelligence/CLAUDE.md) first.
+
+## Commands
+
+```bash
+cd ~/Documents/GitHub/check-back-intelligence
+pip install -r requirements.txt
+python -m src.cli populate --sources <folder> --out output/<name>.xlsx
+python -m src.cli validate -i output/<name>.xlsx --out staging/validation.json
+open ~/Documents/GitHub/check-back-intelligence/dashboard/index.html
+```
+
+## Conventions
+
+- Dashboard accepts **populated xlsx only** — not raw PDFs/images.
+- Deliverables to `/Users/konyebin/CLAUDE/` when user asks for exports.
+- **Never commit** customer PDFs, screenshots with PII, or `.env` tokens.
+- Template: `samples/check_back_template.xlsx`.
+
+## Verification
+
+After populate: run `validate` and confirm row counts in CLI output before saying done.

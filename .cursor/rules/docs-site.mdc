@@ -1,0 +1,32 @@
+---
+description: VitePress docs site — dev server, GitHub Pages base path, project pages
+globs: docs/**/*
+alwaysApply: false
+---
+
+# docs site (VitePress)
+
+## Run locally
+
+```bash
+cd ~/Documents/GitHub/docs
+npm install
+npm run docs:dev
+```
+
+Base path: `/GitHub/` (GitHub Pages). Config: [`docs/.vitepress/config.ts`](~/Documents/GitHub/docs/.vitepress/config.ts).
+
+## Adding project pages
+
+- Human-facing pages: `docs/projects/<project>.md`
+- Register in sidebar in `config.ts` under Projects.
+- Canonical technical context stays in each project's `CLAUDE.md` — docs pages are summaries + demos.
+
+## Demos
+
+Static demos live under `docs/public/demos/<name>/`. Deploy via `.github/workflows/deploy-docs.yml`.
+
+## Conventions
+
+- Do not embed secrets or live tokens in docs or demo scripts.
+- Prefer linking to root `CLAUDE.md` for OAuth/MCP setup rather than duplicating scope lists.

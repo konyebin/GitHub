@@ -1,0 +1,77 @@
+---
+description: Before any wxops/Webex Calling work, read CLAUDE.md + the matching skill + reference docs
+alwaysApply: true
+---
+
+# wxops bootstrap (read before acting)
+
+Applies when the task mentions **wxops**, **wxcli**, **Webex Calling**, **CDR**, **devices**, **call control**, **WebRTC**, **voicemail**, **billing**, or paths under `wxops/`.
+
+## Mandatory first reads (in order)
+
+1. `~/Documents/GitHub/CLAUDE.md` — OAuth, tokens, MCP, cross-project routing
+2. `~/Documents/GitHub/wxops/CLAUDE.md` — playbook, skill map, `wxcli` → wxcadm → HTTP pattern
+3. **`~/Documents/GitHub/.cursor/wxops-session-context.md`** — living summary of what we built, fixed, IDs, and lessons (read fully; do not skip)
+4. **One skill** from `wxops/.claude/skills/<name>/SKILL.md` (see routing below)
+5. **Reference docs** that skill points to under `wxops/docs/reference/` — read before API/CLI calls
+
+Do **not** improvise flows (e.g. ad-hoc scripts) until steps 1–5 are done. Use **wxops MCP** `wxops_run_command` or `wxcli` per the skill — not guessed endpoints.
+
+**After completing significant wxops work:** update `wxops-session-context.md` (new fixes, IDs, scripts, gotchas) and bump *Last updated*.
+
+## Skill routing (pick one)
+
+| Task | Skill |
+|------|--------|
+| Place/answer/control calls, webhooks, XSI | `call-control` |
+| **Phone-to-phone loops** (8845 ↔ 9851) | `phone-to-phone-calls` skill + `call-control` |
+| User call settings, behavior, browser client | `manage-call-settings` → `person-call-settings-behavior.md` |
+| CDR / reports | `reporting` → `docs/reference/reporting-analytics.md` |
+| Devices / RoomOS | `manage-devices` or `device-platform` |
+| Reassign phone by MAC (delete + recreate) | `reassign-device-by-mac` + `manage-devices` |
+| Voicemail → space | `voicemail-to-space` |
+| **Cursor `/phone-test`** | `.cursor/skills/phone-test/SKILL.md` → phone-to-phone-calls |
+| **Cursor `/device-reassign`** | `.cursor/skills/device-reassign/SKILL.md` → reassign-device-by-mac |
+| Device CSV export | `.cursor/skills/device-inventory-export/SKILL.md` |
+| Preflight /multitask | `.cursor/skills/wxops-preflight/SKILL.md` |
+| Verify before done | `.cursor/skills/wxops-verification/SKILL.md` |
+| Provision users/licenses | `provision-calling` |
+| Debug failures | `wxc-calling-debug` |
+| Billing | agent `billing-analyst` + reporting refs |
+
+## Call / WebRTC gotchas (from docs)
+
+- WebRTC client identity = **OAuth token user** only; cannot call as another user without their token.
+- `spark:webrtc_calling` + user-level token required for browser calling.
+- Calling behavior for WebRTC: `CALL_WITH_APP_REGISTERED_FOR_WEBEXCALLTEL`; `browserClientEnabled` must be true.
+- Admin `create-dial` rings the **target user**; WebRTC browser is one of that user's endpoints.
+- CDR base URL: `https://analytics-calling.webexapis.com/v1/cdr_feed` (not `webexapis.com`).
+
+## wxops MCP
+
+Before reporting/analytics tools: read `wxops/docs/reference/reporting-analytics.md`. Max **2** parallel `wxops_fetch_report` calls.
+
+## Opening ritual (every wxops task)
+
+When the user starts a wxops/Webex Calling task — or says "read session context" — do this **before** any API/CLI/MCP call:
+
+1. Read `~/Documents/GitHub/.cursor/wxops-session-context.md` fully; summarize IDs, token user, and gotchas that apply.
+2. Pick the skill from the routing table above; read `wxops/.claude/skills/<name>/SKILL.md` and its reference docs.
+3. If the task uses MCP: confirm `wxops` server is the intended path (`wxops_run_command` or `wxcli` per skill — not guessed HTTP).
+
+## Verification before "done"
+
+Do **not** claim success until all applicable checks pass (show command output):
+
+| Task type | Required verification |
+|-----------|------------------------|
+| Any wxops change | `~/Documents/GitHub/wxops/scripts/verify-mcp-stdio.sh` |
+| Token / OAuth | `wxcli people me -o json` — confirm email matches intended actor |
+| WebRTC / browser calling | User has `CALL_WITH_APP_REGISTERED_FOR_WEBEXCALLTEL` + `browserClientEnabled`; token user = WebRTC identity |
+| Phone loop | `wxcli devices list -o json` — both phones `connected`; script exit code 0 |
+| Device reassign | `wxcli devices list --mac <MAC> -o json` — `personId` matches target |
+| MCP wxops command | One smoke `wxops_run_command` or `wxcli` call with visible stdout |
+
+Skill: `.cursor/skills/wxops-verification/SKILL.md` for full checklist.
+
+**After significant wxops work:** update `wxops-session-context.md` and bump *Last updated*.
