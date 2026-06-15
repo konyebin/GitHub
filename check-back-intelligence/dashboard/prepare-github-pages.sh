@@ -19,6 +19,8 @@ echo "Creating sanitized demo workbook (no customer PII)…"
 
 cp "$DASH/index.html" "$DEST/index.html"
 cp "$DASH/dashboard.bundle.js" "$DEST/dashboard.bundle.js"
+mkdir -p "$DEST/vendor"
+cp "$DASH/vendor/"*.js "$DEST/vendor/"
 
 echo "Published Check Back dashboard → $DEST"
 echo "Live URL (after push to main): https://konyebin.github.io/GitHub/demos/check-back/index.html"

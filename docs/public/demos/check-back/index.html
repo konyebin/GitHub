@@ -342,10 +342,11 @@
   <div class="upload-card" id="dropZone">
     <div class="upload-icon">📊</div>
     <div class="upload-title">Customer Adoption Intelligence</div>
-    <div class="upload-subtitle" id="uploadSubtitle">Loading your Check Back workbook from Downloads…</div>
-    <label class="upload-btn-label" for="fileInput">📂 &nbsp;Load a different spreadsheet</label>
-    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+    <div class="upload-subtitle" id="uploadSubtitle">Upload your Check Back .xlsx workbook to begin</div>
+    <label class="upload-btn-label" for="fileInput">📂 &nbsp;Upload Check Back .xlsx</label>
+    <input type="file" id="fileInput" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
     <div class="upload-hint">Drop your Check Back .xlsx workbook here</div>
+    <button class="btn btn-outline btn-sm" type="button" id="loadSampleBtn" style="display:none;margin-top:12px;" onclick="reloadDefaultWorkbook()">Load sample workbook</button>
     <p style="margin-top:16px;font-size:12px;color:var(--text-muted);">If double-click does not work, run <code style="color:var(--accent-blue)">./open-dashboard.sh</code> in the dashboard folder.</p>
     <div id="libLoading" style="display:none;margin-top:14px;font-size:13px;color:var(--accent-blue);">Loading spreadsheet &amp; chart libraries…</div>
     <div class="supported-formats"><span class="format-badge">.XLSX</span><span class="format-badge">.XLS</span><span class="format-badge">.CSV</span></div>
@@ -638,6 +639,8 @@
   </div>
 </div>
 
+<script src="vendor/xlsx.full.min.js"></script>
+<script src="vendor/chart.umd.min.js"></script>
 <script src="dashboard.bundle.js"></script>
 <script>
 // Load CDN libs — XLSX + Chart required for upload; jsPDF lazy (PDF export only).
@@ -801,6 +804,13 @@ function setupUpload(){
   drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('drag-over');if(e.dataTransfer.files[0])processFile(e.dataTransfer.files[0]);});
   ensureCdnLibs().then(()=>{
     if(!verifyDashboardDeps())return;
+    if(IS_PUBLIC_HOST){
+      hideLoading();
+      showUploadFallback();
+      const sampleBtn=document.getElementById('loadSampleBtn');
+      if(sampleBtn)sampleBtn.style.display='inline-flex';
+      return;
+    }
     loadDefaultWorkbook();
   }).catch(err=>{
     console.warn(err);
@@ -811,10 +821,11 @@ function setupUpload(){
 }
 
 function showUploadFallback(){
+  hideLoading();
   const sub=document.getElementById('uploadSubtitle');
   if(sub){
     sub.innerHTML=IS_PUBLIC_HOST
-      ? 'Upload your Check Back workbook (.xlsx). Data stays in your browser — nothing is sent to a server.'
+      ? 'Upload your Check Back <strong>.xlsx</strong> workbook. Parsing runs in your browser — nothing is uploaded to a server.'
       : 'Auto-load needs the local server (<code>./open-dashboard.sh</code>). Or choose another spreadsheet below.';
   }
   document.getElementById('uploadZone').style.display='flex';
@@ -887,7 +898,7 @@ async function loadDefaultWorkbook(force){
     showUploadFallback();
     return;
   }
-  showLoading('Loading Check Back workbook...');
+  showLoading('Loading sample workbook…');
   const sub=document.getElementById('uploadSubtitle');
   if(sub)sub.textContent='Loading '+DEFAULT_WORKBOOK_NAME+'…';
   try{
@@ -910,7 +921,8 @@ async function loadDefaultWorkbook(force){
 
 function reloadDefaultWorkbook(){
   _defaultLoadAttempted=false;
-  showLoading('Reloading default workbook...');
+  document.getElementById('uploadZone').style.display='none';
+  showLoading('Loading sample workbook…');
   loadDefaultWorkbook(true);
 }
 
