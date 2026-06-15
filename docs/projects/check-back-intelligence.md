@@ -8,6 +8,10 @@
 
 **Customer adoption analytics** — track whether Webex customers use what they pay for. Drop PDFs and screenshots into a folder, populate a Check Back spreadsheet via CLI, then explore adoption health in an interactive dashboard.
 
+## Live dashboard (GitHub Pages)
+
+**[Open Check Back dashboard](https://konyebin.github.io/GitHub/demos/check-back/index.html)** — upload any Check Back `.xlsx` in the browser. A sanitized sample loads by default; your data never leaves the browser.
+
 ## When to use it
 
 - Build or refresh Check Back workbooks from customer source documents

@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Webex Customer Adoption Intelligence</title>
+<style>
+  :root{
+    --bg-primary:#0a0e1a;--bg-secondary:#111827;--bg-card:#1a2235;--bg-card-hover:#1e2a40;
+    --accent-blue:#00bceb;--accent-green:#00d4a0;--accent-orange:#ff6b35;--accent-purple:#7c3aed;
+    --accent-yellow:#fbbf24;--accent-pink:#ec4899;--accent-teal:#14b8a6;
+    --text-primary:#f1f5f9;--text-secondary:#94a3b8;--text-muted:#64748b;
+    --border:#1e3a5f;--border-light:#2d4a6e;
+    --shadow:0 4px 24px rgba(0,0,0,.4);--shadow-lg:0 8px 40px rgba(0,0,0,.6);
+    --gradient-blue:linear-gradient(135deg,#00bceb,#0066cc);
+    --gradient-green:linear-gradient(135deg,#00d4a0,#00897b);
+    --gradient-orange:linear-gradient(135deg,#ff6b35,#e53e3e);
+    --gradient-purple:linear-gradient(135deg,#7c3aed,#4f46e5);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg-primary);color:var(--text-primary);min-height:100vh;overflow-x:hidden;}
+  ::-webkit-scrollbar{width:6px;height:6px;}
+  ::-webkit-scrollbar-track{background:var(--bg-secondary);}
+  ::-webkit-scrollbar-thumb{background:var(--accent-blue);border-radius:3px;}
+  .header{background:linear-gradient(135deg,#0a0e1a 0%,#111827 50%,#0a1628 100%);border-bottom:1px solid var(--border);padding:0 24px;position:sticky;top:0;z-index:1000;}
+  .header-inner{display:flex;align-items:center;justify-content:space-between;height:64px;max-width:1800px;margin:0 auto;}
+  .logo{display:flex;align-items:center;gap:12px;}
+  .logo-icon{width:36px;height:36px;background:var(--gradient-blue);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#fff;letter-spacing:-1px;}
+  .logo-text{font-size:18px;font-weight:700;}
+  .logo-text span{color:var(--accent-blue);}
+  .header-actions{display:flex;gap:10px;align-items:center;}
+  .btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;transition:all .2s;}
+  .btn-primary{background:var(--gradient-blue);color:#fff;}
+  .btn-primary:hover{opacity:.85;transform:translateY(-1px);}
+  .btn-outline{background:transparent;color:var(--accent-blue);border:1px solid var(--accent-blue);}
+  .btn-outline:hover{background:rgba(0,188,235,.1);}
+  .btn-success{background:var(--gradient-green);color:#fff;}
+  .btn-success:hover{opacity:.85;}
+  .btn-danger{background:var(--gradient-orange);color:#fff;}
+  .btn-danger:hover{opacity:.85;}
+  .btn-purple{background:var(--gradient-purple);color:#fff;}
+  .btn-purple:hover{opacity:.85;}
+  .btn-sm{padding:5px 10px;font-size:12px;}
+  #uploadZone{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 64px);padding:40px;}
+  .upload-card{background:var(--bg-card);border:2px dashed var(--border-light);border-radius:20px;padding:60px 80px;text-align:center;max-width:600px;width:100%;transition:all .3s;cursor:pointer;}
+  .upload-card:hover,.upload-card.drag-over{border-color:var(--accent-blue);background:rgba(0,188,235,.05);transform:translateY(-4px);box-shadow:0 0 40px rgba(0,188,235,.2);}
+  .upload-icon{font-size:72px;margin-bottom:20px;animation:float 3s ease-in-out infinite;}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+  .upload-title{font-size:26px;font-weight:700;margin-bottom:10px;}
+  .upload-subtitle{color:var(--text-secondary);font-size:15px;margin-bottom:30px;line-height:1.6;}
+  .upload-btn-label{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:var(--gradient-blue);color:#fff;border-radius:10px;font-weight:600;cursor:pointer;transition:all .2s;font-size:15px;}
+  .upload-btn-label:hover{opacity:.85;transform:translateY(-2px);}
+  #fileInput{display:none;}
+  .upload-hint{margin-top:16px;color:var(--text-muted);font-size:13px;}
+  .supported-formats{display:flex;gap:12px;justify-content:center;margin-top:20px;}
+  .format-badge{padding:4px 12px;background:rgba(0,188,235,.1);border:1px solid rgba(0,188,235,.3);border-radius:20px;font-size:12px;color:var(--accent-blue);font-weight:600;}
+  #loadingOverlay{display:none;position:fixed;inset:0;background:rgba(10,14,26,.9);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:20px;}
+  .spinner{width:60px;height:60px;border:4px solid rgba(0,188,235,.2);border-top-color:var(--accent-blue);border-radius:50%;animation:spin 1s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-text{color:var(--text-secondary);font-size:16px;}
+  #dashboard{display:none;max-width:1800px;margin:0 auto;padding:24px;}
+  .filters-section{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:16px 20px;margin-bottom:24px;}
+  .filters-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .filters-title{font-size:14px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;}
+  .filters-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;}
+  .filter-group{display:flex;flex-direction:column;gap:4px;}
+  .filter-label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;}
+  .filter-select{background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-primary);border-radius:8px;padding:8px 10px;font-size:13px;cursor:pointer;}
+  .filter-select:focus{outline:none;border-color:var(--accent-blue);}
+  .filter-select option{background:var(--bg-secondary);}
+  .search-input{background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-primary);border-radius:8px;padding:8px 10px;font-size:13px;width:100%;}
+  .search-input:focus{outline:none;border-color:var(--accent-blue);}
+  .search-input::placeholder{color:var(--text-muted);}
+  .active-filters{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+  .filter-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(0,188,235,.15);border:1px solid rgba(0,188,235,.3);border-radius:20px;font-size:12px;color:var(--accent-blue);}
+  .filter-tag-remove{cursor:pointer;opacity:.7;font-size:14px;}
+  .filter-tag-remove:hover{opacity:1;}
+  .record-count{font-size:13px;color:var(--text-secondary);}
+  .record-count span{color:var(--accent-blue);font-weight:700;}
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-bottom:24px;}
+  .kpi-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:20px;position:relative;overflow:hidden;transition:all .3s;cursor:pointer;}
+  .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+  .kpi-card.blue::before{background:var(--gradient-blue);}
+  .kpi-card.green::before{background:var(--gradient-green);}
+  .kpi-card.orange::before{background:var(--gradient-orange);}
+  .kpi-card.purple::before{background:var(--gradient-purple);}
+  .kpi-card.yellow::before{background:linear-gradient(135deg,#fbbf24,#f59e0b);}
+  .kpi-card.pink::before{background:linear-gradient(135deg,#ec4899,#db2777);}
+  .kpi-card.teal::before{background:linear-gradient(135deg,#14b8a6,#0d9488);}
+  .kpi-card.cyan::before{background:linear-gradient(135deg,#06b6d4,#0284c7);}
+  .kpi-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:var(--border-light);}
+  .kpi-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px;}
+  .kpi-card.blue .kpi-icon{background:rgba(0,188,235,.15);}
+  .kpi-card.green .kpi-icon{background:rgba(0,212,160,.15);}
+  .kpi-card.orange .kpi-icon{background:rgba(255,107,53,.15);}
+  .kpi-card.purple .kpi-icon{background:rgba(124,58,237,.15);}
+  .kpi-card.yellow .kpi-icon{background:rgba(251,191,36,.15);}
+  .kpi-card.pink .kpi-icon{background:rgba(236,72,153,.15);}
+  .kpi-card.teal .kpi-icon{background:rgba(20,184,166,.15);}
+  .kpi-card.cyan .kpi-icon{background:rgba(6,182,212,.15);}
+  .kpi-label{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:6px;}
+  .kpi-value{font-size:28px;font-weight:800;color:var(--text-primary);line-height:1;margin-bottom:6px;}
+  .kpi-sub{font-size:12px;color:var(--text-secondary);}
+  .kpi-bg-icon{position:absolute;right:-10px;bottom:-10px;font-size:80px;opacity:.04;}
+  .kpi-drill-hint{position:absolute;top:10px;right:10px;font-size:10px;color:var(--text-muted);opacity:0;transition:opacity .2s;}
+  .kpi-card:hover .kpi-drill-hint{opacity:1;}
+  .tabs{display:flex;gap:4px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:24px;overflow-x:auto;}
+  .tab{padding:10px 20px;border-radius:8px;border:none;background:transparent;color:var(--text-secondary);font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .2s;display:flex;align-items:center;gap:6px;}
+  .tab:hover{color:var(--text-primary);background:rgba(255,255,255,.05);}
+  .tab.active{background:var(--gradient-blue);color:#fff;}
+  .tab-content{display:none;}
+  .tab-content.active{display:block;}
+  .charts-grid{display:grid;gap:20px;margin-bottom:24px;}
+  .charts-2col{grid-template-columns:repeat(2,1fr);}
+  .charts-3col{grid-template-columns:repeat(3,1fr);}
+  .chart-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:20px;transition:all .3s;position:relative;}
+  .chart-card:hover{border-color:var(--border-light);box-shadow:var(--shadow);}
+  .chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+  .chart-title{font-size:15px;font-weight:700;color:var(--text-primary);}
+  .chart-subtitle{font-size:12px;color:var(--text-muted);margin-top:2px;}
+  .chart-actions{display:flex;gap:6px;align-items:center;}
+  .chart-type-btn{padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);font-size:11px;cursor:pointer;transition:all .2s;}
+  .chart-type-btn.active,.chart-type-btn:hover{border-color:var(--accent-blue);color:var(--accent-blue);background:rgba(0,188,235,.1);}
+  .chart-container{position:relative;}
+  .chart-container canvas{max-height:300px;}
+  .chart-container-tall canvas{max-height:400px;}
+  .drill-hint-badge{position:absolute;top:12px;left:12px;background:rgba(0,188,235,.15);border:1px solid rgba(0,188,235,.3);border-radius:20px;padding:3px 10px;font-size:10px;color:var(--accent-blue);font-weight:600;pointer-events:none;opacity:0;transition:opacity .3s;}
+  .chart-card:hover .drill-hint-badge{opacity:1;}
+  /* DRILL MODAL */
+  .drill-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:3000;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+  .drill-overlay.open{display:flex;}
+  .drill-modal{background:var(--bg-card);border:1px solid var(--border-light);border-radius:20px;width:92vw;max-width:1300px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 20px 80px rgba(0,0,0,.8);overflow:hidden;}
+  .drill-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,#0d1526,#111827);flex-shrink:0;}
+  .drill-breadcrumb{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-muted);}
+  .drill-breadcrumb .crumb{color:var(--text-secondary);cursor:pointer;transition:color .2s;}
+  .drill-breadcrumb .crumb:hover{color:var(--accent-blue);}
+  .drill-breadcrumb .crumb-sep{color:var(--text-muted);}
+  .drill-breadcrumb .crumb-current{color:var(--accent-blue);font-weight:700;}
+  .drill-title{font-size:18px;font-weight:800;color:var(--text-primary);}
+  .drill-subtitle{font-size:13px;color:var(--text-muted);margin-top:2px;}
+  .drill-close{background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text-secondary);width:36px;height:36px;border-radius:8px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+  .drill-close:hover{background:rgba(239,68,68,.15);border-color:#ef4444;color:#f87171;}
+  .drill-body{display:flex;flex-direction:column;overflow:hidden;flex:1;}
+  .drill-kpi-strip{display:flex;gap:12px;padding:16px 24px;border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0;background:rgba(0,0,0,.2);}
+  .drill-kpi{background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:12px 16px;min-width:140px;flex-shrink:0;}
+  .drill-kpi-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:4px;}
+  .drill-kpi-value{font-size:18px;font-weight:800;color:var(--accent-blue);}
+  .drill-kpi-sub{font-size:11px;color:var(--text-secondary);margin-top:2px;}
+  .drill-content{display:flex;flex:1;overflow:hidden;}
+  .drill-chart-panel{width:380px;flex-shrink:0;padding:20px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:16px;overflow-y:auto;}
+  .drill-chart-panel canvas{max-height:220px;}
+  .drill-table-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+  .drill-table-controls{display:flex;gap:10px;align-items:center;padding:14px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;flex-shrink:0;}
+  .drill-search{background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-primary);border-radius:8px;padding:7px 12px;font-size:13px;flex:1;min-width:180px;}
+  .drill-search:focus{outline:none;border-color:var(--accent-blue);}
+  .drill-search::placeholder{color:var(--text-muted);}
+  .drill-sort-select{background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-primary);border-radius:8px;padding:7px 10px;font-size:12px;cursor:pointer;}
+  .drill-page-size{background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-primary);border-radius:8px;padding:7px 10px;font-size:12px;cursor:pointer;}
+  .drill-table-wrapper{flex:1;overflow:auto;}
+  .drill-table{width:100%;border-collapse:collapse;font-size:12px;}
+  .drill-table thead th{background:#0d1526;color:var(--text-secondary);padding:10px 12px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;position:sticky;top:0;z-index:1;transition:background .2s;}
+  .drill-table thead th:hover{background:#162030;color:var(--accent-blue);}
+  .drill-table thead th.sort-asc::after{content:' ↑';color:var(--accent-blue);}
+  .drill-table thead th.sort-desc::after{content:' ↓';color:var(--accent-blue);}
+  .drill-table tbody tr{border-bottom:1px solid rgba(30,58,95,.4);transition:background .15s;cursor:pointer;}
+  .drill-table tbody tr:hover{background:rgba(0,188,235,.06);}
+  .drill-table tbody td{padding:9px 12px;color:var(--text-primary);white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis;}
+  .drill-table tbody td.numeric{text-align:right;font-variant-numeric:tabular-nums;}
+  .drill-pagination{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-top:1px solid var(--border);flex-shrink:0;background:rgba(0,0,0,.2);}
+  .drill-pagination-info{font-size:12px;color:var(--text-secondary);}
+  .drill-pagination-controls{display:flex;gap:4px;}
+  .drill-page-btn{padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);font-size:12px;cursor:pointer;min-width:32px;text-align:center;transition:all .2s;}
+  .drill-page-btn:hover{border-color:var(--accent-blue);color:var(--accent-blue);}
+  .drill-page-btn.active{background:var(--accent-blue);color:#fff;border-color:var(--accent-blue);}
+  .drill-page-btn:disabled{opacity:.4;cursor:not-allowed;}
+  .drill-footer{display:flex;gap:10px;padding:14px 24px;border-top:1px solid var(--border);background:rgba(0,0,0,.2);flex-shrink:0;flex-wrap:wrap;align-items:center;}
+  .drill-record-badge{background:rgba(0,188,235,.1);border:1px solid rgba(0,188,235,.3);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--accent-blue);font-weight:700;}
+  /* ROW DETAIL */
+  .row-detail-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:4000;align-items:center;justify-content:center;backdrop-filter:blur(6px);}
+  .row-detail-overlay.open{display:flex;}
+  .row-detail-modal{background:var(--bg-card);border:1px solid var(--border-light);border-radius:16px;width:700px;max-width:95vw;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 80px rgba(0,0,0,.9);}
+  .row-detail-header{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,#0d1526,#111827);}
+  .row-detail-title{font-size:16px;font-weight:800;color:var(--text-primary);}
+  .row-detail-close{background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text-secondary);width:32px;height:32px;border-radius:6px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .row-detail-close:hover{background:rgba(239,68,68,.15);border-color:#ef4444;color:#f87171;}
+  .row-detail-body{overflow-y:auto;padding:20px;}
+  .row-detail-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+  .row-detail-field{background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;padding:10px 12px;}
+  .row-detail-field-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:4px;}
+  .row-detail-field-value{font-size:13px;color:var(--text-primary);font-weight:600;word-break:break-word;}
+  .row-detail-field.highlight{border-color:var(--accent-blue);background:rgba(0,188,235,.05);}
+  .row-detail-field.highlight .row-detail-field-value{color:var(--accent-blue);}
+  .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+  .badge-high{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3);}
+  .badge-medium{background:rgba(251,191,36,.15);color:#fbbf24;border:1px solid rgba(251,191,36,.3);}
+  .badge-low{background:rgba(0,212,160,.15);color:#00d4a0;border:1px solid rgba(0,212,160,.3);}
+  .badge-blue{background:rgba(0,188,235,.15);color:var(--accent-blue);border:1px solid rgba(0,188,235,.3);}
+  .table-section{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:24px;}
+  .table-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+  .table-title{font-size:15px;font-weight:700;}
+  .table-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .table-search{background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-primary);border-radius:8px;padding:8px 12px;font-size:13px;width:220px;}
+  .table-search:focus{outline:none;border-color:var(--accent-blue);}
+  .table-search::placeholder{color:var(--text-muted);}
+  .page-size-select{background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-primary);border-radius:8px;padding:8px 10px;font-size:13px;cursor:pointer;}
+  .col-toggle-btn{padding:7px 12px;border-radius:8px;background:transparent;border:1px solid var(--border);color:var(--text-secondary);font-size:12px;cursor:pointer;transition:all .2s;}
+  .col-toggle-btn:hover{border-color:var(--accent-blue);color:var(--accent-blue);}
+  .table-wrapper{overflow:auto;border-radius:10px;border:1px solid var(--border);}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead th{background:#0d1526;color:var(--text-secondary);padding:12px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;position:sticky;top:0;z-index:1;transition:background .2s;}
+  thead th:hover{background:#162030;color:var(--accent-blue);}
+  thead th.sort-asc::after{content:' ↑';color:var(--accent-blue);}
+  thead th.sort-desc::after{content:' ↓';color:var(--accent-blue);}
+  tbody tr{border-bottom:1px solid rgba(30,58,95,.5);transition:background .15s;cursor:pointer;}
+  tbody tr:hover{background:rgba(0,188,235,.05);}
+  tbody td{padding:11px 14px;color:var(--text-primary);white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis;}
+  tbody td.numeric{text-align:right;font-variant-numeric:tabular-nums;}
+  .pagination{display:flex;align-items:center;justify-content:space-between;margin-top:16px;flex-wrap:wrap;gap:10px;}
+  .pagination-info{font-size:13px;color:var(--text-secondary);}
+  .pagination-controls{display:flex;gap:4px;}
+  .page-btn{padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);font-size:13px;cursor:pointer;transition:all .2s;min-width:36px;text-align:center;}
+  .page-btn:hover{border-color:var(--accent-blue);color:var(--accent-blue);}
+  .page-btn.active{background:var(--accent-blue);color:#fff;border-color:var(--accent-blue);}
+  .page-btn:disabled{opacity:.4;cursor:not-allowed;}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:2000;align-items:center;justify-content:center;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:24px;width:700px;max-width:95vw;max-height:80vh;overflow:auto;}
+  .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+  .modal-title{font-size:16px;font-weight:700;}
+  .modal-close{background:none;border:none;color:var(--text-secondary);font-size:24px;cursor:pointer;line-height:1;}
+  .modal-close:hover{color:var(--text-primary);}
+  .col-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-top:12px;}
+  .col-checkbox{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg-secondary);border-radius:8px;cursor:pointer;font-size:12px;color:var(--text-secondary);transition:all .2s;}
+  .col-checkbox:hover{color:var(--text-primary);}
+  .col-checkbox input{accent-color:var(--accent-blue);}
+  .insights-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:24px;}
+  .insight-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:20px;}
+  .insight-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .insight-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;background:rgba(0,188,235,.15);}
+  .insight-title{font-size:14px;font-weight:700;}
+  .insight-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(30,58,95,.5);cursor:pointer;border-radius:4px;transition:all .15s;}
+  .insight-item:last-child{border-bottom:none;}
+  .insight-item:hover{background:rgba(0,188,235,.05);padding-left:6px;}
+  .insight-name{font-size:13px;color:var(--text-secondary);}
+  .insight-val{font-size:13px;font-weight:700;color:var(--accent-blue);}
+  /* FIX: progress bar uses relative scale */
+  .progress-bar{height:5px;background:var(--bg-secondary);border-radius:3px;margin-top:5px;overflow:hidden;}
+  .progress-fill{height:100%;border-radius:3px;background:var(--gradient-blue);transition:width .6s ease;}
+  .export-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:16px 20px;background:var(--bg-card);border:1px solid var(--border);border-radius:14px;margin-bottom:24px;}
+  .export-label{font-size:13px;font-weight:600;color:var(--text-secondary);margin-right:4px;}
+  .clickable-chart{cursor:pointer;}
+  @media(max-width:1200px){.charts-3col{grid-template-columns:repeat(2,1fr);}.charts-2col{grid-template-columns:1fr;}.drill-chart-panel{width:300px;}}
+  @media(max-width:900px){.drill-content{flex-direction:column;}.drill-chart-panel{width:100%;border-right:none;border-bottom:1px solid var(--border);max-height:300px;}}
+  @media(max-width:768px){.charts-3col,.charts-2col{grid-template-columns:1fr;}.kpi-grid{grid-template-columns:repeat(2,1fr);}.row-detail-grid{grid-template-columns:1fr;}}
+  .customer-link{background:none;border:none;color:var(--accent-blue);font-weight:700;font-size:inherit;cursor:pointer;padding:0;text-align:left;text-decoration:underline;text-underline-offset:3px;}
+  .customer-link:hover{color:#7dd3fc;}
+  .customer-portfolio-panel{display:flex;flex-direction:column;gap:20px;}
+  .portfolio-table-mount{margin-bottom:0;}
+  .insight-health-upsell{background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;}
+  .bia-template-tag{color:#c4b5fd;}
+  .bia-feature-caption{font-size:10px;color:var(--text-muted);margin:-4px 0 8px;text-transform:uppercase;letter-spacing:.3px;}
+  .bia-addon-table{width:100%;font-size:11px;border-collapse:collapse;margin-top:8px;}
+  .bia-addon-table th,.bia-addon-table td{border:1px solid rgba(255,255,255,.1);padding:4px 6px;text-align:center;}
+  .bia-addon-table th{text-align:left;background:rgba(0,0,0,.2);}
+  .bia-trends-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;padding:12px 14px;background:rgba(0,0,0,.2);border-radius:8px;}
+  .checkback-charts-wrap{margin-top:8px;}
+  .checkback-charts-wrap summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--text-secondary);padding:10px 0;list-style:none;}
+  .checkback-charts-wrap summary::-webkit-details-marker{display:none;}
+  .account-insight-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:5000;align-items:flex-start;justify-content:center;overflow-y:auto;padding:24px 16px;backdrop-filter:blur(8px);}
+  .account-insight-overlay.open{display:flex;}
+  .account-insight-shell{position:relative;width:min(1280px,100%);margin:0 auto;}
+  .account-insight-close{position:sticky;top:8px;float:right;z-index:2;background:rgba(15,23,42,.9);border:1px solid var(--border);color:var(--text-secondary);width:40px;height:40px;border-radius:10px;font-size:20px;cursor:pointer;margin-bottom:-40px;}
+  .account-insight-close:hover{border-color:#ef4444;color:#f87171;}
+  .insight-slide{background:linear-gradient(180deg,#0f172a 0%,#0a0e1a 100%);border:1px solid var(--border-light);border-radius:16px;padding:28px 32px 20px;box-shadow:0 24px 80px rgba(0,0,0,.7);}
+  .insight-top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:16px;}
+  .insight-h1{font-size:28px;font-weight:800;line-height:1.15;margin-bottom:6px;}
+  .insight-subtitle{font-size:16px;color:var(--text-secondary);font-weight:600;}
+  .insight-meta{font-size:12px;color:var(--text-muted);margin-top:6px;}
+  .insight-health{min-width:120px;height:120px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;text-transform:uppercase;letter-spacing:.5px;flex-shrink:0;}
+  .insight-health-good{background:linear-gradient(135deg,#00d4a0,#00897b);color:#042f2e;}
+  .insight-health-watch{background:linear-gradient(135deg,#fbbf24,#d97706);color:#422006;}
+  .insight-health-risk{background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;}
+  .insight-health-unknown{background:var(--bg-secondary);color:var(--text-muted);border:1px solid var(--border);}
+  .insight-timeline{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;margin-bottom:20px;background:rgba(0,0,0,.25);border-radius:8px;font-size:12px;color:var(--text-muted);}
+  .insight-now{color:var(--accent-blue);font-weight:800;}
+  .insight-panels{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px;}
+  .insight-panel{border-radius:10px;padding:16px 18px;border:2px solid transparent;}
+  .insight-panel h3{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.15);}
+  .insight-panel-cyan{background:rgba(6,182,212,.12);border-color:#06b6d4;}
+  .insight-panel-cyan h3{color:#67e8f9;}
+  .insight-panel-orange{background:rgba(255,107,53,.12);border-color:#ff6b35;}
+  .insight-panel-orange h3{color:#fdba74;}
+  .insight-panel-magenta{background:rgba(236,72,153,.12);border-color:#ec4899;}
+  .insight-panel-magenta h3{color:#f9a8d4;}
+  .insight-panel-notes{background:rgba(59,130,246,.12);border-color:#3b82f6;margin-bottom:16px;}
+  .insight-panel-notes h3{color:#93c5fd;}
+  .insight-kv{display:flex;justify-content:space-between;gap:12px;padding:5px 0;font-size:12px;border-bottom:1px solid rgba(255,255,255,.06);}
+  .insight-kv span{color:var(--text-secondary);}
+  .insight-kv strong{color:var(--text-primary);text-align:right;max-width:58%;}
+  .insight-mono{font-family:ui-monospace,monospace;font-size:11px;}
+  .insight-lic-row{margin:8px 0;}
+  .insight-lic-label{font-size:11px;color:var(--text-secondary);}
+  .insight-lic-nums{font-size:11px;color:var(--accent-blue);float:right;}
+  .insight-lic-bar{clear:both;height:6px;background:rgba(0,0,0,.3);border-radius:4px;margin-top:4px;overflow:hidden;}
+  .insight-lic-fill{height:100%;background:var(--gradient-blue);border-radius:4px;}
+  .insight-feature-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px;}
+  .insight-feature-grid div{background:rgba(0,0,0,.2);border-radius:6px;padding:8px 10px;}
+  .insight-feature-grid span{display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;}
+  .insight-feature-grid strong{font-size:18px;color:var(--text-primary);}
+  .insight-kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px;}
+  .insight-kpi-card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;}
+  .insight-kpi-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;font-weight:700;margin-bottom:6px;}
+  .insight-kpi-value{font-size:20px;font-weight:800;color:var(--accent-blue);}
+  .insight-kpi-sub{font-size:10px;color:var(--text-secondary);margin-top:4px;min-height:14px;}
+  .insight-note{font-size:12px;line-height:1.5;color:var(--text-secondary);padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);}
+  .insight-note strong{color:var(--text-primary);}
+  .insight-trends{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;}
+  .insight-trend{font-size:11px;padding:4px 8px;border-radius:6px;background:rgba(0,212,160,.15);color:#00d4a0;font-weight:700;}
+  .insight-footer{text-align:center;font-size:11px;color:var(--text-muted);margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+  @media(max-width:1100px){.insight-panels{grid-template-columns:1fr;}.insight-kpi-strip{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">CI</div>
+      <div class="logo-text">Circuit<span>IQ</span> &nbsp;|&nbsp; Customer Adoption Intelligence</div>
+    </div>
+    <div class="header-actions"><span id="modeBadge" style="font-size:12px;padding:4px 12px;border-radius:20px;background:rgba(0,188,235,.15);border:1px solid rgba(0,188,235,.3);color:var(--accent-blue);"></span>
+      <span id="fileNameDisplay" style="font-size:13px;color:var(--text-muted);"></span>
+      <button class="btn btn-outline" type="button" id="reloadDefaultBtn" onclick="reloadDefaultWorkbook()" title="Reload from Downloads copy">🔄 Reload default</button>
+      <label class="btn btn-outline" style="cursor:pointer;">📂 Load different file<input type="file" id="fileInputHeader" accept=".xlsx,.xls,.csv" style="display:none;"></label>
+    </div>
+  </div>
+</header>
+
+<div id="bootError" style="display:none;max-width:720px;margin:24px auto;padding:16px 20px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.4);border-radius:12px;color:#fecaca;font-size:14px;line-height:1.5;"></div>
+
+<div id="uploadZone">
+  <div class="upload-card" id="dropZone">
+    <div class="upload-icon">📊</div>
+    <div class="upload-title">Customer Adoption Intelligence</div>
+    <div class="upload-subtitle" id="uploadSubtitle">Loading your Check Back workbook from Downloads…</div>
+    <label class="upload-btn-label" for="fileInput">📂 &nbsp;Load a different spreadsheet</label>
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+    <div class="upload-hint">Drop your populated Check Back .xlsx here (after PDF/screenshot ingest)</div>
+    <p style="margin-top:16px;font-size:12px;color:var(--text-muted);">If double-click does not work, run <code style="color:var(--accent-blue)">./open-dashboard.sh</code> in the dashboard folder.</p>
+    <div id="libLoading" style="display:none;margin-top:14px;font-size:13px;color:var(--accent-blue);">Loading spreadsheet &amp; chart libraries…</div>
+    <div class="supported-formats"><span class="format-badge">.XLSX</span><span class="format-badge">.XLS</span><span class="format-badge">.CSV</span></div>
+  </div>
+</div>
+
+<div id="loadingOverlay"><div class="spinner"></div><div class="loading-text" id="loadingText">Processing your data...</div></div>
+
+<!-- DRILL MODAL -->
+<div class="drill-overlay" id="drillOverlay">
+  <div class="drill-modal">
+    <div class="drill-header">
+      <div>
+        <div class="drill-breadcrumb" id="drillBreadcrumb"></div>
+        <div class="drill-title" id="drillTitle">Drill Down</div>
+        <div class="drill-subtitle" id="drillSubtitle"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn btn-success btn-sm" onclick="exportDrillCSV()">⬇️ CSV</button>
+        <button class="btn btn-success btn-sm" onclick="exportDrillExcel()">⬇️ Excel</button>
+        <button class="drill-close" onclick="closeDrill()">✕</button>
+      </div>
+    </div>
+    <div class="drill-kpi-strip" id="drillKpiStrip"></div>
+    <div class="drill-body">
+      <div class="drill-content">
+        <div class="drill-chart-panel">
+          <div style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Top Accounts by AOV</div>
+          <canvas id="drillMiniChart1" style="max-height:200px;"></canvas>
+          <div style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin:8px 0 4px;">Risk Distribution</div>
+          <canvas id="drillMiniChart2" style="max-height:160px;"></canvas>
+          <div style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin:8px 0 4px;">AOV by Product</div>
+          <canvas id="drillMiniChart3" style="max-height:160px;"></canvas>
+        </div>
+        <div class="drill-table-panel">
+          <div class="drill-table-controls">
+            <input class="drill-search" id="drillSearch" placeholder="🔍 Search records..." oninput="filterDrillTable()">
+            <select class="drill-sort-select" id="drillSortCol" onchange="sortDrillTable()"><option value="">Sort by...</option></select>
+            <select class="drill-sort-select" id="drillSortDir" onchange="sortDrillTable()"><option value="asc">↑ Asc</option><option value="desc">↓ Desc</option></select>
+            <select class="drill-page-size" id="drillPageSize" onchange="changeDrillPageSize()"><option value="20">20 rows</option><option value="50">50 rows</option><option value="100">100 rows</option></select>
+            <span style="font-size:11px;color:var(--text-muted);">Click any row for full detail</span>
+          </div>
+          <div class="drill-table-wrapper"><table class="drill-table"><thead id="drillTableHead"></thead><tbody id="drillTableBody"></tbody></table></div>
+          <div class="drill-pagination">
+            <div class="drill-pagination-info" id="drillPaginationInfo"></div>
+            <div class="drill-pagination-controls" id="drillPaginationControls"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="drill-footer">
+      <span class="drill-record-badge" id="drillRecordBadge">0 records</span>
+      <span style="font-size:12px;color:var(--text-muted);">Filtered from global dashboard state</span>
+      <div style="margin-left:auto;display:flex;gap:8px;">
+        <button class="btn btn-outline btn-sm" onclick="applyDrillAsFilter()">🔍 Apply as Dashboard Filter</button>
+        <button class="btn btn-outline btn-sm" onclick="closeDrill()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ROW DETAIL MODAL -->
+<div class="row-detail-overlay" id="rowDetailOverlay">
+  <div class="row-detail-modal">
+    <div class="row-detail-header">
+      <div class="row-detail-title" id="rowDetailTitle">Record Detail</div>
+      <button class="row-detail-close" onclick="closeRowDetail()">✕</button>
+    </div>
+    <div class="row-detail-body"><div class="row-detail-grid" id="rowDetailGrid"></div></div>
+    <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn btn-outline btn-sm" onclick="closeRowDetail()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ACCOUNT INSIGHT (PowerPoint-style slide) -->
+<div class="account-insight-overlay" id="accountInsightOverlay" onclick="if(event.target===this)AccountInsight.close()">
+  <div class="account-insight-shell">
+    <button type="button" class="account-insight-close" onclick="AccountInsight.close()" title="Close slide view">✕</button>
+    <div id="accountInsightBody"></div>
+  </div>
+</div>
+
+<!-- COL MODAL -->
+<div class="modal-overlay" id="colModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">🗂️ Configure Visible Columns</div><button class="modal-close" onclick="closeColModal()">✕</button></div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <button class="btn btn-outline" onclick="selectAllCols()">Select All</button>
+      <button class="btn btn-outline" onclick="deselectAllCols()">Deselect All</button>
+    </div>
+    <div class="col-grid" id="colGrid"></div>
+    <div style="margin-top:16px;text-align:right;"><button class="btn btn-primary" onclick="applyColSelection()">Apply Changes</button></div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="export-bar">
+    <span class="export-label">📤 Export:</span>
+    <button class="btn btn-success" onclick="exportCSV()">⬇️ CSV</button>
+    <button class="btn btn-success" onclick="exportExcel()">⬇️ Excel</button>
+    <button class="btn btn-danger" onclick="exportPDF()">⬇️ PDF Report</button>
+    <button class="btn btn-purple" onclick="exportFilteredExcel()">⬇️ Filtered Excel</button>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+      <span class="record-count">Showing <span id="filteredCount">0</span> of <span id="totalCount">0</span> records</span>
+      <button class="btn btn-outline" onclick="resetAllFilters()">🔄 Reset Filters</button>
+    </div>
+  </div>
+
+  <div class="filters-section">
+    <div class="filters-header"><div class="filters-title">🔍 Filters</div></div>
+    <div class="filters-grid" id="filtersGrid"></div>
+    <div class="active-filters" id="activeFilterTags"></div>
+  </div>
+
+  <div class="kpi-grid" id="kpiGrid"></div>
+
+  <div class="tabs">
+        <button class="tab" data-tab="adoption" onclick="showTab('adoption',this)" style="display:none;">🚦 Adoption Health</button>
+    <button class="tab active" data-tab="overview" onclick="showTab('overview',this)">📈 Overview</button>
+    <button class="tab" data-tab="revenue" onclick="showTab('revenue',this)">💰 Revenue & AOV</button>
+    <button class="tab" data-tab="renewals" onclick="showTab('renewals',this)">🔄 Renewals</button>
+    <button class="tab" data-tab="seats" onclick="showTab('seats',this)">🖥️ Seats & Usage</button>
+    <button class="tab" data-tab="risk" onclick="showTab('risk',this)">⚠️ Risk & Lifecycle</button>
+    <button class="tab" data-tab="partners" onclick="showTab('partners',this)">🤝 Partners</button>
+    <button class="tab" data-tab="pipeline" onclick="showTab('pipeline',this)">📋 Pipeline</button>
+    <button class="tab" data-tab="datatable" onclick="showTab('datatable',this)">📂 Data Table</button>
+  </div>
+
+
+  <!-- ADOPTION (Check Back) -->
+  <div class="tab-content" id="tab-adoption">
+    <div class="customer-portfolio-panel" id="customerPortfolioPanel">
+    <div class="portfolio-table-mount" id="portfolioTableMount"></div>
+    <details class="checkback-charts-wrap" id="checkbackChartsWrap" open>
+      <summary>📊 Portfolio summary charts</summary>
+    <div class="charts-grid charts-2col">
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div>
+        <div class="chart-header"><div><div class="chart-title">G / Y / R Health</div><div class="chart-subtitle">Customer adoption traffic lights</div></div></div>
+        <div class="chart-container clickable-chart"><canvas id="cbGyrChart"></canvas></div></div>
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div>
+        <div class="chart-header"><div><div class="chart-title">CCEP Trial Status</div></div></div>
+        <div class="chart-container clickable-chart"><canvas id="cbTrialChart"></canvas></div></div>
+    </div>
+    <div class="charts-grid charts-2col">
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div>
+        <div class="chart-header"><div><div class="chart-title">Entitled vs Provisioned vs Active</div><div class="chart-subtitle">Top accounts by license stack</div></div></div>
+        <div class="chart-container chart-container-tall clickable-chart"><canvas id="cbLicenseChart"></canvas></div></div>
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div>
+        <div class="chart-header"><div><div class="chart-title">Migration Paths</div></div></div>
+        <div class="chart-container chart-container-tall clickable-chart"><canvas id="cbMigrationChart"></canvas></div></div>
+    </div>
+    <div class="charts-grid charts-3col">
+      <div class="chart-card"><div class="chart-header"><div class="chart-title">Partner Distribution</div></div>
+        <div class="chart-container clickable-chart"><canvas id="cbPartnerChart"></canvas></div></div>
+    </div>
+    <div class="insights-grid" id="adoptionInsights"></div>
+    </details>
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="tab-content active" id="tab-overview">
+    <div class="charts-grid charts-2col">
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div>
+        <div class="chart-header"><div><div class="chart-title">Renewals by Fiscal Quarter</div><div class="chart-subtitle">Click any bar to explore records</div></div>
+          <div class="chart-actions"><button class="chart-type-btn active" onclick="changeChartType('renewalQtrChart','bar',this)">Bar</button><button class="chart-type-btn" onclick="changeChartType('renewalQtrChart','line',this)">Line</button></div>
+        </div><div class="chart-container clickable-chart"><canvas id="renewalQtrChart"></canvas></div></div>
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div>
+        <div class="chart-header"><div><div class="chart-title">Offer Category Distribution</div><div class="chart-subtitle">Click any segment to explore records</div></div>
+          <div class="chart-actions"><button class="chart-type-btn active" onclick="changeChartType('offerCatChart','doughnut',this)">Donut</button><button class="chart-type-btn" onclick="changeChartType('offerCatChart','pie',this)">Pie</button><button class="chart-type-btn" onclick="changeChartType('offerCatChart','bar',this)">Bar</button></div>
+        </div><div class="chart-container clickable-chart"><canvas id="offerCatChart"></canvas></div></div>
+    </div>
+    <div class="charts-grid charts-3col">
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">Industry Vertical Mix</div><div class="chart-subtitle">Click to explore by vertical</div></div></div><div class="chart-container clickable-chart"><canvas id="industryChart"></canvas></div></div>
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">Deployment Type</div><div class="chart-subtitle">Click to explore deployment</div></div></div><div class="chart-container clickable-chart"><canvas id="deploymentChart"></canvas></div></div>
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">Buying Model</div><div class="chart-subtitle">Click to explore buying model</div></div></div><div class="chart-container clickable-chart"><canvas id="buyingModelChart"></canvas></div></div>
+    </div>
+    <div class="charts-grid charts-2col">
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">Top 10 Accounts by AOV</div><div class="chart-subtitle">Click any account to drill in</div></div></div><div class="chart-container chart-container-tall clickable-chart"><canvas id="topAccountsChart"></canvas></div></div>
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">Renewal Type Breakdown</div><div class="chart-subtitle">Click to explore renewal types</div></div></div><div class="chart-container chart-container-tall clickable-chart"><canvas id="renewalTypeChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- REVENUE -->
+  <div class="tab-content" id="tab-revenue">
+    <div class="charts-grid charts-2col">
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">AOV by Product Category</div><div class="chart-subtitle">Click bar to explore product records</div></div></div><div class="chart-container chart-container-tall clickable-chart"><canvas id="aovProductChart"></canvas></div></div>
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">Cloud vs On-Prem AOV</div><div class="chart-subtitle">Click to explore deployment revenue</div></div></div><div class="chart-container chart-container-tall clickable-chart"><canvas id="cloudOnPremAovChart"></canvas></div></div>
+    </div>
+    <div class="charts-grid charts-3col">
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">CAV BU AOV Tier</div><div class="chart-subtitle">Click to explore tier</div></div></div><div class="chart-container clickable-chart"><canvas id="aovTierChart"></canvas></div></div>
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">Revenue by Sales Level 4</div><div class="chart-subtitle">Click to explore territory</div></div></div><div class="chart-container clickable-chart"><canvas id="salesL4Chart"></canvas></div></div>
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">CAV BU Revenue Mix</div><div class="chart-subtitle">Click to explore BU</div></div></div><div class="chart-container clickable-chart"><canvas id="buRevenueChart"></canvas></div></div>
+    </div>
+    <div class="insights-grid" id="revenueInsights"></div>
+  </div>
+
+  <!-- RENEWALS -->
+  <div class="tab-content" id="tab-renewals">
+    <div class="charts-grid charts-2col">
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div>
+        <div class="chart-header"><div><div class="chart-title">Renewal Value at Risk by Quarter</div><div class="chart-subtitle">Total AOV expiring per fiscal quarter by risk level</div></div>
+          <div class="chart-actions"><button class="chart-type-btn active" onclick="changeChartType('renewalValueAtRiskChart','bar',this)">Stacked</button><button class="chart-type-btn" onclick="changeChartType('renewalValueAtRiskChart','line',this)">Line</button></div>
+        </div><div class="chart-container chart-container-tall clickable-chart"><canvas id="renewalValueAtRiskChart"></canvas></div></div>
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div>
+        <div class="chart-header"><div><div class="chart-title">Renewal AOV by Fiscal Quarter</div><div class="chart-subtitle">Quarterly revenue with cumulative trend line</div></div>
+          <div class="chart-actions"><button class="chart-type-btn active" onclick="changeChartType('renewalAovByQtrChart','bar',this)">Bar</button><button class="chart-type-btn" onclick="changeChartType('renewalAovByQtrChart','line',this)">Line</button></div>
+        </div><div class="chart-container chart-container-tall clickable-chart"><canvas id="renewalAovByQtrChart"></canvas></div></div>
+    </div>
+    <div class="charts-grid charts-3col">
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">Initial vs Renewal Term Length</div><div class="chart-subtitle">Click to explore term durations</div></div></div><div class="chart-container clickable-chart"><canvas id="termLengthChart"></canvas></div></div>
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">Renewal Week Distribution</div><div class="chart-subtitle">Upcoming renewal weeks</div></div></div><div class="chart-container clickable-chart"><canvas id="renewalWeekChart"></canvas></div></div>
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">ATO Status</div><div class="chart-subtitle">Click to explore ATO</div></div></div><div class="chart-container clickable-chart"><canvas id="atoChart"></canvas></div></div>
+    </div>
+    <div class="charts-grid charts-3col">
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">Big/Little Fish</div><div class="chart-subtitle">Click to explore segment</div></div></div><div class="chart-container clickable-chart"><canvas id="fishChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- SEATS -->
+  <div class="tab-content" id="tab-seats">
+    <div class="charts-grid charts-2col">
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">Billed Seats by Product</div><div class="chart-subtitle">Click to explore seat data</div></div></div><div class="chart-container chart-container-tall clickable-chart"><canvas id="billedSeatsChart"></canvas></div></div>
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">Provisioned vs Billed Seats</div><div class="chart-subtitle">Click to explore provisioning</div></div></div><div class="chart-container chart-container-tall clickable-chart"><canvas id="provisionedChart"></canvas></div></div>
+    </div>
+    <div class="charts-grid charts-3col">
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">Calling Consumption</div><div class="chart-subtitle">Click to explore consumption</div></div></div><div class="chart-container clickable-chart"><canvas id="callingConsumptionChart"></canvas></div></div>
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">Total Billed Seats by BU</div><div class="chart-subtitle">Click to explore BU seats</div></div></div><div class="chart-container clickable-chart"><canvas id="seatsByBuChart"></canvas></div></div>
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">Cloud vs On-Prem Seats</div><div class="chart-subtitle">Click to explore deployment</div></div></div><div class="chart-container clickable-chart"><canvas id="cloudOnPremSeatsChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- RISK -->
+  <div class="tab-content" id="tab-risk">
+    <div class="charts-grid charts-2col">
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">Risk 2.0 Distribution</div><div class="chart-subtitle">Click to explore risk cohort</div></div></div><div class="chart-container chart-container-tall clickable-chart"><canvas id="riskChart"></canvas></div></div>
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">Lifecycle Stage Distribution</div><div class="chart-subtitle">Click to explore lifecycle stage</div></div></div><div class="chart-container chart-container-tall clickable-chart"><canvas id="lifecycleChart"></canvas></div></div>
+    </div>
+    <div class="charts-grid charts-2col">
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">Risk by Industry Vertical</div><div class="chart-subtitle">Click to explore risk by industry</div></div></div><div class="chart-container chart-container-tall clickable-chart"><canvas id="riskByIndustryChart"></canvas></div></div>
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">Risk by Renewal Quarter</div><div class="chart-subtitle">Click to explore risk by quarter</div></div></div><div class="chart-container chart-container-tall clickable-chart"><canvas id="riskByQtrChart"></canvas></div></div>
+    </div>
+    <div class="insights-grid" id="riskInsights"></div>
+  </div>
+
+  <!-- PARTNERS -->
+  <div class="tab-content" id="tab-partners">
+    <div class="charts-grid charts-2col">
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">Top 15 Partners by AOV</div><div class="chart-subtitle">Click to explore partner records</div></div></div><div class="chart-container chart-container-tall clickable-chart"><canvas id="partnerAovChart"></canvas></div></div>
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">Top 10 Distributors</div><div class="chart-subtitle">Click to explore distributor records</div></div></div><div class="chart-container chart-container-tall clickable-chart"><canvas id="distributorChart"></canvas></div></div>
+    </div>
+    <div class="charts-grid charts-3col">
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">Partner Renewal Count</div><div class="chart-subtitle">Click to explore partner volume</div></div></div><div class="chart-container clickable-chart"><canvas id="partnerCountChart"></canvas></div></div>
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">CSM Manager Performance</div><div class="chart-subtitle">Click to explore CSM portfolio</div></div></div><div class="chart-container clickable-chart"><canvas id="csmManagerChart"></canvas></div></div>
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">SAV Group Distribution</div><div class="chart-subtitle">Click to explore SAV groups</div></div></div><div class="chart-container clickable-chart"><canvas id="savGroupChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- PIPELINE -->
+  <div class="tab-content" id="tab-pipeline">
+    <div class="charts-grid charts-2col">
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">SFDC Opportunity Stage</div><div class="chart-subtitle">Click to explore SFDC pipeline</div></div></div><div class="chart-container chart-container-tall clickable-chart"><canvas id="sfdcStageChart"></canvas></div></div>
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">S&amp;C Opportunity Stage</div><div class="chart-subtitle">Click to explore S&amp;C pipeline</div></div></div><div class="chart-container chart-container-tall clickable-chart"><canvas id="scStageChart"></canvas></div></div>
+    </div>
+    <div class="charts-grid charts-3col">
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">Offer Type Sub-Group</div><div class="chart-subtitle">Click to explore offer types</div></div></div><div class="chart-container clickable-chart"><canvas id="offerSubGroupChart"></canvas></div></div>
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">Offer Level 2 Distribution</div><div class="chart-subtitle">Click to explore L2 offers</div></div></div><div class="chart-container clickable-chart"><canvas id="offerL2Chart"></canvas></div></div>
+      <div class="chart-card"><div class="drill-hint-badge">🔍 Click to drill down</div><div class="chart-header"><div><div class="chart-title">PSS Coverage</div><div class="chart-subtitle">Click to explore PSS accounts</div></div></div><div class="chart-container clickable-chart"><canvas id="pssChart"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- DATA TABLE -->
+  <div class="tab-content" id="tab-datatable">
+    <div class="table-section">
+      <div class="table-header">
+        <div class="table-title">📋 Full Data Table <span style="font-size:12px;color:var(--text-muted);font-weight:400;">— Click any row for full record detail</span></div>
+        <div class="table-controls">
+          <input type="text" class="table-search" id="tableSearch" placeholder="🔍 Search all fields..." oninput="filterTable()">
+          <select class="page-size-select" id="pageSizeSelect" onchange="changePageSize()"><option value="25">25 rows</option><option value="50">50 rows</option><option value="100">100 rows</option><option value="250">250 rows</option></select>
+          <button class="col-toggle-btn" onclick="openColModal()">⚙️ Columns</button>
+          <button class="btn btn-success" onclick="exportTableCSV()">⬇️ CSV</button>
+          <button class="btn btn-success" onclick="exportTableExcel()">⬇️ Excel</button>
+        </div>
+      </div>
+      <div class="table-wrapper"><table id="dataTable"><thead id="tableHead"></thead><tbody id="tableBody"></tbody></table></div>
+      <div class="pagination"><div class="pagination-info" id="paginationInfo"></div><div class="pagination-controls" id="paginationControls"></div></div>
+    </div>
+  </div>
+</div>
+
+<script src="dashboard.bundle.js"></script>
+<script>
+// Load CDN libs asynchronously (never block first paint).
+const CDN_LIB_SETS=[
+  [
+    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js'
+  ],
+  [
+    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+    'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js',
+    'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js',
+    'https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js'
+  ]
+];
+let _cdnLibsPromise=null;
+function loadExternalScript(src,timeoutMs){
+  return new Promise((resolve,reject)=>{
+    if(src.includes('xlsx')&&typeof XLSX!=='undefined')return resolve();
+    if(src.includes('chart')&&typeof Chart!=='undefined')return resolve();
+    if(src.includes('jspdf')&&typeof window.jspdf!=='undefined')return resolve();
+    const s=document.createElement('script');
+    s.src=src;s.async=true;s.crossOrigin='anonymous';
+    const timer=setTimeout(()=>{s.remove();reject(new Error('Timed out: '+src));},timeoutMs||20000);
+    s.onload=()=>{clearTimeout(timer);resolve();};
+    s.onerror=()=>{clearTimeout(timer);reject(new Error('Failed: '+src));};
+    document.head.appendChild(s);
+  });
+}
+async function loadCdnSet(urls){
+  for(const url of urls)await loadExternalScript(url,20000);
+}
+function ensureCdnLibs(){
+  if(typeof XLSX!=='undefined'&&typeof Chart!=='undefined'&&typeof window.jspdf!=='undefined')return Promise.resolve();
+  if(_cdnLibsPromise)return _cdnLibsPromise;
+  const hint=document.getElementById('libLoading');
+  if(hint)hint.style.display='block';
+  _cdnLibsPromise=(async()=>{
+    let lastErr;
+    for(const urls of CDN_LIB_SETS){
+      try{await loadCdnSet(urls);if(typeof XLSX!=='undefined'&&typeof Chart!=='undefined')return;}catch(e){lastErr=e;console.warn(e);}
+    }
+    if(typeof XLSX==='undefined'||typeof Chart==='undefined')throw lastErr||new Error('CDN libraries unavailable');
+  })().finally(()=>{if(hint)hint.style.display='none';});
+  return _cdnLibsPromise;
+}
+// ═══════════════════════════════════════════
+// GLOBAL STATE
+let dashboardMode='renewal';
+// ═══════════════════════════════════════════
+let rawData=[],filteredData=[],activeFilters={},sortCol=null,sortDir='asc';
+let currentPage=1,pageSize=25,visibleColumns=[],allColumns=[],charts={};
+let tableSearchTerm='';
+let drillData=[],drillFilteredData=[],drillPage=1,drillPageSize=20;
+let drillSortCol=null,drillSortDir='asc',drillSearchTerm='';
+let drillContext={},currentDrillApply={};
+let drillMiniCharts={};
+
+const CC=['#00bceb','#00d4a0','#ff6b35','#7c3aed','#fbbf24','#ec4899','#14b8a6','#06b6d4','#84cc16','#f97316','#8b5cf6','#10b981','#ef4444','#3b82f6','#a855f7','#22d3ee','#fb923c','#4ade80','#f472b6','#60a5fa'];
+const RC={'High':'#ef4444','Medium':'#fbbf24','Low':'#00d4a0','Unknown':'#64748b'};
+const NC=new Set(['Collab AOV','Total Billed Seats','Cloud Meetings AOV','Cloud Calling AOV','Cloud Contact Center AOV','CPAAS AOV','Video Devices AOV','On-Prem Calling AOV','On-Prem Meetings AOV','On-Prem Contact Center AOV','Collab + CX ASP','Cloud Meetings Billed Seats','Cloud Calling Billed Seats','On-Prem Calling Billed Seats','Cloud Contact Center Billed Seats','On-Prem Contact Center Billed Seats','Video Devices Billed Seats','CPAAS Billed Seats','Webex Calling MT Provisioned Seats','Webex Calling DI Provisioned Seats','UCMC Provisioned Seats']);
+const DRILL_COLS=['Account Name','Collab AOV','Renewal Fiscal Qtr','Risk2_0_current','Lifecycle Stage_Current','Industry Vertical','Partner Name','Renewal Type','Total Billed Seats','CAV BU Name','Deployment','Term End Date','SFDC_OPPORTUNITY_STAGE','CSM_NAME','Sales Level4'];
+
+// Product column map — maps chart label → AOV column name
+const PROD_COL_MAP={
+  'Cloud Meetings':'Cloud Meetings AOV',
+  'Cloud Calling':'Cloud Calling AOV',
+  'Cloud Contact Center':'Cloud Contact Center AOV',
+  'Video Devices':'Video Devices AOV',
+  'CPAAS':'CPAAS AOV',
+  'On-Prem Calling':'On-Prem Calling AOV',
+  'On-Prem Meetings':'On-Prem Meetings AOV',
+  'On-Prem Contact Center':'On-Prem Contact Center AOV'
+};
+
+// ═══════════════════════════════════════════
+// UPLOAD
+// ═══════════════════════════════════════════
+const DEFAULT_WORKBOOK_URL='check_back_default.xlsx';
+const DEFAULT_WORKBOOK_NAME='Check Back Initiative Customer Analysis.xlsx';
+const IS_PUBLIC_HOST=/github\.io$/i.test(location.hostname);
+let _defaultLoadAttempted=false;
+
+function showBootError(msg){
+  const el=document.getElementById('bootError');
+  if(!el)return;
+  el.style.display='block';
+  el.innerHTML=msg;
+}
+function verifyLocalScripts(){
+  const missing=[];
+  if(typeof SchemaDashboard==='undefined')missing.push('SchemaDashboard');
+  if(typeof CheckBackDashboard==='undefined')missing.push('CheckBackDashboard');
+  if(typeof AccountInsight==='undefined')missing.push('AccountInsight');
+  if(typeof BiaTemplate==='undefined')missing.push('BiaTemplate');
+  if(typeof BIA_SLIDES==='undefined')missing.push('BIA_SLIDES');
+  if(typeof BIA_MATCH_ALIASES==='undefined')missing.push('BIA_MATCH_ALIASES');
+  if(missing.length){
+    const fileMode=location.protocol==='file:';
+    const localHint=fileMode||!IS_PUBLIC_HOST
+      ? 'Run in Terminal:<br><code>cd ~/Documents/GitHub/check-back-intelligence/dashboard && ./open-dashboard.sh</code><br><br>'
+      : '';
+    showBootError('<strong>Dashboard code did not load.</strong><br><br>Missing: '+missing.join(', ')+'.<br><br>'+
+      (fileMode?'<strong>Double-click often fails</strong> — browsers block local scripts.<br><br>':'')+
+      localHint+
+      (IS_PUBLIC_HOST?'Refresh the page or try again later.':'Or open <a href="http://127.0.0.1:8765/index.html" style="color:#7dd3fc">http://127.0.0.1:8765/index.html</a> if a server is already running.'));
+    return false;
+  }
+  return true;
+}
+function verifyDashboardDeps(){
+  const missing=[];
+  if(typeof XLSX==='undefined')missing.push('SheetJS (XLSX)');
+  if(typeof Chart==='undefined')missing.push('Chart.js');
+  if(!verifyLocalScripts())return false;
+  if(missing.length){
+    showBootError('<strong>Online libraries did not load.</strong><br><br>Missing: '+missing.join(', ')+'.<br><br>'+
+      'Check internet access to cdnjs.cloudflare.com and try again, or use:<br>'+
+      '<code>cd ~/Documents/GitHub/check-back-intelligence/dashboard && ./serve.sh</code>');
+    return false;
+  }
+  const boot=document.getElementById('bootError');
+  if(boot)boot.style.display='none';
+  return true;
+}
+function setupUpload(){
+  if(!verifyLocalScripts())return;
+  ['fileInput','fileInputHeader'].forEach(id=>{
+    document.getElementById(id).addEventListener('change',e=>{if(e.target.files[0])processFile(e.target.files[0]);});
+  });
+  const drop=document.getElementById('dropZone');
+  drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('drag-over');});
+  drop.addEventListener('dragleave',()=>drop.classList.remove('drag-over'));
+  drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('drag-over');if(e.dataTransfer.files[0])processFile(e.dataTransfer.files[0]);});
+  ensureCdnLibs().then(()=>{
+    if(!verifyDashboardDeps())return;
+    loadDefaultWorkbook();
+  }).catch(err=>{
+    console.warn(err);
+    showBootError('<strong>Could not load chart/spreadsheet libraries.</strong><br><br>'+err.message+
+      '<br><br>Connect to the internet and refresh, or run <code>./serve.sh</code> from the dashboard folder.');
+    showUploadFallback();
+  });
+}
+
+function showUploadFallback(){
+  const sub=document.getElementById('uploadSubtitle');
+  if(sub){
+    sub.innerHTML=IS_PUBLIC_HOST
+      ? 'Upload your Check Back spreadsheet (.xlsx or .csv). Data stays in your browser — nothing is sent to a server.'
+      : 'Auto-load needs the local server (<code>./open-dashboard.sh</code>). Or choose another spreadsheet below.';
+  }
+  document.getElementById('uploadZone').style.display='flex';
+}
+
+function buildDashboardFromParsed(parsed,displayName){
+  const json=parsed.json;
+  if(!json.length){hideLoading();alert('No data found in spreadsheet.');return;}
+  dashboardMode=parsed.mode;
+  updateLoading('Building dashboard ('+dashboardMode+')...');
+  setTimeout(()=>{
+    try{
+      if(!verifyDashboardDeps())throw new Error('Required scripts missing — see red banner above.');
+      if(dashboardMode==='checkback'&&typeof BiaTemplate!=='undefined'){
+        rawData=BiaTemplate.mergePortfolioWithBia(json);
+        allColumns=BiaTemplate.collectAllColumns(rawData);
+      }else{
+        rawData=json;
+        allColumns=Object.keys(json[0]);
+      }
+      visibleColumns=allColumns.slice(0,Math.min(20,allColumns.length));
+      if(dashboardMode==='checkback'&&typeof CheckBackDashboard!=='undefined'){
+        window.DRILL_COLS=CheckBackDashboard.getDrillCols();
+        visibleColumns=CheckBackDashboard.getPortfolioCols();
+      }
+      filteredData=[...rawData];
+      SchemaDashboard.applyModeUI(dashboardMode);
+      buildFilters();buildKPIs();
+      try{buildAllCharts();}catch(chartErr){console.warn('Charts skipped:',chartErr);}
+      buildTable();buildInsights();
+      document.getElementById('uploadZone').style.display='none';
+      document.getElementById('dashboard').style.display='block';
+      document.getElementById('totalCount').textContent=rawData.length;
+      document.getElementById('filteredCount').textContent=filteredData.length;
+      document.getElementById('fileNameDisplay').textContent='📄 '+displayName;
+    }catch(err){
+      console.error(err);
+      alert('Dashboard error: '+err.message);
+      showUploadFallback();
+    }finally{
+      hideLoading();
+    }
+  },100);
+}
+
+function processWorkbookBuffer(arrayBuffer,displayName){
+  ensureCdnLibs().then(()=>{
+    if(!verifyDashboardDeps()){hideLoading();return;}
+    try{
+      updateLoading('Parsing data...');
+      const parsed=SchemaDashboard.parseWorkbook(arrayBuffer);
+      buildDashboardFromParsed(parsed,displayName);
+    }catch(err){
+      hideLoading();
+      alert('Error: '+err.message);
+      showUploadFallback();
+    }
+  }).catch(err=>{
+    hideLoading();
+    alert('Libraries failed to load: '+err.message);
+  });
+}
+
+async function loadDefaultWorkbook(force){
+  if(_defaultLoadAttempted&&!force)return;
+  _defaultLoadAttempted=true;
+  if(location.protocol==='file:'){
+    showUploadFallback();
+    return;
+  }
+  showLoading('Loading Check Back workbook...');
+  const sub=document.getElementById('uploadSubtitle');
+  if(sub)sub.textContent='Loading '+DEFAULT_WORKBOOK_NAME+'…';
+  try{
+    const res=await fetch(DEFAULT_WORKBOOK_URL+'?t='+Date.now());
+    if(!res.ok)throw new Error('HTTP '+res.status+' — run ./sync-default-workbook.sh from the dashboard folder');
+    const buf=await res.arrayBuffer();
+    processWorkbookBuffer(buf,DEFAULT_WORKBOOK_NAME);
+  }catch(err){
+    console.warn('Default workbook load failed',err);
+    hideLoading();
+    if(sub){
+      sub.innerHTML=IS_PUBLIC_HOST
+        ? 'Could not load the demo workbook. Upload your Check Back .xlsx below — processing happens entirely in your browser.'
+        : 'Could not load default workbook (<code>~/Downloads/Check Back Initiative Customer Analysis.xlsx</code>). '+err.message+
+          '<br>Run <code>./sync-default-workbook.sh</code> then refresh, or load a file below.';
+    }
+    document.getElementById('uploadZone').style.display='flex';
+  }
+}
+
+function reloadDefaultWorkbook(){
+  _defaultLoadAttempted=false;
+  showLoading('Reloading default workbook...');
+  loadDefaultWorkbook(true);
+}
+
+function processFile(file){
+  showLoading('Loading libraries...');
+  document.getElementById('fileNameDisplay').textContent='📄 '+file.name;
+  ensureCdnLibs().then(()=>{
+    if(!verifyDashboardDeps()){hideLoading();return;}
+    showLoading('Reading file...');
+    const reader=new FileReader();
+    reader.onerror=()=>{hideLoading();alert('Could not read file.');};
+    reader.onload=e=>processWorkbookBuffer(e.target.result,file.name);
+  }).catch(err=>{hideLoading();alert('Libraries failed to load: '+err.message);});
+}
+
+function showLoading(msg){document.getElementById('loadingOverlay').style.display='flex';document.getElementById('loadingText').textContent=msg||'Loading...';}
+function updateLoading(msg){document.getElementById('loadingText').textContent=msg;}
+function hideLoading(){document.getElementById('loadingOverlay').style.display='none';}
+
+// ═══════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════
+function numVal(v){const n=parseFloat(String(v).replace(/[$,]/g,''));return isNaN(n)?0:n;}
+function safeNum(v){return Math.round(numVal(v));}
+function sum(arr,col){return arr.reduce((a,r)=>a+numVal(r[col]),0);}
+function countBy(arr,col){const m={};arr.forEach(r=>{const k=String(r[col]||'Unknown');m[k]=(m[k]||0)+1;});return m;}
+function sumBy(arr,col,valCol){const m={};arr.forEach(r=>{const k=String(r[col]||'Unknown');m[k]=(m[k]||0)+numVal(r[valCol]);});return m;}
+// topN returns sorted entries, values as clean numbers
+function topN(obj,n=10){return Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,n);}
+function cleanTopN(obj,n=10){return topN(obj,n).map(([k,v])=>[k,Math.round(v)]);}
+function fmt(n){n=Math.round(n);if(n>=1e6)return'$'+(n/1e6).toFixed(1)+'M';if(n>=1e3)return'$'+(n/1e3).toFixed(0)+'K';return'$'+n.toLocaleString();}
+function fmtNum(n){n=Math.round(n);if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(0)+'K';return n.toLocaleString();}
+function getRiskBadge(val){const s=String(val).toLowerCase();if(s==='high')return`<span class="badge badge-high">${val}</span>`;if(s==='medium')return`<span class="badge badge-medium">${val}</span>`;if(s==='low')return`<span class="badge badge-low">${val}</span>`;return val||'';}
+
+// ═══════════════════════════════════════════
+// FILTERS
+// ═══════════════════════════════════════════
+const FILTER_COLUMNS=['Sales Level4','Sales Level5','Sales Level6','CAV BU Name','Renewal Fiscal Qtr','Renewal Type','Offer Category','Offer Category Group','Deployment','Industry Vertical','Buying Model','Risk2_0_current','Lifecycle Stage_Current','Partner Name','Big/Little Fish','ATO','Term End Month','Initial Term','Renewal Term','SFDC_OPPORTUNITY_STAGE','CSM_MANAGER'];
+
+function buildFilters(){
+  if(dashboardMode==='checkback'){CheckBackDashboard.buildFilters();return;}
+  const grid=document.getElementById('filtersGrid');grid.innerHTML='';
+  const sd=document.createElement('div');sd.className='filter-group';
+  sd.innerHTML=`<label class="filter-label">Account Search</label><input class="search-input" placeholder="Account / Opportunity..." id="acctSearch" oninput="applyFilters()">`;
+  grid.appendChild(sd);
+  FILTER_COLUMNS.forEach(col=>{
+    if(!allColumns.includes(col))return;
+    const vals=[...new Set(rawData.map(r=>r[col]).filter(v=>v!==''))].sort();
+    if(vals.length<2)return;
+    const div=document.createElement('div');div.className='filter-group';
+    div.innerHTML=`<label class="filter-label">${col}</label>
+      <select class="filter-select" data-col="${col}" onchange="applyFilters()">
+        <option value="">All</option>${vals.map(v=>`<option value="${v}">${v}</option>`).join('')}
+      </select>`;
+    grid.appendChild(div);
+  });
+}
+
+function applyFilters(){
+  activeFilters={};
+  document.querySelectorAll('.filter-select').forEach(s=>{if(s.value)activeFilters[s.dataset.col]=s.value;});
+  const acct=(document.getElementById('acctSearch')?.value||'').toLowerCase();
+  filteredData=rawData.filter(row=>{
+    for(const[col,val]of Object.entries(activeFilters)){if(String(row[col])!==String(val))return false;}
+    if(acct){const ak=row['Account Name']||row['Opportunity Name']||'';if(!String(ak).toLowerCase().includes(acct))return false;}
+    if(tableSearchTerm){const ts=tableSearchTerm.toLowerCase();return Object.values(row).some(v=>String(v).toLowerCase().includes(ts));}
+    return true;
+  });
+  currentPage=1;
+  document.getElementById('filteredCount').textContent=filteredData.length;
+  buildActiveFilterTags();buildKPIs();buildAllCharts();buildTable();buildInsights();
+}
+
+function buildActiveFilterTags(){
+  const c=document.getElementById('activeFilterTags');c.innerHTML='';
+  Object.entries(activeFilters).forEach(([col,val])=>{
+    const t=document.createElement('div');t.className='filter-tag';
+    t.innerHTML=`${col}: <strong>${val}</strong> <span class="filter-tag-remove" onclick="removeFilter('${col}')">✕</span>`;
+    c.appendChild(t);
+  });
+}
+function removeFilter(col){document.querySelector(`.filter-select[data-col="${col}"]`).value='';applyFilters();}
+function resetAllFilters(){
+  document.querySelectorAll('.filter-select').forEach(s=>s.value='');
+  const a=document.getElementById('acctSearch');if(a)a.value='';
+  const ts=document.getElementById('tableSearch');if(ts)ts.value='';
+  tableSearchTerm='';activeFilters={};filteredData=[...rawData];currentPage=1;
+  document.getElementById('filteredCount').textContent=filteredData.length;
+  buildActiveFilterTags();buildKPIs();buildAllCharts();buildTable();buildInsights();
+}
+
+// ═══════════════════════════════════════════
+// KPI CARDS
+// ═══════════════════════════════════════════
+function buildKPIs(){
+  if(dashboardMode==='checkback'){CheckBackDashboard.buildKPIs();return;}
+  const d=filteredData;
+  const totalAOV=sum(d,'Collab AOV'),totalSeats=sum(d,'Total Billed Seats');
+  const cloudMtgAOV=sum(d,'Cloud Meetings AOV'),cloudCallAOV=sum(d,'Cloud Calling AOV');
+  const cloudCCAOV=sum(d,'Cloud Contact Center AOV'),cpAasAOV=sum(d,'CPAAS AOV');
+  const rC=countBy(d,'Risk2_0_current');
+  const highRisk=rC['High']||rC['high']||0;
+  const avgAOV=d.length?totalAOV/d.length:0;
+  const uniquePartners=new Set(d.map(r=>r['Partner Name']).filter(Boolean)).size;
+  const uniqueAccounts=new Set(d.map(r=>r['Account Name']).filter(Boolean)).size;
+  const webexMT=sum(d,'Webex Calling MT Provisioned Seats');
+  const kpis=[
+    {label:'Total Collab AOV',val:fmt(totalAOV),sub:`Avg: ${fmt(avgAOV)} per deal`,icon:'💰',color:'blue',drill:{col:null,val:null}},
+    {label:'Total Billed Seats',val:fmtNum(totalSeats),sub:`Webex MT: ${fmtNum(webexMT)}`,icon:'🖥️',color:'green',drill:{col:null,val:null}},
+    {label:'Total Renewals',val:d.length.toLocaleString(),sub:`${uniqueAccounts} unique accounts`,icon:'🔄',color:'orange',drill:{col:null,val:null}},
+    {label:'Cloud Meetings AOV',val:fmt(cloudMtgAOV),sub:'Cloud meetings revenue',icon:'☁️',color:'purple',drill:{col:'Deployment',val:'Cloud'}},
+    {label:'Cloud Calling AOV',val:fmt(cloudCallAOV),sub:'Cloud calling revenue',icon:'📞',color:'yellow',drill:{col:null,val:null}},
+    {label:'Cloud Contact Center AOV',val:fmt(cloudCCAOV),sub:'CCaaS revenue',icon:'🎯',color:'pink',drill:{col:null,val:null}},
+    {label:'CPAAS AOV',val:fmt(cpAasAOV),sub:'CPaaS contribution',icon:'⚡',color:'teal',drill:{col:null,val:null}},
+    {label:'High Risk Accounts',val:highRisk.toLocaleString(),sub:`${d.length?Math.round(highRisk/d.length*100):0}% of portfolio`,icon:'⚠️',color:'orange',drill:{col:'Risk2_0_current',val:'High'}},
+    {label:'Active Partners',val:uniquePartners.toLocaleString(),sub:'Unique partners',icon:'🤝',color:'cyan',drill:{col:null,val:null}},
+  ];
+  document.getElementById('kpiGrid').innerHTML=kpis.map((k,i)=>`
+    <div class="kpi-card ${k.color}" onclick="openDrillFromKPI(${i})" style="cursor:pointer;">
+      <div class="kpi-drill-hint">🔍 Click to drill</div>
+      <div class="kpi-icon">${k.icon}</div>
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-value">${k.val}</div>
+      <div class="kpi-sub">${k.sub}</div>
+      <div class="kpi-bg-icon">${k.icon}</div>
+    </div>`).join('');
+  window._kpiDefs=kpis;
+}
+
+function openDrillFromKPI(idx){
+  const k=window._kpiDefs[idx];
+  let data=filteredData;
+  if(k.drill.col&&k.drill.val)data=filteredData.filter(r=>String(r[k.drill.col])===String(k.drill.val));
+  openDrillModal({data,title:`KPI Drill: ${k.label}`,subtitle:`${data.length} records | Value: ${k.val}`,filterCol:k.drill.col||'',filterVal:k.drill.val||'',breadcrumb:['Dashboard','KPIs',k.label]});
+}
+
+// ═══════════════════════════════════════════
+// CHART ENGINE
+// ═══════════════════════════════════════════
+function baseOpts(){
+  return{
+    responsive:true,maintainAspectRatio:true,
+    animation:{duration:600},
+    plugins:{
+      legend:{labels:{color:'#94a3b8',font:{size:11}}},
+      tooltip:{backgroundColor:'#1a2235',titleColor:'#f1f5f9',bodyColor:'#94a3b8',borderColor:'#1e3a5f',borderWidth:1}
+    },
+    scales:{
+      x:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(30,58,95,.4)'}},
+      y:{beginAtZero:true,ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(30,58,95,.4)'}}
+    }
+  };
+}
+
+function deepMerge(t,s){
+  for(const k in s){
+    if(s[k]&&typeof s[k]==='object'&&!Array.isArray(s[k])){t[k]=t[k]||{};deepMerge(t[k],s[k]);}
+    else t[k]=s[k];
+  }
+  return t;
+}
+
+function makeChart(id,type,labels,datasets,extraOpts={},drillCfg={}){
+  const canvas=document.getElementById(id);if(!canvas)return;
+  if(typeof Chart==='undefined'){console.warn('Chart.js not loaded; skipping chart',id);return;}
+  if(charts[id]){charts[id].destroy();delete charts[id];}
+  // Ensure all numeric data is clean integers
+  datasets=datasets.map(ds=>({...ds,data:ds.data.map(v=>typeof v==='number'?Math.round(v):v)}));
+  const opts=deepMerge(baseOpts(),extraOpts);
+  if(['doughnut','pie'].includes(type))delete opts.scales;
+  if(drillCfg.col!==undefined){
+    opts.onClick=(_,elements)=>{
+      if(!elements.length)return;
+      const idx=elements[0].index;
+      const clickedLabel=labels[idx];
+      const dsIdx=elements[0].datasetIndex;
+      const dsLabel=datasets[dsIdx]?.label||'';
+      handleChartDrill(drillCfg,clickedLabel,dsLabel,id);
+    };
+    canvas.style.cursor='pointer';
+  }
+  charts[id]=new Chart(canvas.getContext('2d'),{type,data:{labels,datasets},options:opts});
+}
+
+// ═══════════════════════════════════════════
+// DRILL ROUTING — fixed product AOV + all others
+// ═══════════════════════════════════════════
+function handleChartDrill(cfg,clickedLabel,dsLabel,chartId){
+  let data=filteredData,filterCol=cfg.col,filterVal=clickedLabel,title='',subtitle='';
+
+  if(cfg.col==='__product_aov__'){
+    // FIX: look up the actual AOV column and filter rows with non-zero value
+    const aovCol=PROD_COL_MAP[clickedLabel];
+    if(aovCol){
+      data=filteredData.filter(r=>numVal(r[aovCol])>0);
+      title=`Product: ${clickedLabel}`;
+      subtitle=`${data.length} records with ${clickedLabel} AOV > 0 | Total: ${fmt(sum(data,aovCol))}`;
+      filterCol=null;filterVal=null;
+    } else {
+      data=filteredData;title=`Product: ${clickedLabel}`;subtitle=`${data.length} records`;
+    }
+
+  }else if(cfg.col==='__cloud_onprem__'){
+    const lbl=clickedLabel.toLowerCase();
+    if(lbl==='cloud'){
+      data=filteredData.filter(r=>String(r['Deployment']||'').toLowerCase().includes('cloud'));
+      filterCol='Deployment';filterVal='Cloud';
+    }else if(lbl.includes('prem')||lbl.includes('on-prem')){
+      data=filteredData.filter(r=>String(r['Deployment']||'').toLowerCase().includes('prem'));
+      filterCol='Deployment';filterVal=clickedLabel;
+    }else{data=filteredData;}
+    title=`Deployment: ${clickedLabel}`;subtitle=`${data.length} records`;
+
+  }else if(cfg.col==='__risk_industry__'){
+    data=filteredData.filter(r=>String(r['Industry Vertical']||'Unknown')===clickedLabel&&String(r['Risk2_0_current']||'Unknown')===dsLabel);
+    title=`${clickedLabel} — ${dsLabel} Risk`;subtitle=`${data.length} records`;
+    filterCol='Industry Vertical';filterVal=clickedLabel;
+
+  }else if(cfg.col==='__risk_qtr__'){
+    data=filteredData.filter(r=>String(r['Renewal Fiscal Qtr']||'Unknown')===clickedLabel&&String(r['Risk2_0_current']||'Unknown')===dsLabel);
+    title=`Q${clickedLabel} — ${dsLabel} Risk`;subtitle=`${data.length} records`;
+    filterCol='Renewal Fiscal Qtr';filterVal=clickedLabel;
+
+  }else if(cfg.col){
+    data=filteredData.filter(r=>String(r[cfg.col]||'Unknown')===String(clickedLabel));
+    title=`${cfg.col}: ${clickedLabel}`;subtitle=`${data.length} records`;
+
+  }else{
+    title=`Drill: ${clickedLabel}`;subtitle=`${data.length} records`;
+  }
+
+  openDrillModal({data,title,subtitle,filterCol,filterVal,breadcrumb:['Dashboard',cfg.tabName||'Chart',clickedLabel]});
+}
+
+function changeChartType(id,newType,btn){
+  if(!charts[id])return;
+  btn.closest('.chart-actions').querySelectorAll('.chart-type-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const data=charts[id].data;const onClick=charts[id].options.onClick;
+  charts[id].destroy();
+  const opts=baseOpts();
+  if(['doughnut','pie'].includes(newType))delete opts.scales;
+  else if(opts.scales&&opts.scales.y)opts.scales.y.beginAtZero=true;
+  if(onClick)opts.onClick=onClick;
+  charts[id]=new Chart(document.getElementById(id).getContext('2d'),{type:newType,data,options:opts});
+}
+
+// Standardised dataset builder — enforces clean numeric values
+function ds(label,dataArr,colorIdx=0,type='bar'){
+  const c=CC[colorIdx%CC.length];
+  const cleanData=dataArr.map(v=>Math.round(numVal(String(v))));
+  return{
+    label,
+    data:cleanData,
+    backgroundColor:type==='line'?`${c}22`:cleanData.map((_,i)=>CC[i%CC.length]+'cc'),
+    borderColor:type==='line'?c:cleanData.map((_,i)=>CC[i%CC.length]),
+    borderWidth:type==='line'?2:1,
+    borderRadius:type==='bar'?6:0,
+    tension:.4,
+    ...(type==='line'?{fill:true,pointBackgroundColor:c,pointRadius:4}:{})
+  };
+}
+
+// ═══════════════════════════════════════════
+// ALL CHARTS
+// ═══════════════════════════════════════════
+function buildAllCharts(){
+  if(dashboardMode==='checkback'){CheckBackDashboard.buildAllCharts();return;}
+  const d=filteredData;
+  buildOverviewCharts(d);buildRevenueCharts(d);buildRenewalCharts(d);
+  buildSeatsCharts(d);buildRiskCharts(d);buildPartnerCharts(d);buildPipelineCharts(d);
+}
+
+function buildOverviewCharts(d){
+  const qtrData=countBy(d,'Renewal Fiscal Qtr');
+  const qtrS=Object.entries(qtrData).sort((a,b)=>a[0].localeCompare(b[0]));
+  makeChart('renewalQtrChart','bar',qtrS.map(x=>x[0]),[ds('Renewals',qtrS.map(x=>x[1]),0,'bar')],
+    {plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}},
+    {col:'Renewal Fiscal Qtr',tabName:'Overview'});
+
+  const catD=cleanTopN(countBy(d,'Offer Category Group'),10);
+  makeChart('offerCatChart','doughnut',catD.map(x=>x[0]),[{data:catD.map(x=>x[1]),backgroundColor:CC.map(c=>c+'cc'),borderColor:CC,borderWidth:2}],
+    {plugins:{legend:{position:'right',labels:{color:'#94a3b8',font:{size:11},boxWidth:12}}}},
+    {col:'Offer Category Group',tabName:'Overview'});
+
+  const indD=cleanTopN(sumBy(d,'Industry Vertical','Collab AOV'),8);
+  makeChart('industryChart','bar',indD.map(x=>x[0]),[{label:'AOV',data:indD.map(x=>x[1]),backgroundColor:CC.map(c=>c+'cc'),borderColor:CC,borderWidth:1,borderRadius:6}],
+    {plugins:{legend:{display:false}},scales:{x:{ticks:{maxRotation:45}},y:{beginAtZero:true,ticks:{callback:v=>fmt(v)}}}},
+    {col:'Industry Vertical',tabName:'Overview'});
+
+  const depD=countBy(d,'Deployment');
+  makeChart('deploymentChart','doughnut',Object.keys(depD),[{data:Object.values(depD).map(v=>Math.round(v)),backgroundColor:CC.map(c=>c+'cc'),borderColor:CC,borderWidth:2}],
+    {},
+    {col:'Deployment',tabName:'Overview'});
+
+  const bmD=countBy(d,'Buying Model');
+  makeChart('buyingModelChart','bar',Object.keys(bmD),[{label:'Count',data:Object.values(bmD).map(v=>Math.round(v)),backgroundColor:CC.map(c=>c+'cc'),borderColor:CC,borderWidth:1,borderRadius:6}],
+    {plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}},
+    {col:'Buying Model',tabName:'Overview'});
+
+  const acctD=cleanTopN(sumBy(d,'Account Name','Collab AOV'),10);
+  makeChart('topAccountsChart','bar',acctD.map(x=>x[0]),[{label:'AOV',data:acctD.map(x=>x[1]),backgroundColor:CC.map(c=>c+'cc'),borderColor:CC,borderWidth:1,borderRadius:6}],
+    {indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{callback:v=>fmt(v)}},y:{ticks:{font:{size:10}}}}},
+    {col:'Account Name',tabName:'Overview'});
+
+  const rtD=countBy(d,'Renewal Type');
+  makeChart('renewalTypeChart','doughnut',Object.keys(rtD),[{data:Object.values(rtD).map(v=>Math.round(v)),backgroundColor:CC.map(c=>c+'cc'),borderColor:CC,borderWidth:2}],
+    {},
+    {col:'Renewal Type',tabName:'Overview'});
+}
+
+function buildRevenueCharts(d){
+  // Product AOV — labels must exactly match PROD_COL_MAP keys
+  const prodLabels=['Cloud Meetings','Cloud Calling','Cloud Contact Center','Video Devices','CPAAS','On-Prem Calling','On-Prem Meetings','On-Prem Contact Center'];
+  const prodVals=prodLabels.map(l=>Math.round(sum(d,PROD_COL_MAP[l]||'')));
+  makeChart('aovProductChart','bar',prodLabels,[{label:'AOV',data:prodVals,backgroundColor:CC.map(c=>c+'cc'),borderColor:CC,borderWidth:1,borderRadius:6}],
+    {indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{callback:v=>fmt(v)}},y:{ticks:{font:{size:10}}}}},
+    {col:'__product_aov__',tabName:'Revenue'});
+
+  const cAOV=Math.round(sum(d,'Cloud Meetings AOV')+sum(d,'Cloud Calling AOV')+sum(d,'Cloud Contact Center AOV'));
+  const oAOV=Math.round(sum(d,'On-Prem Meetings AOV')+sum(d,'On-Prem Calling AOV')+sum(d,'On-Prem Contact Center AOV'));
+  const cpAov=Math.round(sum(d,'CPAAS AOV')),vidAov=Math.round(sum(d,'Video Devices AOV'));
+  makeChart('cloudOnPremAovChart','doughnut',['Cloud','On-Prem','CPAAS','Video Devices'],[{data:[cAOV,oAOV,cpAov,vidAov],backgroundColor:['#00bcebcc','#ff6b35cc','#7c3aedcc','#00d4a0cc'],borderColor:['#00bceb','#ff6b35','#7c3aed','#00d4a0'],borderWidth:2}],
+    {plugins:{tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${fmt(ctx.raw)}`}}}},
+    {col:'__cloud_onprem__',tabName:'Revenue'});
+
+  const tierD=countBy(d,'CAV BU AOV TIER');
+  makeChart('aovTierChart','bar',Object.keys(tierD),[{label:'Count',data:Object.values(tierD).map(v=>Math.round(v)),backgroundColor:CC.map(c=>c+'cc'),borderColor:CC,borderWidth:1,borderRadius:6}],
+    {plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}},
+    {col:'CAV BU AOV TIER',tabName:'Revenue'});
+
+  const l4D=cleanTopN(sumBy(d,'Sales Level4','Collab AOV'),8);
+  makeChart('salesL4Chart','bar',l4D.map(x=>x[0]),[{label:'AOV',data:l4D.map(x=>x[1]),backgroundColor:CC.map(c=>c+'cc'),borderColor:CC,borderWidth:1,borderRadius:6}],
+    {indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{callback:v=>fmt(v)}}}},
+    {col:'Sales Level4',tabName:'Revenue'});
+
+  const buD=cleanTopN(sumBy(d,'CAV BU Name','Collab AOV'),8);
+  makeChart('buRevenueChart','doughnut',buD.map(x=>x[0]),[{data:buD.map(x=>x[1]),backgroundColor:CC.map(c=>c+'cc'),borderColor:CC,borderWidth:2}],
+    {plugins:{tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${fmt(ctx.raw)}`}}}},
+    {col:'CAV BU Name',tabName:'Revenue'});
+}
+
+function buildRenewalCharts(d){
+  // Chart 1: Renewal Value at Risk by Quarter
+  const riskLevels=[...new Set(d.map(r=>String(r['Risk2_0_current']||'Unknown')))].sort();
+  const quarters=[...new Set(d.map(r=>String(r['Renewal Fiscal Qtr']||'')).filter(Boolean))].sort();
+  const qtrRiskAOV={};
+  d.forEach(r=>{
+    const q=String(r['Renewal Fiscal Qtr']||'Unknown');
+    const risk=String(r['Risk2_0_current']||'Unknown');
+    if(!qtrRiskAOV[q])qtrRiskAOV[q]={};
+    qtrRiskAOV[q][risk]=(qtrRiskAOV[q][risk]||0)+numVal(r['Collab AOV']);
+  });
+  const riskColorMap={High:{bg:'rgba(239,68,68,.85)',border:'#ef4444'},Medium:{bg:'rgba(251,191,36,.85)',border:'#fbbf24'},Low:{bg:'rgba(0,212,160,.85)',border:'#00d4a0'},Unknown:{bg:'rgba(100,116,139,.85)',border:'#64748b'}};
+  const riskDs=riskLevels.map(risk=>({
+    label:risk,
+    data:quarters.map(q=>Math.round((qtrRiskAOV[q]||{})[risk]||0)),
+    backgroundColor:(riskColorMap[risk]||{bg:'rgba(0,188,235,.85)'}).bg,
+    borderColor:(riskColorMap[risk]||{border:'#00bceb'}).border,
+    borderWidth:1,borderRadius:4
+  }));
+  makeChart('renewalValueAtRiskChart','bar',quarters,riskDs,{
+    plugins:{legend:{position:'top',labels:{color:'#94a3b8',font:{size:11},boxWidth:12}},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmt(ctx.raw)}`,footer:items=>`Total: ${fmt(items.reduce((s,i)=>s+i.raw,0))}`}}},
+    scales:{x:{stacked:true,ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(30,58,95,.4)'}},y:{stacked:true,beginAtZero:true,ticks:{color:'#64748b',font:{size:10},callback:v=>fmt(v)},grid:{color:'rgba(30,58,95,.4)'}}}
+  },{col:'__risk_qtr__',tabName:'Renewals'});
+
+  // Chart 2: Renewal AOV by Quarter + cumulative line
+  const qtrAOV=sumBy(d,'Renewal Fiscal Qtr','Collab AOV');
+  const qtrAOVS=Object.entries(qtrAOV).sort((a,b)=>a[0].localeCompare(b[0]));
+  let cum=0;
+  const cumVals=qtrAOVS.map(([,v])=>{cum+=v;return Math.round(cum);});
+  makeChart('renewalAovByQtrChart','bar',qtrAOVS.map(x=>x[0]),[
+    {label:'Quarterly AOV',data:qtrAOVS.map(x=>Math.round(x[1])),backgroundColor:qtrAOVS.map((_,i)=>CC[i%CC.length]+'cc'),borderColor:qtrAOVS.map((_,i)=>CC[i%CC.length]),borderWidth:1,borderRadius:6,yAxisID:'y'},
+    {label:'Cumulative AOV',data:cumVals,type:'line',borderColor:'#00bceb',backgroundColor:'rgba(0,188,235,.08)',borderWidth:2,pointBackgroundColor:'#00bceb',pointRadius:4,tension:.4,fill:true,yAxisID:'y2'}
+  ],{
+    plugins:{legend:{position:'top',labels:{color:'#94a3b8',font:{size:11},boxWidth:12}},tooltip:{callbacks:{label:ctx=>ctx.dataset.label==='Cumulative AOV'?` Cumulative: ${fmt(ctx.raw)}`:`Quarterly AOV: ${fmt(ctx.raw)}`}}},
+    scales:{
+      x:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(30,58,95,.4)'}},
+      y:{type:'linear',position:'left',beginAtZero:true,ticks:{color:'#64748b',font:{size:10},callback:v=>fmt(v)},grid:{color:'rgba(30,58,95,.4)'},title:{display:true,text:'Quarterly AOV',color:'#64748b',font:{size:10}}},
+      y2:{type:'linear',position:'right',beginAtZero:true,ticks:{color:'#00bceb',font:{size:10},callback:v=>fmt(v)},grid:{drawOnChartArea:false},title:{display:true,text:'Cumulative AOV',color:'#00bceb',font:{size:10}}}
+    }
+  },{col:'Renewal Fiscal Qtr',tabName:'Renewals'});
+
+  // Term Length
+  const itD=countBy(d,'Initial Term'),rtD2=countBy(d,'Renewal Term');
+  const allTerms=[...new Set([...Object.keys(itD),...Object.keys(rtD2)])].sort();
+  makeChart('termLengthChart','bar',allTerms,[
+    {label:'Initial Term',data:allTerms.map(t=>Math.round(itD[t]||0)),backgroundColor:'#00bcebcc',borderColor:'#00bceb',borderWidth:1,borderRadius:6},
+    {label:'Renewal Term',data:allTerms.map(t=>Math.round(rtD2[t]||0)),backgroundColor:'#00d4a0cc',borderColor:'#00d4a0',borderWidth:1,borderRadius:6}
+  ],{plugins:{legend:{position:'top',labels:{color:'#94a3b8'}}},scales:{y:{beginAtZero:true}}},
+  {col:'Initial Term',tabName:'Renewals'});
+
+  const wkD=Object.entries(countBy(d,'Term End Week')).sort((a,b)=>a[0].localeCompare(b[0])).slice(0,20);
+  makeChart('renewalWeekChart','line',wkD.map(x=>x[0]),[{label:'Renewals',data:wkD.map(x=>Math.round(x[1])),borderColor:'#00bceb',backgroundColor:'rgba(0,188,235,.1)',borderWidth:2,pointBackgroundColor:'#00bceb',pointRadius:3,tension:.4,fill:true}],
+    {plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}},
+    {col:'Term End Week',tabName:'Renewals'});
+
+  const atoD=countBy(d,'ATO');
+  makeChart('atoChart','doughnut',Object.keys(atoD),[{data:Object.values(atoD).map(v=>Math.round(v)),backgroundColor:CC.map(c=>c+'cc'),borderColor:CC,borderWidth:2}],
+    {},{col:'ATO',tabName:'Renewals'});
+
+  const fishD=countBy(d,'Big/Little Fish');
+  makeChart('fishChart','doughnut',Object.keys(fishD),[{data:Object.values(fishD).map(v=>Math.round(v)),backgroundColor:['#00bcebcc','#ff6b35cc','#00d4a0cc','#7c3aedcc'],borderColor:['#00bceb','#ff6b35','#00d4a0','#7c3aed'],borderWidth:2}],
+    {},{col:'Big/Little Fish',tabName:'Renewals'});
+}
+
+function buildSeatsCharts(d){
+  const sCols=['Cloud Meetings Billed Seats','Cloud Calling Billed Seats','On-Prem Calling Billed Seats','Cloud Contact Center Billed Seats','On-Prem Contact Center Billed Seats','Video Devices Billed Seats','CPAAS Billed Seats'];
+  const sLabels=sCols.map(c=>c.replace(' Billed Seats',''));
+  const sVals=sCols.map(c=>Math.round(sum(d,c)));
+  makeChart('billedSeatsChart','bar',sLabels,[{label:'Seats',data:sVals,backgroundColor:CC.map(c=>c+'cc'),borderColor:CC,borderWidth:1,borderRadius:6}],
+    {indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{callback:v=>fmtNum(v)}}}},
+    {col:null,tabName:'Seats'});
+
+  const provVals=[Math.round(sum(d,'Webex Calling MT Provisioned Seats')),Math.round(sum(d,'Webex Calling DI Provisioned Seats')),Math.round(sum(d,'UCMC Provisioned Seats')),Math.round(sum(d,'Cloud Calling Billed Seats'))];
+  makeChart('provisionedChart','bar',['MT Provisioned','DI Provisioned','UCMC Provisioned','Cloud Calling Billed'],[{label:'Seats',data:provVals,backgroundColor:['#00bcebcc','#00d4a0cc','#7c3aedcc','#fbbf24cc'],borderColor:['#00bceb','#00d4a0','#7c3aed','#fbbf24'],borderWidth:1,borderRadius:6}],
+    {plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>fmtNum(v)}}}},
+    {col:null,tabName:'Seats'});
+
+  const ccD=countBy(d,'Calling Consumption');
+  makeChart('callingConsumptionChart','doughnut',Object.keys(ccD),[{data:Object.values(ccD).map(v=>Math.round(v)),backgroundColor:CC.map(c=>c+'cc'),borderColor:CC,borderWidth:2}],
+    {},{col:'Calling Consumption',tabName:'Seats'});
+
+  const buS=cleanTopN(sumBy(d,'CAV BU Name','Total Billed Seats'),8);
+  makeChart('seatsByBuChart','bar',buS.map(x=>x[0]),[{label:'Seats',data:buS.map(x=>x[1]),backgroundColor:CC.map(c=>c+'cc'),borderColor:CC,borderWidth:1,borderRadius:6}],
+    {indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{callback:v=>fmtNum(v)}}}},
+    {col:'CAV BU Name',tabName:'Seats'});
+
+  const cS=Math.round(sum(d,'Cloud Meetings Billed Seats')+sum(d,'Cloud Calling Billed Seats')+sum(d,'Cloud Contact Center Billed Seats'));
+  const oS=Math.round(sum(d,'On-Prem Calling Billed Seats')+sum(d,'On-Prem Contact Center Billed Seats'));
+  makeChart('cloudOnPremSeatsChart','doughnut',['Cloud Seats','On-Prem Seats'],[{data:[cS,oS],backgroundColor:['#00bcebcc','#ff6b35cc'],borderColor:['#00bceb','#ff6b35'],borderWidth:2}],
+    {},{col:'__cloud_onprem__',tabName:'Seats'});
+}
+
+function buildRiskCharts(d){
+  const rD=countBy(d,'Risk2_0_current');
+  makeChart('riskChart','doughnut',Object.keys(rD),[{data:Object.values(rD).map(v=>Math.round(v)),backgroundColor:Object.keys(rD).map(k=>RC[k]||'#64748b'),borderColor:Object.keys(rD).map(k=>RC[k]||'#64748b'),borderWidth:2}],
+    {plugins:{legend:{position:'right',labels:{color:'#94a3b8',font:{size:11}}}}},
+    {col:'Risk2_0_current',tabName:'Risk'});
+
+  const lcD=countBy(d,'Lifecycle Stage_Current');
+  makeChart('lifecycleChart','bar',Object.keys(lcD),[{label:'Count',data:Object.values(lcD).map(v=>Math.round(v)),backgroundColor:CC.map(c=>c+'cc'),borderColor:CC,borderWidth:1,borderRadius:6}],
+    {plugins:{legend:{display:false}},scales:{x:{ticks:{maxRotation:45}},y:{beginAtZero:true}}},
+    {col:'Lifecycle Stage_Current',tabName:'Risk'});
+
+  const rByI={};
+  d.forEach(r=>{const i=String(r['Industry Vertical']||'Unknown'),k=String(r['Risk2_0_current']||'Unknown');rByI[i]=rByI[i]||{};rByI[i][k]=(rByI[i][k]||0)+1;});
+  const topInds=cleanTopN(countBy(d,'Industry Vertical'),8).map(x=>x[0]);
+  const allRisks=[...new Set(d.map(r=>String(r['Risk2_0_current']||'Unknown')))];
+  makeChart('riskByIndustryChart','bar',topInds,
+    allRisks.map((risk,i)=>({label:risk,data:topInds.map(ind=>Math.round((rByI[ind]||{})[risk]||0)),backgroundColor:CC[i]+'cc',borderColor:CC[i],borderWidth:1,borderRadius:4})),
+    {plugins:{legend:{position:'top',labels:{color:'#94a3b8',font:{size:11}}}},scales:{x:{stacked:true,ticks:{maxRotation:45}},y:{stacked:true,beginAtZero:true}}},
+    {col:'__risk_industry__',tabName:'Risk'});
+
+  const rByQ={};
+  d.forEach(r=>{const q=String(r['Renewal Fiscal Qtr']||'Unknown'),k=String(r['Risk2_0_current']||'Unknown');rByQ[q]=rByQ[q]||{};rByQ[q][k]=(rByQ[q][k]||0)+1;});
+  const qKeys=[...new Set(d.map(r=>String(r['Renewal Fiscal Qtr']||'')).filter(Boolean))].sort();
+  makeChart('riskByQtrChart','bar',qKeys,
+    allRisks.map((risk,i)=>({label:risk,data:qKeys.map(q=>Math.round((rByQ[q]||{})[risk]||0)),backgroundColor:CC[i]+'cc',borderColor:CC[i],borderWidth:1,borderRadius:4})),
+    {plugins:{legend:{position:'top',labels:{color:'#94a3b8',font:{size:11}}}},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}},
+    {col:'__risk_qtr__',tabName:'Risk'});
+}
+
+function buildPartnerCharts(d){
+  const pA=cleanTopN(sumBy(d,'Partner Name','Collab AOV'),15);
+  makeChart('partnerAovChart','bar',pA.map(x=>x[0]),[{label:'AOV',data:pA.map(x=>x[1]),backgroundColor:CC.map(c=>c+'cc'),borderColor:CC,borderWidth:1,borderRadius:6}],
+    {indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{callback:v=>fmt(v)}},y:{ticks:{font:{size:9}}}}},
+    {col:'Partner Name',tabName:'Partners'});
+
+  const dist=cleanTopN(sumBy(d,'Distributor Name','Collab AOV'),10);
+  makeChart('distributorChart','bar',dist.map(x=>x[0]),[{label:'AOV',data:dist.map(x=>x[1]),backgroundColor:CC.map(c=>c+'cc'),borderColor:CC,borderWidth:1,borderRadius:6}],
+    {indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{callback:v=>fmt(v)}},y:{ticks:{font:{size:9}}}}},
+    {col:'Distributor Name',tabName:'Partners'});
+
+  const pC=cleanTopN(countBy(d,'Partner Name'),10);
+  makeChart('partnerCountChart','bar',pC.map(x=>x[0]),[{label:'Count',data:pC.map(x=>x[1]),backgroundColor:CC.map(c=>c+'cc'),borderColor:CC,borderWidth:1,borderRadius:6}],
+    {plugins:{legend:{display:false}},scales:{x:{ticks:{maxRotation:45,font:{size:9}}},y:{beginAtZero:true}}},
+    {col:'Partner Name',tabName:'Partners'});
+
+  const csmD=cleanTopN(sumBy(d,'CSM_MANAGER','Collab AOV'),10);
+  makeChart('csmManagerChart','bar',csmD.map(x=>x[0]),[{label:'AOV',data:csmD.map(x=>x[1]),backgroundColor:CC.map(c=>c+'cc'),borderColor:CC,borderWidth:1,borderRadius:6}],
+    {indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{callback:v=>fmt(v)}}}},
+    {col:'CSM_MANAGER',tabName:'Partners'});
+
+  const savD=cleanTopN(countBy(d,'SAV_Group_ID'),10);
+  makeChart('savGroupChart','doughnut',savD.map(x=>x[0]),[{data:savD.map(x=>x[1]),backgroundColor:CC.map(c=>c+'cc'),borderColor:CC,borderWidth:2}],
+    {},{col:'SAV_Group_ID',tabName:'Partners'});
+}
+
+function buildPipelineCharts(d){
+  const sfD=countBy(d,'SFDC_OPPORTUNITY_STAGE');
+  makeChart('sfdcStageChart','bar',Object.keys(sfD),[{label:'Count',data:Object.values(sfD).map(v=>Math.round(v)),backgroundColor:CC.map(c=>c+'cc'),borderColor:CC,borderWidth:1,borderRadius:6}],
+    {plugins:{legend:{display:false}},scales:{x:{ticks:{maxRotation:45}},y:{beginAtZero:true}}},
+    {col:'SFDC_OPPORTUNITY_STAGE',tabName:'Pipeline'});
+
+  const scD=countBy(d,'S&C_STAGE_NAME');
+  makeChart('scStageChart','bar',Object.keys(scD),[{label:'Count',data:Object.values(scD).map(v=>Math.round(v)),backgroundColor:CC.map(c=>c+'cc'),borderColor:CC,borderWidth:1,borderRadius:6}],
+    {plugins:{legend:{display:false}},scales:{x:{ticks:{maxRotation:45}},y:{beginAtZero:true}}},
+    {col:'S&C_STAGE_NAME',tabName:'Pipeline'});
+
+  const osgD=cleanTopN(countBy(d,'Offer Type Sub-Group for ASP'),8);
+  makeChart('offerSubGroupChart','doughnut',osgD.map(x=>x[0]),[{data:osgD.map(x=>x[1]),backgroundColor:CC.map(c=>c+'cc'),borderColor:CC,borderWidth:2}],
+    {},{col:'Offer Type Sub-Group for ASP',tabName:'Pipeline'});
+
+  const ol2D=cleanTopN(countBy(d,'Offer_Level_2_List'),8);
+  makeChart('offerL2Chart','bar',ol2D.map(x=>x[0]),[{label:'Count',data:ol2D.map(x=>x[1]),backgroundColor:CC.map(c=>c+'cc'),borderColor:CC,borderWidth:1,borderRadius:6}],
+    {plugins:{legend:{display:false}},scales:{x:{ticks:{maxRotation:45}},y:{beginAtZero:true}}},
+    {col:'Offer_Level_2_List',tabName:'Pipeline'});
+
+  const pssD=cleanTopN(countBy(d,'PSS Name'),10);
+  makeChart('pssChart','bar',pssD.map(x=>x[0]),[{label:'Count',data:pssD.map(x=>x[1]),backgroundColor:CC.map(c=>c+'cc'),borderColor:CC,borderWidth:1,borderRadius:6}],
+    {indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true},y:{ticks:{font:{size:9}}}}},
+    {col:'PSS Name',tabName:'Pipeline'});
+}
+
+// ═══════════════════════════════════════════
+// INSIGHTS — FIXED relative progress bars
+// ═══════════════════════════════════════════
+function buildInsights(){if(dashboardMode==='checkback'){CheckBackDashboard.buildInsights();return;}buildRevenueInsights();buildRiskInsights();}
+
+function buildRevenueInsights(){
+  const d=filteredData,c=document.getElementById('revenueInsights');if(!c)return;
+  c.innerHTML=[
+    buildInsightCard('💰','Top Accounts by AOV',cleanTopN(sumBy(d,'Account Name','Collab AOV'),5),'Account Name','$'),
+    buildInsightCard('🏢','Top BUs by AOV',cleanTopN(sumBy(d,'CAV BU Name','Collab AOV'),5),'CAV BU Name','$'),
+    buildInsightCard('🏭','Top Verticals by AOV',cleanTopN(sumBy(d,'Industry Vertical','Collab AOV'),5),'Industry Vertical','$')
+  ].join('');
+}
+
+function buildRiskInsights(){
+  const d=filteredData,c=document.getElementById('riskInsights');if(!c)return;
+  const rC=Object.entries(countBy(d,'Risk2_0_current')).sort((a,b)=>b[1]-a[1]);
+  const lC=Object.entries(countBy(d,'Lifecycle Stage_Current')).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const hrA=cleanTopN(d.filter(r=>String(r['Risk2_0_current'])==='High').reduce((a,r)=>{const k=String(r['Account Name']||'?');a[k]=(a[k]||0)+1;return a;},{}),5);
+  c.innerHTML=[
+    buildInsightCard('⚠️','Risk Distribution',rC.map(([k,v])=>[k,Math.round(v)]),'Risk2_0_current','count'),
+    buildInsightCard('🔄','Lifecycle Stages',lC.map(([k,v])=>[k,Math.round(v)]),'Lifecycle Stage_Current','count'),
+    buildInsightCard('🚨','High Risk Accounts',hrA,'Account Name','count')
+  ].join('');
+}
+
+// FIX: progress width is now relative to the MAX value in the set
+function buildInsightCard(icon,title,data,filterCol,type){
+  const vals=data.slice(0,5).map(x=>x[1]);
+  const maxVal=Math.max(...vals,1); // avoid div/0
+  const items=data.slice(0,5).map(([name,val])=>{
+    const pct=Math.round((val/maxVal)*100); // relative to max in set
+    const display=type==='$'?fmt(val):Number(val).toLocaleString();
+    return`<div class="insight-item" onclick="drillFromInsight('${filterCol}','${String(name).replace(/'/g,"\\'")}')">
+      <div style="flex:1;min-width:0;">
+        <div class="insight-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name||'Unknown'}</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      </div>
+      <div class="insight-val" style="margin-left:12px;white-space:nowrap;">${display}</div>
+    </div>`;
+  }).join('');
+  return`<div class="insight-card"><div class="insight-header"><div class="insight-icon">${icon}</div><div class="insight-title">${title}</div></div>${items}</div>`;
+}
+
+function drillFromInsight(col,val){
+  const data=filteredData.filter(r=>String(r[col]||'Unknown')===String(val));
+  openDrillModal({data,title:`${col}: ${val}`,subtitle:`${data.length} records`,filterCol:col,filterVal:val,breadcrumb:['Dashboard','Insights',val]});
+}
+
+// ═══════════════════════════════════════════
+// DRILL ENGINE
+// ═══════════════════════════════════════════
+function openDrillModal(opts){
+  drillData=opts.data||[];drillFilteredData=[...drillData];
+  drillContext={filterCol:opts.filterCol||'',filterVal:opts.filterVal||''};
+  currentDrillApply={col:opts.filterCol,val:opts.filterVal};
+  drillPage=1;drillSearchTerm='';drillSortCol=null;drillSortDir='asc';
+  document.getElementById('drillTitle').textContent=opts.title||'Drill Down';
+  document.getElementById('drillSubtitle').textContent=opts.subtitle||'';
+  document.getElementById('drillSearch').value='';
+  const crumbs=opts.breadcrumb||['Dashboard','Drill'];
+  document.getElementById('drillBreadcrumb').innerHTML=crumbs.map((c,i)=>
+    i<crumbs.length-1?`<span class="crumb" onclick="closeDrill()">${c}</span><span class="crumb-sep">›</span>`:`<span class="crumb-current">${c}</span>`
+  ).join('');
+  buildDrillKPIs();buildDrillSortOptions();buildDrillMiniCharts();renderDrillTable();
+  document.getElementById('drillOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeDrill(){document.getElementById('drillOverlay').classList.remove('open');document.body.style.overflow='';}
+
+function buildDrillKPIs(){
+  const d=drillFilteredData;
+  const strip=document.getElementById('drillKpiStrip');
+  const totalAOV=sum(d,'Collab AOV'),totalSeats=sum(d,'Total Billed Seats');
+  const rC=countBy(d,'Risk2_0_current'),highRisk=rC['High']||0;
+  const avgAOV=d.length?totalAOV/d.length:0;
+  const uniqueAccts=new Set(d.map(r=>r['Account Name']).filter(Boolean)).size;
+  const cloudAOV=sum(d,'Cloud Meetings AOV')+sum(d,'Cloud Calling AOV')+sum(d,'Cloud Contact Center AOV');
+  const kpis=[
+    {label:'Records',val:d.length.toLocaleString(),sub:'in selection'},
+    {label:'Total AOV',val:fmt(totalAOV),sub:'collab AOV'},
+    {label:'Avg AOV',val:fmt(avgAOV),sub:'per record'},
+    {label:'Total Seats',val:fmtNum(totalSeats),sub:'billed seats'},
+    {label:'High Risk',val:highRisk.toString(),sub:`${d.length?Math.round(highRisk/d.length*100):0}%`},
+    {label:'Unique Accounts',val:uniqueAccts.toString(),sub:'accounts'},
+    {label:'Cloud AOV',val:fmt(cloudAOV),sub:'cloud revenue'},
+  ];
+  strip.innerHTML=kpis.map(k=>`<div class="drill-kpi"><div class="drill-kpi-label">${k.label}</div><div class="drill-kpi-value">${k.val}</div><div class="drill-kpi-sub">${k.sub}</div></div>`).join('');
+  document.getElementById('drillRecordBadge').textContent=`${d.length} records`;
+}
+
+function buildDrillSortOptions(){
+  const cols=(window.DRILL_COLS||DRILL_COLS).filter(c=>allColumns.includes(c));
+  const sel=document.getElementById('drillSortCol');
+  sel.innerHTML=`<option value="">Sort by...</option>${cols.map(c=>`<option value="${c}">${c}</option>`).join('')}`;
+}
+
+function buildDrillMiniCharts(){
+  const d=drillFilteredData;
+  Object.values(drillMiniCharts).forEach(c=>{if(c)c.destroy();});drillMiniCharts={};
+  const topAccts=cleanTopN(sumBy(d,'Account Name','Collab AOV'),6);
+  const c1=document.getElementById('drillMiniChart1');
+  if(c1){drillMiniCharts.c1=new Chart(c1.getContext('2d'),{type:'bar',data:{labels:topAccts.map(x=>x[0].substring(0,15)),datasets:[{label:'AOV',data:topAccts.map(x=>x[1]),backgroundColor:CC.map(c=>c+'cc'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a2235',titleColor:'#f1f5f9',bodyColor:'#94a3b8',callbacks:{label:ctx=>fmt(ctx.raw)}}},scales:{x:{ticks:{color:'#64748b',font:{size:9},maxRotation:35}},y:{beginAtZero:true,ticks:{color:'#64748b',font:{size:9},callback:v=>fmt(v)}}}}});}
+  const riskData=countBy(d,'Risk2_0_current');
+  const c2=document.getElementById('drillMiniChart2');
+  if(c2){drillMiniCharts.c2=new Chart(c2.getContext('2d'),{type:'doughnut',data:{labels:Object.keys(riskData),datasets:[{data:Object.values(riskData).map(v=>Math.round(v)),backgroundColor:Object.keys(riskData).map(k=>RC[k]||'#64748b'),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'right',labels:{color:'#94a3b8',font:{size:9},boxWidth:10}}}}});}
+  const prodCols=['Cloud Meetings AOV','Cloud Calling AOV','Cloud Contact Center AOV','Video Devices AOV','CPAAS AOV'];
+  const c3=document.getElementById('drillMiniChart3');
+  if(c3){drillMiniCharts.c3=new Chart(c3.getContext('2d'),{type:'bar',data:{labels:prodCols.map(p=>p.replace(' AOV','')),datasets:[{label:'AOV',data:prodCols.map(p=>Math.round(sum(d,p))),backgroundColor:CC.map(c=>c+'cc'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:true,indexAxis:'y',plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a2235',titleColor:'#f1f5f9',bodyColor:'#94a3b8',callbacks:{label:ctx=>fmt(ctx.raw)}}},scales:{x:{beginAtZero:true,ticks:{color:'#64748b',font:{size:9},callback:v=>fmt(v)}},y:{ticks:{color:'#64748b',font:{size:9}}}}}});}
+}
+
+function renderDrillTable(){
+  const cols=(window.DRILL_COLS||DRILL_COLS).filter(c=>allColumns.includes(c));
+  document.getElementById('drillTableHead').innerHTML=`<tr>${cols.map(c=>`<th onclick="sortDrillByCol('${c.replace(/'/g,"\\'")}')
+  " class="${drillSortCol===c?(drillSortDir==='asc'?'sort-asc':'sort-desc'):''}">${c}</th>`).join('')}</tr>`;
+  const start=(drillPage-1)*drillPageSize;
+  const page=drillFilteredData.slice(start,start+drillPageSize);
+  const tbody=document.getElementById('drillTableBody');
+  if(!page.length){tbody.innerHTML=`<tr><td colspan="${cols.length}" style="text-align:center;padding:24px;color:var(--text-muted);">No records found</td></tr>`;return;}
+  tbody.innerHTML=page.map((row,i)=>`
+    <tr onclick="openRowDetail(${start+i})" title="Click for full record detail">
+      ${cols.map(col=>{let val=row[col]??'';if(dashboardMode==='checkback'&&typeof CheckBackDashboard!=='undefined')val=CheckBackDashboard.formatCell(col,val,row);
+      else if(col==='Risk2_0_current')val=getRiskBadge(val);else if(NC.has(col)&&val!==''){const n=numVal(val);val=col.includes('AOV')||col.includes('ASP')?fmt(n):fmtNum(n);}return`<td class="${NC.has(col)?'numeric':''}">${val}</td>`;}).join('')}
+    </tr>`).join('');
+  document.getElementById('drillPaginationInfo').textContent=`${start+1}–${Math.min(start+drillPageSize,drillFilteredData.length)} of ${drillFilteredData.length}`;
+  buildDrillPagination();buildDrillKPIs();
+}
+
+function buildDrillPagination(){
+  const total=Math.ceil(drillFilteredData.length/drillPageSize);
+  const ctrl=document.getElementById('drillPaginationControls');
+  let html=`<button class="drill-page-btn" onclick="goDrillPage(${drillPage-1})" ${drillPage===1?'disabled':''}>‹</button>`;
+  const range=[];for(let i=1;i<=total;i++)if(i===1||i===total||Math.abs(i-drillPage)<=1)range.push(i);
+  let last=0;range.forEach(p=>{if(last&&p-last>1)html+=`<span class="drill-page-btn" style="cursor:default">…</span>`;html+=`<button class="drill-page-btn ${p===drillPage?'active':''}" onclick="goDrillPage(${p})">${p}</button>`;last=p;});
+  html+=`<button class="drill-page-btn" onclick="goDrillPage(${drillPage+1})" ${drillPage===total||total===0?'disabled':''}>›</button>`;
+  ctrl.innerHTML=html;
+}
+
+function goDrillPage(p){const t=Math.ceil(drillFilteredData.length/drillPageSize);if(p<1||p>t)return;drillPage=p;renderDrillTable();}
+function changeDrillPageSize(){drillPageSize=parseInt(document.getElementById('drillPageSize').value);drillPage=1;renderDrillTable();}
+function filterDrillTable(){drillSearchTerm=document.getElementById('drillSearch').value.toLowerCase();drillFilteredData=drillData.filter(r=>Object.values(r).some(v=>String(v).toLowerCase().includes(drillSearchTerm)));drillPage=1;renderDrillTable();}
+function sortDrillByCol(col){if(drillSortCol===col)drillSortDir=drillSortDir==='asc'?'desc':'asc';else{drillSortCol=col;drillSortDir='asc';}drillFilteredData.sort((a,b)=>{const an=numVal(a[col]),bn=numVal(b[col]);if(an||bn)return drillSortDir==='asc'?an-bn:bn-an;return drillSortDir==='asc'?String(a[col]).localeCompare(String(b[col])):String(b[col]).localeCompare(String(a[col]));});drillPage=1;renderDrillTable();}
+function sortDrillTable(){const col=document.getElementById('drillSortCol').value,dir=document.getElementById('drillSortDir').value;if(!col)return;drillSortCol=col;drillSortDir=dir;drillFilteredData.sort((a,b)=>{const an=numVal(a[col]),bn=numVal(b[col]);if(an||bn)return dir==='asc'?an-bn:bn-an;return dir==='asc'?String(a[col]).localeCompare(String(b[col])):String(b[col]).localeCompare(String(a[col]));});drillPage=1;renderDrillTable();}
+function applyDrillAsFilter(){if(!currentDrillApply.col||!currentDrillApply.val){alert('No column filter available for this selection.');return;}const sel=document.querySelector(`.filter-select[data-col="${currentDrillApply.col}"]`);if(sel){sel.value=currentDrillApply.val;applyFilters();closeDrill();}else alert('This filter is not available in the filter panel.');}
+function openRowDetail(absIdx){
+  const row=drillFilteredData[absIdx];if(!row)return;
+  if(dashboardMode==='checkback'&&typeof AccountInsight!=='undefined'){AccountInsight.open(row);return;}
+  const titleName=row['Opportunity Name']||row['Account Name']||'Record Detail';
+  document.getElementById('rowDetailTitle').textContent=`📋 ${titleName}`;
+  const pri=['Account Name','Collab AOV','Risk2_0_current','Lifecycle Stage_Current','Renewal Fiscal Qtr','Term End Date','Industry Vertical','Partner Name','Renewal Type','Total Billed Seats','CAV BU Name','Deployment','SFDC_OPPORTUNITY_STAGE','SFDC_OPPORTUNITY_NAME','CSM_NAME','PSS Name','Sales Level4','Sales Level5','Buying Model','ATO','Big/Little Fish','Cloud Meetings AOV','Cloud Calling AOV','Cloud Contact Center AOV'];
+  const other=allColumns.filter(c=>!pri.includes(c));
+  const ordered=[...pri.filter(c=>allColumns.includes(c)),...other];
+  const hi=new Set(['Account Name','Collab AOV','Risk2_0_current','Renewal Fiscal Qtr','Term End Date']);
+  document.getElementById('rowDetailGrid').innerHTML=ordered.map(col=>{
+    let val=row[col]??'';
+    if(col==='Risk2_0_current')val=getRiskBadge(val);
+    else if(NC.has(col)&&val!==''){const n=numVal(val);val=col.includes('AOV')||col.includes('ASP')?fmt(n):fmtNum(n);}
+    return`<div class="row-detail-field ${hi.has(col)?'highlight':''}"><div class="row-detail-field-label">${col}</div><div class="row-detail-field-value">${val||'—'}</div></div>`;
+  }).join('');
+  document.getElementById('rowDetailOverlay').classList.add('open');
+}
+function closeRowDetail(){document.getElementById('rowDetailOverlay').classList.remove('open');}
+function exportDrillCSV(){if(!drillFilteredData.length)return;const rows=[allColumns.join(','),...drillFilteredData.map(r=>allColumns.map(c=>`"${String(r[c]||'').replace(/"/g,'""')}"`).join(','))];downloadFile(rows.join('\n'),'drill_data.csv','text/csv');}
+function exportDrillExcel(){if(!drillFilteredData.length)return;const ws=XLSX.utils.json_to_sheet(drillFilteredData);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Drill Data');XLSX.writeFile(wb,'drill_data.xlsx');}
+
+// ═══════════════════════════════════════════
+// MAIN DATA TABLE
+// ═══════════════════════════════════════════
+function buildTable(){renderTableHead();renderTableBody();renderPagination();}
+function renderTableHead(){document.getElementById('tableHead').innerHTML=`<tr>${visibleColumns.map(col=>`<th onclick="sortTable('${col.replace(/'/g,"\\'")}')
+" class="${sortCol===col?(sortDir==='asc'?'sort-asc':'sort-desc'):''}">${col}</th>`).join('')}</tr>`;}
+function sortTable(col){if(sortCol===col)sortDir=sortDir==='asc'?'desc':'asc';else{sortCol=col;sortDir='asc';}filteredData.sort((a,b)=>{const an=numVal(a[col]),bn=numVal(b[col]);if(an||bn)return sortDir==='asc'?an-bn:bn-an;return sortDir==='asc'?String(a[col]).localeCompare(String(b[col])):String(b[col]).localeCompare(String(a[col]));});renderTableHead();renderTableBody();}
+function renderTableBody(){
+  const start=(currentPage-1)*pageSize,page=filteredData.slice(start,start+pageSize);
+  if(!page.length){document.getElementById('tableBody').innerHTML=`<tr><td colspan="${visibleColumns.length}" style="text-align:center;padding:24px;color:var(--text-muted);">No records</td></tr>`;return;}
+  document.getElementById('tableBody').innerHTML=page.map((row,i)=>`
+    <tr onclick="openMainRowDetail(${start+i})" title="${dashboardMode==='checkback'?'Click row or customer name for Business Insight slide':'Click for full detail'}">
+      ${visibleColumns.map(col=>{let val=row[col]??'';let rawHtml=false;
+      if(dashboardMode==='checkback'&&col==='Opportunity Name'){
+        const nm=String(row[col]||'—').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        val=`<button type="button" class="customer-link" onclick="event.stopPropagation();openCustomerInsight(${start+i})">${nm}</button>`;
+        rawHtml=true;
+      }else if(dashboardMode==='checkback'&&typeof CheckBackDashboard!=='undefined')val=CheckBackDashboard.formatCell(col,val,row);
+      else if(col==='Risk2_0_current')val=getRiskBadge(val);
+      else if(NC.has(col)&&val!==''){const n=numVal(val);val=col.includes('AOV')||col.includes('ASP')?fmt(n):fmtNum(n);}
+      const isNum=NC.has(col)||['Entitled Lic Calling','Providioned Lic Calling','Active Lic Calling','TCV $'].includes(col);
+      return`<td class="${isNum?'numeric':''}">${rawHtml?val:val}</td>`;}).join('')}
+    </tr>`).join('');
+  document.getElementById('paginationInfo').textContent=`Showing ${start+1}–${Math.min(start+pageSize,filteredData.length)} of ${filteredData.length} records`;
+}
+function openCustomerInsight(idx){
+  const row=filteredData[idx];
+  if(!row)return;
+  if(dashboardMode==='checkback'&&typeof AccountInsight!=='undefined'){AccountInsight.open(row);return;}
+  openMainRowDetail(idx);
+}
+function openMainRowDetail(idx){
+  drillFilteredData=filteredData;
+  if(dashboardMode==='checkback'&&typeof AccountInsight!=='undefined'){AccountInsight.open(filteredData[idx]);return;}
+  openRowDetail(idx);
+}
+function renderPagination(){
+  const total=Math.ceil(filteredData.length/pageSize),ctrl=document.getElementById('paginationControls');
+  let html=`<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
+  const range=[];for(let i=1;i<=total;i++)if(i===1||i===total||Math.abs(i-currentPage)<=2)range.push(i);
+  let last=0;range.forEach(p=>{if(last&&p-last>1)html+=`<span class="page-btn" style="cursor:default">…</span>`;html+=`<button class="page-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;last=p;});
+  html+=`<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===total||total===0?'disabled':''}>›</button>`;
+  ctrl.innerHTML=html;
+}
+function goPage(p){const t=Math.ceil(filteredData.length/pageSize);if(p<1||p>t)return;currentPage=p;renderTableBody();renderPagination();}
+function changePageSize(){pageSize=parseInt(document.getElementById('pageSizeSelect').value);currentPage=1;renderTableBody();renderPagination();}
+function filterTable(){tableSearchTerm=document.getElementById('tableSearch').value;applyFilters();}
+
+// ═══════════════════════════════════════════
+// COLUMN MODAL
+// ═══════════════════════════════════════════
+function openColModal(){document.getElementById('colGrid').innerHTML=allColumns.map(col=>`<label class="col-checkbox"><input type="checkbox" value="${col}" ${visibleColumns.includes(col)?'checked':''}>${col}</label>`).join('');document.getElementById('colModal').classList.add('open');}
+function closeColModal(){document.getElementById('colModal').classList.remove('open');}
+function selectAllCols(){document.querySelectorAll('#colGrid input').forEach(i=>i.checked=true);}
+function deselectAllCols(){document.querySelectorAll('#colGrid input').forEach(i=>i.checked=false);}
+function applyColSelection(){visibleColumns=[...document.querySelectorAll('#colGrid input:checked')].map(i=>i.value);closeColModal();buildTable();}
+
+// ═══════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════
+function showTab(id,btn){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  if(btn)btn.classList.add('active');
+  setTimeout(()=>{Object.values(charts).forEach(c=>{if(c)c.resize();});if(id==='adoption'&&dashboardMode==='checkback')CheckBackDashboard.buildAllCharts();},120);
+}
+
+// ═══════════════════════════════════════════
+// EXPORTS
+// ═══════════════════════════════════════════
+function exportCSV(){if(!rawData.length)return;const rows=[allColumns.join(','),...rawData.map(r=>allColumns.map(c=>`"${String(r[c]||'').replace(/"/g,'""')}"`).join(','))];downloadFile(rows.join('\n'),'sales_renewal_data.csv','text/csv');}
+function exportFilteredExcel(){if(!filteredData.length)return;const ws=XLSX.utils.json_to_sheet(filteredData);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Filtered');XLSX.writeFile(wb,'filtered_data.xlsx');}
+function exportExcel(){if(!rawData.length)return;const ws=XLSX.utils.json_to_sheet(rawData);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'All Data');XLSX.writeFile(wb,'all_data.xlsx');}
+function exportTableCSV(){if(!filteredData.length)return;const rows=[visibleColumns.join(','),...filteredData.map(r=>visibleColumns.map(c=>`"${String(r[c]||'').replace(/"/g,'""')}"`).join(','))];downloadFile(rows.join('\n'),'table_data.csv','text/csv');}
+function exportTableExcel(){if(!filteredData.length)return;const ws=XLSX.utils.json_to_sheet(filteredData.map(r=>{const o={};visibleColumns.forEach(c=>o[c]=r[c]||'');return o;}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Table');XLSX.writeFile(wb,'table_data.xlsx');}
+function exportPDF(){
+  const{jsPDF}=window.jspdf;const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  const d=filteredData;
+  doc.setFillColor(10,14,26);doc.rect(0,0,297,297,'F');
+  doc.setFillColor(0,188,235);doc.rect(0,0,297,18,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(16);doc.setFont(undefined,'bold');
+  doc.text('CircuitIQ — Sales Renewal Intelligence Report',14,12);
+  doc.setFontSize(9);doc.setFont(undefined,'normal');
+  doc.text(`Generated: ${new Date().toLocaleString()} | Records: ${d.length}`,200,12);
+  doc.setFillColor(26,34,53);doc.rect(10,22,277,28,'F');
+  doc.setTextColor(0,188,235);doc.setFontSize(8);doc.setFont(undefined,'bold');
+  ['TOTAL AOV','TOTAL SEATS','TOTAL RECORDS','HIGH RISK'].forEach((l,i)=>doc.text(l,18+i*70,30));
+  doc.setTextColor(255,255,255);doc.setFontSize(14);doc.setFont(undefined,'bold');
+  [fmt(sum(d,'Collab AOV')),fmtNum(sum(d,'Total Billed Seats')),d.length.toLocaleString(),String(countBy(d,'Risk2_0_current')['High']||0)].forEach((v,i)=>doc.text(v,18+i*70,42));
+  const cols=['Account Name','Collab AOV','Renewal Fiscal Qtr','Risk2_0_current','Industry Vertical','Partner Name','Total Billed Seats'];
+  doc.autoTable({head:[cols],body:d.slice(0,100).map(r=>cols.map(c=>{const v=r[c]||'';if(c==='Collab AOV')return fmt(numVal(v));if(c==='Total Billed Seats')return fmtNum(numVal(v));return String(v).substring(0,25);})),startY:55,styles:{fontSize:7,cellPadding:2,fillColor:[26,34,53],textColor:[241,245,249],lineColor:[30,58,95],lineWidth:.3},headStyles:{fillColor:[0,188,235],textColor:[255,255,255],fontStyle:'bold'},alternateRowStyles:{fillColor:[17,24,39]},margin:{left:10,right:10}});
+  doc.setTextColor(100,116,139);doc.setFontSize(7);doc.text('CircuitIQ | Cisco Sales Renewal Intelligence | Confidential',14,doc.internal.pageSize.height-6);
+  doc.save('sales_renewal_report.pdf');
+}
+function downloadFile(content,name,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;a.click();}
+
+document.addEventListener('DOMContentLoaded',setupUpload);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&typeof AccountInsight!=='undefined')AccountInsight.close();});
+</script>
+</body>
+</html>
