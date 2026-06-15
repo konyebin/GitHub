@@ -345,7 +345,7 @@
     <div class="upload-subtitle" id="uploadSubtitle">Loading your Check Back workbook from Downloads…</div>
     <label class="upload-btn-label" for="fileInput">📂 &nbsp;Load a different spreadsheet</label>
     <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
-    <div class="upload-hint">Drop your populated Check Back .xlsx here (after PDF/screenshot ingest)</div>
+    <div class="upload-hint">Drop your Check Back .xlsx workbook here</div>
     <p style="margin-top:16px;font-size:12px;color:var(--text-muted);">If double-click does not work, run <code style="color:var(--accent-blue)">./open-dashboard.sh</code> in the dashboard folder.</p>
     <div id="libLoading" style="display:none;margin-top:14px;font-size:13px;color:var(--accent-blue);">Loading spreadsheet &amp; chart libraries…</div>
     <div class="supported-formats"><span class="format-badge">.XLSX</span><span class="format-badge">.XLS</span><span class="format-badge">.CSV</span></div>
@@ -814,7 +814,7 @@ function showUploadFallback(){
   const sub=document.getElementById('uploadSubtitle');
   if(sub){
     sub.innerHTML=IS_PUBLIC_HOST
-      ? 'Upload your Check Back spreadsheet (.xlsx or .csv). Data stays in your browser — nothing is sent to a server.'
+      ? 'Upload your Check Back workbook (.xlsx). Data stays in your browser — nothing is sent to a server.'
       : 'Auto-load needs the local server (<code>./open-dashboard.sh</code>). Or choose another spreadsheet below.';
   }
   document.getElementById('uploadZone').style.display='flex';

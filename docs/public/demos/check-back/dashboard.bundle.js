@@ -29,10 +29,34 @@ const SchemaDashboard = (function () {
     );
   }
 
+  function rowCellValues(ws, rowIdx) {
+    const ref = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+    const vals = [];
+    for (let c = ref.s.c; c <= ref.e.c; c++) {
+      const addr = XLSX.utils.encode_cell({ r: rowIdx, c });
+      const v = ws[addr] && ws[addr].v;
+      vals.push(v == null ? '' : String(v).trim());
+    }
+    return vals;
+  }
+
+  function detectHeaderRow(ws) {
+    const ref = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+    const maxScan = Math.min(ref.e.r, 5);
+    for (let r = 0; r <= maxScan; r++) {
+      const cols = rowCellValues(ws, r).filter(Boolean);
+      if (!cols.length) continue;
+      if (cols.includes('Opportunity Name')) return r;
+      if (CHECKBACK_MARKERS.some((m) => cols.includes(m))) return r;
+      if (RENEWAL_MARKERS.every((m) => cols.includes(m))) return r;
+    }
+    if (isCheckBackSectionRow(ws)) return 1;
+    return 0;
+  }
+
   function sheetToJson(wb) {
     const ws = wb.Sheets[wb.SheetNames[0]];
-    let range = 0;
-    if (isCheckBackSectionRow(ws)) range = 1;
+    const range = detectHeaderRow(ws);
     return XLSX.utils.sheet_to_json(ws, { defval: '', range });
   }
 
