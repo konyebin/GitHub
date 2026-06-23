@@ -1,0 +1,150 @@
+# Install Base → Check Back column mapping
+install_base_to_checkback:
+  Account Name: Opportunity Name
+  Collab AOV: "TCV $"
+  Partner Name: Partner
+  Subscription Ref Id: "Sub #"
+  CSM_NAME: "CSM name"
+  SFDC_OPPORTUNITY_NAME: "Opportunity (linked)"
+  Lifecycle Stage_Current: "Notes from provisioned features"
+  Risk2_0_current: " (G/Y/R)"
+
+risk_to_gyr:
+  Low: G
+  Medium: Y
+  High: R
+  Unknown: ""
+
+# Fields requiring manual review when mapped from install base
+review_flags:
+  "Term End Date": "Sub start date (MM/DD/YYYY)"
+  "Webex Calling MT Provisioned Seats": "Providioned Lic Calling"
+  "Webex Calling DI Provisioned Seats": "Providioned Lic Calling"
+  "Cloud Calling Billed Seats": "Entitled Lic Calling"
+  "Total Billed Seats": "Entitled Lic Calling"
+
+# PDF filename patterns → extractor + target fields
+pdf_patterns:
+  - pattern: "(?i)opportunity.*salesforce"
+    extractor: opportunity
+    fields: [Opportunity Name, "TCV $", Partner, "Closed on (MM/YY)", Competitor]
+  - pattern: "(?i)subscription.*workbench"
+    extractor: subscription
+    fields: ["Sub #", "Sub start date (MM/DD/YYYY)", "Entitled Lic Calling"]
+  - pattern: "(?i)accountinfo"
+    extractor: accountinfo
+    fields: ["Customer org id"]
+  - pattern: "(?i)calling_cdr|calling"
+    extractor: calling
+    fields: ["Active Lic Calling", "Notes from Calling Analytics"]
+  - pattern: "(?i)devices"
+    extractor: devices
+    fields: ["Add-ons included or not"]
+  - pattern: "(?i)meetings|messaging|wrkspace"
+    extractor: collaboration
+    fields: ["Notes from provisioned features"]
+  - pattern: "(?i)success.?portal|cloud collaboration"
+    extractor: success_portal
+    fields: ["CSM Engagement Model (linked)", "CSM name"]
+  - pattern: "(?i)genuineparts"
+    extractor: summary
+    fields: [Opportunity Name, "Customer org id"]
+
+check_back_columns:
+  - Opportunity Name
+  - Opportunity (linked)
+  - SL2
+  - "TCV $"
+  - "Closed on (MM/YY)"
+  - Competitor
+  - Migrating from
+  - Migrating to
+  - Partner
+  - "CSM Engagement Model (linked)"
+  - "CSM name"
+  - "Sub #"
+  - "Sub start date (MM/DD/YYYY)"
+  - "Add-ons included or not"
+  - "Calling Setup Assist included (Y/N)"
+  - "Entitled Lic Calling"
+  - "Providioned Lic Calling"
+  - "Active Lic Calling"
+  - "Customer org id"
+  - "Notes from Calling Analytics"
+  - "Notes from provisioned features"
+  - "CCEP trial (Y/N)"
+  - " (G/Y/R)"
+  - TAC/BEMS
+  # PowerPoint Business Insight (see upgrade_schema.py)
+  - "AAR $"
+  - Collab AE/SE
+  - Service lines
+  - Sub term (months)
+  - Trend active users 90d
+  - Trend call volume 90d
+  - Lic Professional (used/entitled)
+  - Lic Standard (used/entitled)
+  - Lic Workspace (used/entitled)
+  - Active % of provisioned
+  - Total calls
+  - External calls
+  - Answered calls %
+  - Calls busiest hour
+  - Meetings usage
+  - Messaging usage
+  - Auto Attendant count
+  - Hunt Groups count
+  - Call Queues count
+  - Connected-UC (Y/N)
+  - Virtual Lines count
+  - Recommended Actions
+  - CSM / Account Team notes
+  - Data gathered by
+  - Data gathered date
+
+# PowerPoint slide section → spreadsheet columns
+powerpoint_sections:
+  subscription_review:
+    - "Sub #"
+    - "Sub start date (MM/DD/YYYY)"
+    - Sub term (months)
+    - "TCV $"
+    - "AAR $"
+    - SL2
+    - Partner
+    - Collab AE/SE
+    - "CSM Engagement Model (linked)"
+    - "CSM name"
+    - Trend active users 90d
+    - Trend call volume 90d
+    - Service lines
+  provisioning_usage:
+    - "Customer org id"
+    - "Entitled Lic Calling"
+    - Lic Professional (used/entitled)
+    - Lic Standard (used/entitled)
+    - Lic Workspace (used/entitled)
+    - "Providioned Lic Calling"
+    - "Active Lic Calling"
+    - Active % of provisioned
+    - Total calls
+    - External calls
+    - Answered calls %
+    - Calls busiest hour
+    - Meetings usage
+    - Messaging usage
+  feature_use:
+    - Auto Attendant count
+    - Hunt Groups count
+    - Call Queues count
+    - Connected-UC (Y/N)
+    - Virtual Lines count
+    - "Add-ons included or not"
+  csm_notes:
+    - Recommended Actions
+    - CSM / Account Team notes
+    - "Notes from Calling Analytics"
+    - "Notes from provisioned features"
+    - TAC/BEMS
+  health:
+    - " (G/Y/R)"

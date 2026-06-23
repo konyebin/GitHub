@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+# Check Back — one entry point for spreadsheet sync + dashboard.
+#
+# Usage:
+#   ./check-back              # sync workbook + dashboard + open Excel + browser
+#   ./check-back sync         # spreadsheet only (slide fields, URLs, subscription dates)
+#   ./check-back dashboard    # copy xlsx + rebuild JS bundle + open browser
+#   ./check-back open         # same as default (no args)
+#   ./check-back populate …   # pass through to python -m src.cli populate …
+#
+# Environment:
+#   CHECK_BACK_XLSX   path to baseline workbook (default: output/Check_Back_standardized.xlsx)
+#   CHECK_BACK_VENV   python venv (default: ~/Documents/GitHub/.venv)
+
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+VENV="${CHECK_BACK_VENV:-$HOME/Documents/GitHub/.venv}"
+PY="${VENV}/bin/python"
+WORKBOOK="${CHECK_BACK_XLSX:-$ROOT/output/Check_Back_standardized.xlsx}"
+
+if [ ! -x "$PY" ]; then
+  echo "Python not found: $PY (set CHECK_BACK_VENV)" >&2
+  exit 1
+fi
+
+export PYTHONPATH="${ROOT}${PYTHONPATH:+:$PYTHONPATH}"
+
+run_sync_workbook() {
+  echo "→ Syncing workbook: $WORKBOOK"
+  "$PY" -m src.cli sync-workbook -i "$WORKBOOK" "$@"
+}
+
+run_import_panels_if_exists() {
+  local panel="${WORKBOOK%.*}_panels.xlsx"
+  if [ -f "$panel" ]; then
+    echo "→ Merging panel cache: $panel"
+    "$PY" -m src.cli import-panels -i "$WORKBOOK" --panel "$panel" --no-backup
+  fi
+}
+
+run_dashboard_prep() {
+  echo "→ Preparing dashboard"
+  run_import_panels_if_exists
+  (cd "$ROOT/dashboard" && ./build-bundle.sh && ./sync-default-workbook.sh)
+}
+
+open_workbook() {
+  if [ -f "$WORKBOOK" ]; then
+    echo "→ Opening spreadsheet"
+    if command -v open >/dev/null 2>&1; then
+      open "$WORKBOOK"
+    fi
+  else
+    echo "Workbook not found: $WORKBOOK" >&2
+  fi
+}
+
+open_dashboard() {
+  (cd "$ROOT/dashboard" && ./open-dashboard.sh)
+}
+
+cmd="${1:-all}"
+if [ "$cmd" = "populate" ] || [ "$cmd" = "ingest-sources" ] || [ "$cmd" = "extract-pdfs" ] \
+  || [ "$cmd" = "build-workbook" ] || [ "$cmd" = "map-install-base" ] \
+  || [ "$cmd" = "upgrade-spreadsheet" ] || [ "$cmd" = "validate" ]; then
+  exec "$PY" -m src.cli "$@"
+fi
+
+shift || true
+
+case "$cmd" in
+  help|-h|--help)
+    sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'
+    echo ""
+    echo "Commands:"
+    echo "  (none)|all|open   sync workbook + dashboard + open Excel + browser"
+    echo "  sync|workbook|update   spreadsheet sync only"
+    echo "  dashboard         bundle JS + copy xlsx + open browser"
+    echo "  export-panels     save Subscription/Provisioning/Feature columns → *_panels.xlsx"
+    echo "  import-panels     merge *_panels.xlsx back into main workbook"
+    echo "  populate …        full PDF → xlsx pipeline (see: ./check-back populate -h)"
+    ;;
+  sync|workbook|update)
+    run_sync_workbook "$@"
+    ;;
+  dashboard)
+    run_dashboard_prep
+    open_dashboard
+    ;;
+  export-panels|import-panels)
+    exec "$PY" -m src.cli "$cmd" -i "$WORKBOOK" "$@"
+    ;;
+  all|open|go)
+    run_sync_workbook "$@"
+    run_dashboard_prep
+    open_workbook
+    open_dashboard
+    ;;
+  *)
+    echo "Unknown command: $cmd (try: ./check-back help)" >&2
+    exit 1
+    ;;
+esac

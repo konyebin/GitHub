@@ -1,0 +1,93 @@
+# Column standardization rules (approved 2026-06-15).
+# Applied by: python -m src.cli standardize-columns -i <workbook.xlsx>
+
+rules_version: 1
+
+red_font: true  # invalid / needs-review cells → red text
+
+columns:
+  Opportunity Name:
+    action: trim
+
+  Opportunity (linked):
+    action: salesforce_url_or_red
+    valid_pattern: "^https://ciscocollaboration\\.lightning\\.force\\.com/"
+    read_excel_hyperlink: true
+
+  Customer org id:
+    action: uuid_or_red
+
+  Sub #:
+    action: sub_number
+
+  "TCV $":
+    action: currency_dollars  # $X,XXX
+
+  "Closed on (MM/YY)":
+    action: date_iso  # YYYY-MM-DD
+
+  "Sub Term":
+    action: sub_term_years  # e.g. 5yr | Year 2 of 5 (as of YYYY-MM-DD)
+
+  # legacy header renamed during standardize
+  "Sub start date (MM/DD/YYYY)":
+    action: sub_term_years
+
+  " (G/Y/R)":
+    action: gyr_letter
+
+  "CCEP trial (Y/N)":
+    action: yn_strip_date_to_notes
+    notes_column: Notes from Calling Analytics
+
+  "Calling Setup Assist included (Y/N)":
+    action: yn_or_red
+
+  "CSM Engagement Model (linked)":
+    action: enum_map
+    map:
+      "TAC Supported": TAC Support
+      "tac support": TAC Support
+      scale: Scale
+      "high touch": High Touch
+      none: None
+
+  Migrating from:
+    action: token_normalize
+    tokens: [CUCM, "UCM, UCCX", Consolidating, N/A, Avaya, HCS]
+
+  Migrating to:
+    action: migrating_to
+
+  Competitor:
+    action: competitor_list
+
+  SL2:
+    action: sl2_case
+
+  Partner:
+    action: trim
+
+  CSM name:
+    action: trim
+
+  "Entitled Lic Calling":
+    action: pl_ws_license_merged  # Professional prov/ent; Workspace prov/ent
+
+  "Providioned Lic Calling":
+    action: pl_ws_license_provisioned  # Professional n; Workspace n
+
+  "Active Lic Calling":
+    action: active_license  # comma-formatted count
+
+  "Add-ons included or not":
+    action: trim
+
+  "Notes from Calling Analytics":
+    action: trim
+
+  "Notes from provisioned features":
+    action: trim
+
+  TAC/BEMS:
+    action: yn_or_red

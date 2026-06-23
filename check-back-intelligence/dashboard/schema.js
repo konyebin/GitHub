@@ -2,7 +2,12 @@
  * Schema detection and spreadsheet parsing for Check Back / Renewal / Generic modes.
  */
 const SchemaDashboard = (function () {
-  const CHECKBACK_MARKERS = ['Entitled Lic Calling', 'Providioned Lic Calling', ' (G/Y/R)'];
+  const CHECKBACK_MARKERS = [
+    'Provisioned/Entitled Lic Calling',
+    'Entitled Lic Calling',
+    'Providioned Lic Calling',
+    ' (G/Y/R)',
+  ];
   const RENEWAL_MARKERS = ['Collab AOV', 'Renewal Fiscal Qtr'];
 
   function detectMode(columns) {
@@ -59,9 +64,20 @@ const SchemaDashboard = (function () {
     return XLSX.utils.sheet_to_json(ws, { defval: '', range });
   }
 
+  function normalizeParsedRows(rows) {
+    return rows.map((row) => {
+      const out = { ...row };
+      const oid = out['Customer org id'];
+      if (oid != null && String(oid).trim() !== '') {
+        out['Customer org id'] = String(oid).trim();
+      }
+      return out;
+    });
+  }
+
   function parseWorkbook(arrayBuffer) {
     const wb = XLSX.read(arrayBuffer, { type: 'array', cellDates: true });
-    const json = sheetToJson(wb);
+    const json = normalizeParsedRows(sheetToJson(wb));
     if (!json.length) return { json: [], mode: 'generic', columns: [] };
     const columns = Object.keys(json[0]);
     const mode = detectMode(columns);
@@ -144,6 +160,10 @@ const SchemaDashboard = (function () {
 
     if (mode === 'checkback') {
       movePortfolioTable('checkback');
+      const tabsEl = document.querySelector('.tabs');
+      if (tabsEl) tabsEl.style.display = 'none';
+      const pdfBtn = document.getElementById('exportPdfBtn');
+      if (pdfBtn) pdfBtn.style.display = 'none';
       const adoptTab = document.querySelector('.tab[data-tab="adoption"]');
       const adoptContent = document.getElementById('tab-adoption');
       if (adoptTab && adoptContent) {
@@ -154,6 +174,10 @@ const SchemaDashboard = (function () {
       }
     } else {
       movePortfolioTable('renewal');
+      const tabsEl = document.querySelector('.tabs');
+      if (tabsEl) tabsEl.style.display = '';
+      const pdfBtn = document.getElementById('exportPdfBtn');
+      if (pdfBtn) pdfBtn.style.display = '';
     }
   }
 

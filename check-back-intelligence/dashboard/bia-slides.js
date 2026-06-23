@@ -1,0 +1,986 @@
+/** Auto-generated from Lookback BIA Slide Template PDF — run scripts/parse_bia_pdf.py */
+const BIA_SLIDES = [
+  {
+    "page": 3,
+    "customerName": "Alamo Workforce Development Inc",
+    "orgId": "45c3c1ff-5a61-4606-9dc5-9437eb0208b2",
+    "gatheredBy": "",
+    "gatheredDate": "March 4, 2026",
+    "health": "Upsell",
+    "platforms": "Meetings: NU _ EA _ | Calling: NU _ EA _ | Suite: NU _ EA _ | WxCC _",
+    "subscription": {
+      "sub": "Sub1972464",
+      "term": "36M from 09-18-2024 to 09-18-2027",
+      "tcv": "$240K",
+      "aar": "$54,699.00",
+      "collabAe": "Name A / Name B",
+      "segment": "SLED",
+      "partner": "Barcom Technology Solutions",
+      "csmModel": "TAC Supported",
+      "links": "S&C | Success Portal"
+    },
+    "provisioning": {
+      "orgId": "45c3c1ff-5a61-4606-9dc5-9437eb0208b2",
+      "entitled": "918 total including growth",
+      "professional": "459/540 (85%)",
+      "standard": "",
+      "workspace": "125/270 (4)",
+      "activeUsers": "322 (55% of provisioned)",
+      "externalCalls": "xx out of yy calls (%)",
+      "meetings": "NU _ EA _ | Calling: NU _ EA _ | Suite: NU _ EA _ | WxCC _ Customer Org ID: 45c3c1ff-5a61-4606-9dc5-9437eb0208b2",
+      "messaging": "64 Active Users, 590 messages sent in the analyzed period. AI Premium - -",
+      "numbersAssigned": "xx out of yy numbers (%)",
+      "locations": "xx out of yy locations (%)"
+    },
+    "features": {
+      "autoAttendant": "20",
+      "huntGroups": "-",
+      "callQueues": "5",
+      "connectedUc": "-",
+      "virtualLines": "215"
+    },
+    "trends": [
+      "Provisioned licenses DOWN -.1% last 90 days",
+      "Active users UP +21% last 90 days",
+      "Call volume UP +1.5% last 90 days"
+    ],
+    "notes": [
+      {
+        "who": "Renewal SE",
+        "text": "Notes [[[ Here we should put our overall commentary for this customer situation ]]]"
+      },
+      {
+        "who": "CSM / Acct Team",
+        "text": "Address the low adoption of messaging and meetings despite having the licenses available. Use only one"
+      },
+      {
+        "who": "CSM / Acct Team",
+        "text": "The customer has a local gateway and Connected-UC configured, Seems to have not traffic on it. Verify if it is still required or should be decommissioned."
+      },
+      {
+        "who": "Acct Team",
+        "text": "Address the low adoption of messaging and meetings despite having the licenses available. Use only one"
+      },
+      {
+        "who": "Acct Team",
+        "text": "The customer has a local gateway and Connected-UC configured, Seems to have not traffic on it. Verify if it is still required or should be decommissioned."
+      },
+      {
+        "who": "Acct Team",
+        "text": "Confirm overage on the Cisco Calling Plan (580/540)"
+      }
+    ],
+    "addons": {
+      "PSTN Cisco Calling Plans": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "Customer Assist": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "Attendant Console": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "AI Receptionist": {
+        "P": "-",
+        "T": "X",
+        "U": "X"
+      },
+      "AI Premium": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      }
+    },
+    "subscriptionDates": "09-18-2024 to 09-18-2027",
+    "isTemplate": true
+  },
+  {
+    "page": 5,
+    "customerName": "Sacramento City Unified School District",
+    "orgId": "2ff94611-b956-4fa8-9a0e-c196fb50383d",
+    "gatheredBy": "Jeremy Abrams",
+    "gatheredDate": "May 19, 2026",
+    "health": "Unknown",
+    "platforms": "Meetings: | Calling: NU _ EA _ | Suite:",
+    "subscription": {
+      "sub": "Sub2187758",
+      "term": "36M from 11-6-2025 - to 10-6-2028",
+      "tcv": "$1,327,091K",
+      "aar": "$353,121.60",
+      "collabAe": "Erik O'Herron/ Benjamin Lewis",
+      "segment": "US PS Market",
+      "partner": "ConvergeOne Inc",
+      "csmModel": "Scale",
+      "links": "S&C | Success Portal"
+    },
+    "provisioning": {
+      "orgId": "2ff94611-b956-4fa8-9a0e-c196fb50383d",
+      "entitled": "8135total including growth",
+      "professional": "1033/1200 (86%)",
+      "standard": "3220/4485 (71%) Workspace: 38/2450",
+      "workspace": "38/2450",
+      "activeUsers": "3861(90% of provisioned)",
+      "externalCalls": "197Kout of 1.1Mcalls (17%)",
+      "meetings": "| Calling: NU _ EA _ | Suite: Customer Org ID: 2ff94611-b956-4fa8-9a0e-c196fb50383d",
+      "messaging": "13 Active Users, 19 messages sent in the analyzed period. AI Premium - - -",
+      "numbersAssigned": "Add-Ons (Purchased, Trial, Using) P T U",
+      "locations": "PSTN Cisco Calling Plans - - -"
+    },
+    "features": {
+      "autoAttendant": "168",
+      "huntGroups": "101",
+      "callQueues": "-",
+      "connectedUc": "-",
+      "virtualLines": "271"
+    },
+    "trends": [
+      "Active users UP +18% last 90 days",
+      "Call volume UP +95% last 90 days"
+    ],
+    "notes": [
+      {
+        "who": "CSM / Acct Team",
+        "text": "Discuss the Domain Claim status, as it is marked as \u201cNot Completed\u201d in control hub. SSO not enabled"
+      },
+      {
+        "who": "CSM / Acct Team",
+        "text": "Address the low adoption of messaging despite having the licenses available."
+      },
+      {
+        "who": "CSM / Acct Team",
+        "text": "Core Calling adoption is strong. Biggest watchout is low common area licenses used. (is migration still in progress?)"
+      },
+      {
+        "who": "Acct Team",
+        "text": "Discuss the Domain Claim status, as it is marked as \u201cNot Completed\u201d in control hub. SSO not enabled"
+      },
+      {
+        "who": "Acct Team",
+        "text": "Address the low adoption of messaging despite having the licenses available."
+      },
+      {
+        "who": "Acct Team",
+        "text": "Core Calling adoption is strong. Biggest watchout is low common area licenses used. (is migration still in progress?)"
+      }
+    ],
+    "addons": {
+      "PSTN Cisco Calling Plans": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "Customer Assist": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "Attendant Console": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "AI Receptionist": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "AI Premium": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      }
+    },
+    "subscriptionDates": "11-6-2025 to 10-6-2028",
+    "isTemplate": false
+  },
+  {
+    "page": 6,
+    "customerName": "Berkeley County School District",
+    "orgId": "fb078f9f-4332-4ace-8b1f-6a46313aa4ea",
+    "gatheredBy": "Jeremy Abrams",
+    "gatheredDate": "May 19, 2026",
+    "health": "Good",
+    "platforms": "Meetings: | Calling: NU _ EA _ | Suite:",
+    "subscription": {
+      "sub": "Sub963004",
+      "term": "60M from 22-5-2025 to 21-5-2030",
+      "tcv": "$1.154M",
+      "aar": "$261,696",
+      "collabAe": "Peter Caterinicchia",
+      "segment": "US PS Market",
+      "partner": "Bridgetek Solutions LLC",
+      "csmModel": "Scale",
+      "links": "S&C | Success Portal"
+    },
+    "provisioning": {
+      "orgId": "fb078f9f-4332-4ace-8b1f-6a46313aa4ea",
+      "entitled": "7357total including growth",
+      "professional": "4376/5193 (84%)",
+      "standard": "0/0 (0%) Workspace: 377/2164 (17%)",
+      "workspace": "377/2164 (17%)",
+      "activeUsers": "4142(87% of provisioned)",
+      "externalCalls": "35.8Kout of 1.1Mcalls (3%)",
+      "meetings": "| Calling: NU _ EA _ | Suite: Customer Org ID: fb078f9f-4332-4ace-8b1f-6a46313aa4ea",
+      "messaging": "1 Active Users, 1messages sent in the analyzed period. AI Premium - - -",
+      "numbersAssigned": "Add-Ons (Purchased, Trial, Using) P T U",
+      "locations": "PSTN Cisco Calling Plans - - -"
+    },
+    "features": {
+      "autoAttendant": "113",
+      "huntGroups": "9",
+      "callQueues": "-",
+      "connectedUc": "Y",
+      "virtualLines": "96"
+    },
+    "trends": [
+      "Active users UP +2.6% last 90 days",
+      "Call volume UP +52% last 90 days"
+    ],
+    "notes": [
+      {
+        "who": "CSM / Acct Team",
+        "text": "Customer is using Connected-UC, looks like the UCM cluster is still online, but no users are configured on the cluster."
+      },
+      {
+        "who": "CSM / Acct Team",
+        "text": "Customer is using Local Gateway for PSTN access Good"
+      },
+      {
+        "who": "CSM/ Acct Team",
+        "text": "Core calling usage looks strong, main concern is adoption. Not enabled SSO, Directory connector."
+      },
+      {
+        "who": "CSM/ Acct Team",
+        "text": "Core calling usage looks strong, main concern is adoption. Not enabled SSO, Directory connector."
+      },
+      {
+        "who": "Acct Team",
+        "text": "Customer is using Connected-UC, looks like the UCM cluster is still online, but no users are configured on the cluster."
+      },
+      {
+        "who": "Acct Team",
+        "text": "Customer is using Local Gateway for PSTN access Good"
+      }
+    ],
+    "addons": {
+      "PSTN Cisco Calling Plans": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "Customer Assist": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "Attendant Console": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "AI Receptionist": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "AI Premium": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      }
+    },
+    "subscriptionDates": "22-5-2025 to 21-5-2030",
+    "isTemplate": false
+  },
+  {
+    "page": 7,
+    "customerName": "Umpqua Bank",
+    "orgId": "b7299b4e-59e5-4d38-a80f-42ad8f6d6672",
+    "gatheredBy": "Jeremy Abrams",
+    "gatheredDate": "May 19, 2026",
+    "health": "Risk",
+    "platforms": "Meetings: AU _ Meeting| Calling: NU _ EA _ | WxCC",
+    "subscription": {
+      "sub": "Sub201124",
+      "term": "35M from 2-12-2024 to 6-11-2027",
+      "tcv": "$926,331",
+      "aar": "$430,052",
+      "collabAe": "Shane Colling",
+      "segment": "Global Enterprise",
+      "partner": "Insight Direct",
+      "csmModel": "Scale",
+      "links": "S&C | Success Portal"
+    },
+    "provisioning": {
+      "orgId": "b7299b4e-59e5-4d38-a80f-42ad8f6d6672",
+      "entitled": "8501total including growth",
+      "professional": "7015/6000 (116%)",
+      "standard": "0/0 (0%) Workspace: 477/2501 (19%)",
+      "workspace": "477/2501 (19%)",
+      "activeUsers": "2571(34% of provisioned)",
+      "externalCalls": "1.4Mout of 1.5Mcalls (93%)",
+      "meetings": "AU _ Meeting| Calling: NU _ EA _ | WxCC Customer Org ID: b7299b4e-59e5-4d38-a80f-42ad8f6d6672",
+      "messaging": "64 Active Users, 590 messages sent in the analyzed period. AI Premium - - -",
+      "numbersAssigned": "Add-Ons (Purchased, Trial, Using) P T U",
+      "locations": "PSTN Cisco Calling Plans - - -"
+    },
+    "features": {
+      "autoAttendant": "17",
+      "huntGroups": "20",
+      "callQueues": "-",
+      "connectedUc": "Y",
+      "virtualLines": "622"
+    },
+    "trends": [
+      "Active users UP +27.5% last 90 days",
+      "Call volume UP +15% last 90 days"
+    ],
+    "notes": [
+      {
+        "who": "CSM / Acct Team",
+        "text": "Connected-UC is enabled, UCM cluster is now offline"
+      },
+      {
+        "who": "CSM / Acct Team",
+        "text": "Customer is using Local Gateway for PSTN access at several sites Risk"
+      },
+      {
+        "who": "CSM / Acct Team",
+        "text": "Account team is trying to renew early to consolidate contracts and make them all co-term. (Umpqua + Columbia Bank)"
+      },
+      {
+        "who": "CSM / Acct Team",
+        "text": "Concern: yes, for Meeting usage (Microsoft) - No major concern: for Calling usage"
+      },
+      {
+        "who": "Acct Team",
+        "text": "Connected-UC is enabled, UCM cluster is now offline"
+      },
+      {
+        "who": "Acct Team",
+        "text": "Customer is using Local Gateway for PSTN access at several sites Risk"
+      }
+    ],
+    "addons": {
+      "PSTN Cisco Calling Plans": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "Customer Assist": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "Attendant Console": {
+        "P": "Y",
+        "T": "-",
+        "U": "Y"
+      },
+      "AI Receptionist": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "AI Premium": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      }
+    },
+    "subscriptionDates": "2-12-2024 to 6-11-2027",
+    "isTemplate": false
+  },
+  {
+    "page": 8,
+    "customerName": "SMBC",
+    "orgId": "707f1259-feb5-4ea2-9a06-05b36402f6cf",
+    "gatheredBy": "Alejandra Garcia",
+    "gatheredDate": "May 19, 2026",
+    "health": "Unknown",
+    "platforms": "Meetings: NU _ EA _ | Calling: NU _ EA _ | Suite: NU _ EA X | WxCC _",
+    "subscription": {
+      "sub": "Sub2160044",
+      "term": "36M from 03-Apr-2025 to 02-Apr-2028",
+      "tcv": "$1,513,404",
+      "aar": "$-",
+      "collabAe": "James Bigg / Michael Ciulei",
+      "segment": "ENT-MAJOR",
+      "partner": "NATILIK LTD",
+      "csmModel": "High Touch",
+      "links": "S&C | Success Portal"
+    },
+    "provisioning": {
+      "orgId": "707f1259-feb5-4ea2-9a06-05b36402f6cf",
+      "entitled": "6353 total including growth",
+      "professional": "0/4428 (0%)",
+      "standard": "",
+      "workspace": "0/1925 (0%)",
+      "activeUsers": "0 (0% of provisioned)",
+      "externalCalls": "0 out of 0 calls (0%)",
+      "meetings": "NU _ EA _ | Calling: NU _ EA _ | Suite: NU _ EA X | WxCC _ Customer Org ID: 707f1259-feb5-4ea2-9a06-05b36402f6cf",
+      "messaging": "105 Active Users, 321 messages sent in the analyzed period. AI Premium - - -",
+      "numbersAssigned": "0 out of 0 numbers (%)",
+      "locations": "0 out of 0 locations (%)"
+    },
+    "features": {
+      "autoAttendant": "-",
+      "huntGroups": "-",
+      "callQueues": "-",
+      "connectedUc": "-",
+      "virtualLines": "-"
+    },
+    "trends": [
+      "Active users - 0% last 90 days",
+      "Call volume - 0% last 90 days"
+    ],
+    "notes": [
+      {
+        "who": "CSM / Acct Team",
+        "text": "Continue working on showing Speech to speech translation."
+      },
+      {
+        "who": "CSM / Acct Team",
+        "text": "Promote webinars for large scale meetings despite customer is already moving to Teams for Meetings and messaging."
+      },
+      {
+        "who": "CSM / Acct Team",
+        "text": "Discuss Webex Calling Integration with MS Teams ."
+      },
+      {
+        "who": "Acct Team",
+        "text": "Continue working on showing Speech to speech translation."
+      },
+      {
+        "who": "Acct Team",
+        "text": "Promote webinars for large scale meetings despite customer is already moving to Teams for Meetings and messaging."
+      },
+      {
+        "who": "Acct Team",
+        "text": "Discuss Webex Calling Integration with MS Teams ."
+      }
+    ],
+    "addons": {
+      "PSTN Cisco Calling Plans": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "Customer Assist": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "Attendant Console": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "AI Receptionist": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "AI Premium": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      }
+    },
+    "subscriptionDates": "",
+    "isTemplate": false
+  },
+  {
+    "page": 9,
+    "customerName": "BANCO SANTANDER TOTTA SA",
+    "orgId": "ff5c7f01-4067-44b9-b50a-8a505bee459f",
+    "gatheredBy": "Alejandra Garcia",
+    "gatheredDate": "May 21, 2026",
+    "health": "Upsell",
+    "platforms": "Meetings: NU _ EA _ | Calling: NU _ EA X| Suite: NU _ EA _ | WxCC _",
+    "subscription": {
+      "sub": "Sub2063875",
+      "term": "60M from 22-Jan-2025 to 21-Jan-2030",
+      "tcv": "$1,473,000",
+      "aar": "",
+      "collabAe": "Joana de Oliveira Carvalho / Marcio Costa",
+      "segment": "",
+      "partner": "TELEFONICA ESPANA",
+      "csmModel": "Scale AI Receptionist - - -",
+      "links": "S&C | Success Portal"
+    },
+    "provisioning": {
+      "orgId": "ff5c7f01-4067-44b9-b50a-8a505bee459f",
+      "entitled": "8500 total including growth",
+      "professional": "4901/6000 (81%)",
+      "standard": "",
+      "workspace": "23/2500 (0.92%)",
+      "activeUsers": "717 (14.5% of provisioned)",
+      "externalCalls": "454.1K out of 1.1M calls (45%)",
+      "meetings": "NU _ EA _ | Calling: NU _ EA X| Suite: NU _ EA _ | WxCC _ Customer Org ID: ff5c7f01-4067-44b9-b50a-8a505bee459f",
+      "messaging": "10 Active Users, 8 messages sent in the analyzed period.",
+      "numbersAssigned": "",
+      "locations": ""
+    },
+    "features": {
+      "autoAttendant": "322",
+      "huntGroups": "46",
+      "callQueues": "985",
+      "connectedUc": "N",
+      "virtualLines": "1"
+    },
+    "trends": [
+      "Active users UP +3.3% last 90 days",
+      "Call volume UP +10.15% last 90 days"
+    ],
+    "notes": [
+      {
+        "who": "CSM / Acct Team",
+        "text": "Discuss the Directory Sync, SSO and Hybrid Calendar integrations in Control Hub."
+      },
+      {
+        "who": "CSM / Acct Team",
+        "text": "Address the opportunity of increasing the usage of the calling licenses. Less than 10% are actively used. UPSELL Customer uses Basic Call Queues and Auto Attendant, discuss the Upselling opportunity for Customer Assist for a more elevated experience. Possible"
+      },
+      {
+        "who": "CSM / Acct Team",
+        "text": "opportunity for AI Receptionist"
+      },
+      {
+        "who": "Acct Team",
+        "text": "Discuss the Directory Sync, SSO and Hybrid Calendar integrations in Control Hub."
+      },
+      {
+        "who": "Acct Team",
+        "text": "Address the opportunity of increasing the usage of the calling licenses. Less than 10% are actively used. UPSELL Customer uses Basic Call Queues and Auto Attendant, discuss the Upselling opportunity for Customer Assist for a more elevated experience. Possible"
+      },
+      {
+        "who": "Acct Team",
+        "text": "opportunity for AI Receptionist"
+      }
+    ],
+    "addons": {
+      "PSTN Cisco Calling Plans": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "Customer Assist": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "Attendant Console": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "AI Receptionist": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "AI Premium": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      }
+    },
+    "subscriptionDates": "",
+    "isTemplate": false
+  },
+  {
+    "page": 10,
+    "customerName": "DALLAS COUNTY COMMUNITY COLLEGE DISTRICT",
+    "orgId": "6fb77fb2-4ce6-4608-831c-0a97d43039b8",
+    "gatheredBy": "Fred W",
+    "gatheredDate": "May 21, 2026",
+    "health": "Unknown",
+    "platforms": "Meetings: NU _ EA | Calling: NU _ EA | Suite: NU _ EA |",
+    "subscription": {
+      "sub": "Sub2050374",
+      "term": "60M from 01-20-2025 to 01-19-2030",
+      "tcv": "$1,838,043.60",
+      "aar": "$367,685.52",
+      "collabAe": "",
+      "segment": "US PS",
+      "partner": "NETSYNC NETWORK SOLUTIONS",
+      "csmModel": "Scale",
+      "links": "S&C | Success Portal"
+    },
+    "provisioning": {
+      "orgId": "6fb77fb2-4ce6-4608-831c-0a97d43039b8",
+      "entitled": "7,468 total including growth",
+      "professional": "0/5205 (0%)",
+      "standard": "",
+      "workspace": "0/2263 (0%)",
+      "activeUsers": "0 for calling / 50 unique hosts for meetings over past 90 days",
+      "externalCalls": "0 out of 0 calls (0%)",
+      "meetings": "NU _ EA | Calling: NU _ EA | Suite: NU _ EA | Customer Org ID: 6fb77fb2-4ce6-4608-831c-0a97d43039b8",
+      "messaging": "29 Daily Active Users, 7.5K messages sent over past 90 days AI Premium - - -",
+      "numbersAssigned": "0 out of 0 numbers (0%)",
+      "locations": "0 out of 2 locations (0%)"
+    },
+    "features": {
+      "autoAttendant": "-",
+      "huntGroups": "-",
+      "callQueues": "-",
+      "connectedUc": "\u2014",
+      "virtualLines": "-"
+    },
+    "trends": [
+      "Provisioned licenses - 0% last 90 days",
+      "Active users - 0% last 90 days",
+      "Call volume 0 0% last 90 days"
+    ],
+    "notes": [
+      {
+        "who": "CSM / Acct Team",
+        "text": "Address the migration issue with customer. They are still using their on prem and will loose entitlement soon."
+      },
+      {
+        "who": "CSM / Acct Team",
+        "text": "Consider proposing setup assist to help with the migration."
+      },
+      {
+        "who": "Acct Team",
+        "text": "Address the migration issue with customer. They are still using their on prem and will loose entitlement soon."
+      },
+      {
+        "who": "Acct Team",
+        "text": "Consider proposing setup assist to help with the migration."
+      },
+      {
+        "who": "Acct Team",
+        "text": "Extension of entitlement for on prem system will most likely be needed."
+      },
+      {
+        "who": "Note",
+        "text": "Customer has dual entitlement to on prem until July 20th 2026. They have nothing set up in WxC multi tenant or DI. They will lose entitlement soon."
+      }
+    ],
+    "addons": {
+      "PSTN Cisco Calling Plans": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "Customer Assist": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "Attendant Console": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "AI Receptionist": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "AI Premium": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      }
+    },
+    "subscriptionDates": "01-20-2025 to 01-19-2030",
+    "isTemplate": false
+  },
+  {
+    "page": 11,
+    "customerName": "BAYLOR HEALTH CARE SYSTEM",
+    "orgId": "7c32f78b-822d-4a07-bda8-f4b11f4a821b",
+    "gatheredBy": "Fred W",
+    "gatheredDate": "May 25, 2026",
+    "health": "Unknown",
+    "platforms": "Meetings: AU EA _ | Calling: NU _ EA | Suite: NU _ EA _",
+    "subscription": {
+      "sub": "Sub1972464",
+      "term": "39.23M from 03-24-2025 to 06-30-2028",
+      "tcv": "$4,330,667.18",
+      "aar": "$1,324,700.64",
+      "collabAe": "",
+      "segment": "",
+      "partner": "WWT",
+      "csmModel": "Hight Touch AI Receptionist - - -",
+      "links": "S&C | Success Portal"
+    },
+    "provisioning": {
+      "orgId": "7c32f78b-822d-4a07-bda8-f4b11f4a821b",
+      "entitled": "13,500 total including growth",
+      "professional": "2/6K (.03%)",
+      "standard": "",
+      "workspace": "0/7.5K (0%)",
+      "activeUsers": "0",
+      "externalCalls": "0 out of 0 calls (0%)",
+      "meetings": "AU EA _ | Calling: NU _ EA | Suite: NU _ EA _ Customer Org ID: 7c32f78b-822d-4a07-bda8-f4b11f4a821b",
+      "messaging": "158 Active Users, 2.6K messages sent over past 90 days AI Premium - - -",
+      "numbersAssigned": "0 out of 0 numbers (0%)",
+      "locations": "0 out of 5 locations (0%)"
+    },
+    "features": {
+      "autoAttendant": "-",
+      "huntGroups": "-",
+      "callQueues": "-",
+      "connectedUc": "-",
+      "virtualLines": "-"
+    },
+    "trends": [
+      "Provisioned licenses - -% last 90 days",
+      "Active users - -% last 90 days",
+      "Call volume - -% last 90 days"
+    ],
+    "notes": [
+      {
+        "who": "CSM / Acct Team",
+        "text": "Discuss with customer what their plans are to migrate to WxC."
+      },
+      {
+        "who": "CSM / Acct Team",
+        "text": "Propose set up assist to aid with building out WxC deployment."
+      },
+      {
+        "who": "Acct Team",
+        "text": "Discuss with customer what their plans are to migrate to WxC."
+      },
+      {
+        "who": "Acct Team",
+        "text": "Propose set up assist to aid with building out WxC deployment."
+      },
+      {
+        "who": "Note",
+        "text": "Great usage of Meetings and Messaging"
+      },
+      {
+        "who": "Note",
+        "text": "Still seeing heavy usage on prem calling, but nothing is provisioned in WxC (numbers, features, users, etc). UCM most likely needs to be upgraded to v15."
+      }
+    ],
+    "addons": {
+      "PSTN Cisco Calling Plans": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "Customer Assist": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "Attendant Console": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "AI Receptionist": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "AI Premium": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      }
+    },
+    "subscriptionDates": "03-24-2025 to 06-30-2028",
+    "isTemplate": false
+  },
+  {
+    "page": 12,
+    "customerName": "THE UNIVERSITY OF TENNESSEE MEDICAL CENTER",
+    "orgId": "40357664-235c-44a7-9127-3b4518eeb757",
+    "gatheredBy": "KennethO on",
+    "gatheredDate": "May 18, 2026",
+    "health": "Unknown",
+    "platforms": "Meetings: EA | Calling: NU | WxCC",
+    "subscription": {
+      "sub": "Sub2195655, Sub2195656, Sub535343",
+      "term": "60.00 Months from 28-Apr-2025 to 27-Apr-2030(Webex) & Basic Call Queues 3",
+      "tcv": "$2,071K",
+      "aar": "$500,611.56",
+      "collabAe": "Kristen Dawson / Kyle Davenport",
+      "segment": "USPS PSTN Cisco Calling Plans - - -",
+      "partner": "Internetwork Engineering (Presidio)",
+      "csmModel": "TAC Supported AI Assistant -",
+      "links": "S&C | Success Portal"
+    },
+    "provisioning": {
+      "orgId": "40357664-235c-44a7-9127-3b4518eeb757",
+      "entitled": "PL: 40/105, WS: 34/82, WxM: 347/5762",
+      "professional": "",
+      "standard": "",
+      "workspace": "",
+      "activeUsers": "Calling: 56; Endpoints: 108;",
+      "externalCalls": "22.9K out of 40.5K calls (%)",
+      "meetings": "EA | Calling: NU | WxCC Customer Org ID: 40357664-235c-44a7-9127-3b4518eeb757",
+      "messaging": "21 Active Users; 1.5K Messages sent AI Agent -",
+      "numbersAssigned": "xx out of yy numbers (%)",
+      "locations": "xx out of yy locations (%)"
+    },
+    "features": {
+      "autoAttendant": "14",
+      "huntGroups": "1",
+      "callQueues": "3",
+      "connectedUc": "\u2014",
+      "virtualLines": "1"
+    },
+    "trends": [
+      "Active users UP +7.69% last 30 days",
+      "Call volume UP +11.2% last 30 days"
+    ],
+    "notes": [
+      {
+        "who": "Renewals SE",
+        "text": "Renewal SE to reach out to account team"
+      },
+      {
+        "who": "CSM / Acct Team",
+        "text": "Address the low adoption of messaging and meetings."
+      },
+      {
+        "who": "CSM / Acct Team",
+        "text": "Monitor customer usage. Is this a hybrid deployment? Recommended Actions"
+      },
+      {
+        "who": "Acct Team",
+        "text": "Address the low adoption of messaging and meetings."
+      },
+      {
+        "who": "Acct Team",
+        "text": "Monitor customer usage. Is this a hybrid deployment? Recommended Actions"
+      },
+      {
+        "who": "Insight",
+        "text": "The customer has a local gateway and Connected-UC configured. Over 24K calls with only 1% poor calls"
+      }
+    ],
+    "addons": {
+      "PSTN Cisco Calling Plans": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "Customer Assist": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "Attendant Console": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      }
+    },
+    "subscriptionDates": "",
+    "isTemplate": false
+  },
+  {
+    "page": 13,
+    "customerName": "HealthEquity, Inc.",
+    "orgId": "a8bbe6ca-841c-46e7-ac4c-d6a5704547d2",
+    "gatheredBy": "KennethO on",
+    "gatheredDate": "May 18, 2026",
+    "health": "Good",
+    "platforms": "Meetings: EA | Calling: EA | WxCC",
+    "subscription": {
+      "sub": "Sub239706, Sub1661355, Sub1661356",
+      "term": "60.00 Months from 12-Dec-2024 to 11-Dec-2029(calling) & Basic Call Queues -",
+      "tcv": "$1,009K",
+      "aar": "$201,813.04 calls: 97.7% (up 0.14%)",
+      "collabAe": "",
+      "segment": "Commercial",
+      "partner": "Presidio",
+      "csmModel": "Scale \u2013 Jessi Carrasco AI Premium - - -",
+      "links": "S&C | Success Portal"
+    },
+    "provisioning": {
+      "orgId": "a8bbe6ca-841c-46e7-ac4c-d6a5704547d2",
+      "entitled": "WxM: 272/3500; PL: 45/3896; WS: 34/1663; Auto Attendant -",
+      "professional": "",
+      "standard": "",
+      "workspace": "",
+      "activeUsers": "Calling: 27; Endpoints: 64 Connected-UC -",
+      "externalCalls": "59.4K out of 60K calls (%)",
+      "meetings": "EA | Calling: EA | WxCC",
+      "messaging": "4 Active Users, 40 messages sent.",
+      "numbersAssigned": "xx out of yy numbers (%)",
+      "locations": ""
+    },
+    "features": {
+      "autoAttendant": "-",
+      "huntGroups": "-",
+      "callQueues": "-",
+      "connectedUc": "-",
+      "virtualLines": "-"
+    },
+    "trends": [
+      "Active users UP +0% last 30 days",
+      "Call volume UP +95.33% last 30 days"
+    ],
+    "notes": [
+      {
+        "who": "CSM / Acct Team",
+        "text": "99% of licenses not provisioned"
+      },
+      {
+        "who": "CSM / Acct Team",
+        "text": "Address the low adoption of messaging and meetings despite having the licenses available."
+      },
+      {
+        "who": "Acct Team",
+        "text": "99% of licenses not provisioned"
+      },
+      {
+        "who": "Acct Team",
+        "text": "Address the low adoption of messaging and meetings despite having the licenses available."
+      },
+      {
+        "who": "Insight",
+        "text": "Still on CUCM 2,622 Enahnced and 1492 Std Unity"
+      },
+      {
+        "who": "Insight",
+        "text": "67 Hours of VIMT calls and 66 locally wired. Assuming that\u2019s also Teams meetings Recommended Actions"
+      }
+    ],
+    "addons": {
+      "PSTN Cisco Calling Plans": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "Customer Assist": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "Attendant Console": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "AI Receptionist": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      },
+      "AI Premium": {
+        "P": "-",
+        "T": "-",
+        "U": "-"
+      }
+    },
+    "subscriptionDates": "",
+    "isTemplate": false
+  }
+];
