@@ -32,6 +32,17 @@ jobs:
           cache: npm
           cache-dependency-path: docs/package-lock.json
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python deps (Check Back demo workbook)
+        run: pip install openpyxl
+
+      - name: Prepare Check Back dashboard for GitHub Pages
+        run: bash check-back-intelligence/dashboard/prepare-github-pages.sh
+
       - name: Install dependencies
         working-directory: docs
         run: npm ci
