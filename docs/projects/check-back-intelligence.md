@@ -1,5 +1,7 @@
 # check-back-intelligence
 
+**Repository:** [github.com/konyebin/check-back-intelligence](https://github.com/konyebin/check-back-intelligence)
+
 <ClientOnly>
   <DemoPanel slug="check-back-intelligence" />
 </ClientOnly>
@@ -39,17 +41,16 @@
 ## How to run
 
 ```bash
-cd ~/Documents/GitHub/check-back-intelligence
-pip install -r requirements.txt
-
-python -m src.cli populate --sources sources/genuine-parts --out output/gpc.xlsx
-python -m src.cli validate -i output/gpc.xlsx
-
+git clone https://github.com/konyebin/check-back-intelligence.git
+cd check-back-intelligence
+./check-back setup
+./check-back populate --sources sources/my-customer --out output/portfolio.xlsx
 ./check-back dashboard
-# or: bash dashboard/open-dashboard.sh
 ```
+
+In this monorepo the same project lives at `check-back-intelligence/`.
 
 ## Canonical docs
 
-- `~/Documents/GitHub/check-back-intelligence/CLAUDE.md`
-- `~/Documents/GitHub/check-back-intelligence/README.md`
+- [README](https://github.com/konyebin/check-back-intelligence/blob/main/README.md)
+- [CLAUDE.md](https://github.com/konyebin/check-back-intelligence/blob/main/CLAUDE.md)

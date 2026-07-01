@@ -88,8 +88,9 @@
       "categories": ["webex", "data"],
       "path": "/projects/check-back-intelligence",
       "repoPath": "check-back-intelligence/",
+      "repoUrl": "https://github.com/konyebin/check-back-intelligence",
       "demo": { "type": "component", "component": "CheckBackDemo" },
-      "runCommand": "cd ~/Documents/GitHub/check-back-intelligence && ./check-back dashboard",
+      "runCommand": "git clone https://github.com/konyebin/check-back-intelligence.git && cd check-back-intelligence && ./check-back setup && ./check-back dashboard",
       "routingTasks": []
     },
     {
