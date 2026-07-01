@@ -1,0 +1,16 @@
+.venv/
+.env
+__pycache__/
+*.pyc
+.DS_Store
+
+# Customer / local workbooks (bring your own)
+output/*
+!output/.gitkeep
+sources/
+staging/
+dashboard/check_back_default.xlsx
+dashboard/check_back_default*.xlsx
+dashboard/.dashboard_snapshot.json
+
+# Local bot / tunnel state lives in ~/.check-back/

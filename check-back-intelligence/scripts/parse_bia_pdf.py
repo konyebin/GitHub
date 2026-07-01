@@ -11,7 +11,7 @@ import pdfplumber
 
 PDF = Path(__file__).resolve().parent.parent / "samples" / "Lookback-BIA-Slide-Template.pdf"
 if not PDF.exists():
-    PDF = Path.home() / "Downloads/Lookback BIA Slide Template .pdf"
+    raise SystemExit(f"BIA template PDF not found: {PDF}")
 OUT_JS = Path(__file__).resolve().parent.parent / "dashboard" / "bia-slides.js"
 OUT_JSON = Path(__file__).resolve().parent.parent / "dashboard" / "data" / "bia-slides.json"
 

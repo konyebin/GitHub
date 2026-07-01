@@ -2,26 +2,29 @@
 # Check Back — one entry point for spreadsheet sync + dashboard.
 #
 # Usage:
+#   ./check-back setup          # create .venv + pip install (first time)
 #   ./check-back              # sync workbook + dashboard + open Excel + browser
 #   ./check-back sync         # spreadsheet only (slide fields, URLs, subscription dates)
 #   ./check-back dashboard    # copy xlsx + rebuild JS bundle + open browser
-#   ./check-back open         # same as default (no args)
+#   ./check-back bot          # Webex bot + dashboard tunnels
 #   ./check-back populate …   # pass through to python -m src.cli populate …
 #
 # Environment:
 #   CHECK_BACK_XLSX   path to baseline workbook (default: output/Check_Back_standardized.xlsx)
-#   CHECK_BACK_VENV   python venv (default: ~/Documents/GitHub/.venv)
+#   CHECK_BACK_VENV   python venv (default: $ROOT/.venv, else python3 on PATH)
 
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")" && pwd)"
-VENV="${CHECK_BACK_VENV:-$HOME/Documents/GitHub/.venv}"
-PY="${VENV}/bin/python"
-WORKBOOK="${CHECK_BACK_XLSX:-$ROOT/output/Check_Back_standardized.xlsx}"
-
-if [ ! -x "$PY" ]; then
-  echo "Python not found: $PY (set CHECK_BACK_VENV)" >&2
+VENV="${CHECK_BACK_VENV:-$ROOT/.venv}"
+if [ -x "$VENV/bin/python" ]; then
+  PY="$VENV/bin/python"
+elif command -v python3 >/dev/null 2>&1; then
+  PY="python3"
+else
+  echo "Python not found. Run: ./check-back setup" >&2
   exit 1
 fi
+WORKBOOK="${CHECK_BACK_XLSX:-$ROOT/output/Check_Back_standardized.xlsx}"
 
 export PYTHONPATH="${ROOT}${PYTHONPATH:+:$PYTHONPATH}"
 
@@ -62,7 +65,8 @@ open_dashboard() {
 cmd="${1:-all}"
 if [ "$cmd" = "populate" ] || [ "$cmd" = "ingest-sources" ] || [ "$cmd" = "extract-pdfs" ] \
   || [ "$cmd" = "build-workbook" ] || [ "$cmd" = "map-install-base" ] \
-  || [ "$cmd" = "upgrade-spreadsheet" ] || [ "$cmd" = "validate" ]; then
+  || [ "$cmd" = "upgrade-spreadsheet" ] || [ "$cmd" = "validate" ] \
+  || [ "$cmd" = "standardize-columns" ]; then
   exec "$PY" -m src.cli "$@"
 fi
 
@@ -70,15 +74,25 @@ shift || true
 
 case "$cmd" in
   help|-h|--help)
-    sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'
+    sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'
     echo ""
     echo "Commands:"
+    echo "  setup             create .venv and pip install -r requirements.txt"
     echo "  (none)|all|open   sync workbook + dashboard + open Excel + browser"
     echo "  sync|workbook|update   spreadsheet sync only"
     echo "  dashboard         bundle JS + copy xlsx + open browser"
-    echo "  export-panels     save Subscription/Provisioning/Feature columns → *_panels.xlsx"
+    echo "  bot               Webex bot + dashboard (needs .env with WEBEX_BOT_TOKEN)"
+    echo "  export-panels     save panel columns → *_panels.xlsx"
     echo "  import-panels     merge *_panels.xlsx back into main workbook"
     echo "  populate …        full PDF → xlsx pipeline (see: ./check-back populate -h)"
+    ;;
+  setup)
+    python3 -m venv "$ROOT/.venv"
+    "$ROOT/.venv/bin/pip" install -r "$ROOT/requirements.txt"
+    "$ROOT/.venv/bin/python" "$ROOT/scripts/build_samples.py"
+    echo ""
+    echo "Ready. Copy or populate a workbook into output/, then:"
+    echo "  ./check-back dashboard"
     ;;
   sync|workbook|update)
     run_sync_workbook "$@"
@@ -86,6 +100,9 @@ case "$cmd" in
   dashboard)
     run_dashboard_prep
     open_dashboard
+    ;;
+  bot)
+    exec bash "$ROOT/webex_bot/run-check-back-bot.sh"
     ;;
   export-panels|import-panels)
     exec "$PY" -m src.cli "$cmd" -i "$WORKBOOK" "$@"

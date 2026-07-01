@@ -18,6 +18,39 @@ class DashboardHtml {
     return `<a href="${href.replace(/"/g, '&quot;')}" target="_blank" rel="noopener noreferrer" class="customer-link">${DashboardHtml.esc(v)}</a>`;
   }
 
+  static normalizeSubId(sub) {
+    const s = String(sub ?? '').trim();
+    if (!s) return '';
+    const m = s.match(/^Sub\s*(\d+)$/i);
+    if (m) return `Sub${m[1]}`;
+    if (/^\d+$/.test(s)) return `Sub${s}`;
+    return s;
+  }
+
+  static subDetailUrl(sub) {
+    const id = DashboardHtml.normalizeSubId(sub);
+    if (!id || !/^Sub\d+$/i.test(id)) return '';
+    const prefix = CheckBack.Dashboard.Constants.CCRC_SUB_DETAIL_PREFIX;
+    return `${prefix}${id}`;
+  }
+
+  static subLinksHtml(val) {
+    if (val == null || val === '') return '';
+    const subs = String(val)
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (!subs.length) return '';
+    return subs
+      .map((sub) => {
+        const url = DashboardHtml.subDetailUrl(sub);
+        const label = DashboardHtml.normalizeSubId(sub) || sub;
+        if (!url) return DashboardHtml.esc(label);
+        return `<a href="${DashboardHtml.escAttr(url)}" target="_blank" rel="noopener noreferrer" class="customer-link">${DashboardHtml.esc(label)}</a>`;
+      })
+      .join(', ');
+  }
+
   static linkLabelForUrl(url) {
     const u = String(url || '').trim();
     if (!u) return 'Link';
@@ -53,12 +86,22 @@ class DashboardHtml {
     if (label === 'Customer Org ID' && !col) {
       inner = DashboardHtml.orgLink(raw);
     }
+    if (col === 'Sub #' || label === 'Subscription') {
+      const links = DashboardHtml.subLinksHtml(raw);
+      if (links) inner = links;
+    }
     if (label === 'Links' && /^https?:\/\//i.test(raw)) {
       const href = raw.replace(/"/g, '&quot;');
       inner = `<a href="${href}" target="_blank" rel="noopener noreferrer" class="customer-link">${DashboardHtml.esc(DashboardHtml.linkLabelForUrl(raw))}</a>`;
     }
     const stackClass =
-      isLong || label === 'Links' || label === 'Customer Org ID' ? ' insight-kv-stack' : '';
+      isLong ||
+      label === 'Links' ||
+      label === 'Customer Org ID' ||
+      label === 'Subscription' ||
+      col === 'Sub #'
+        ? ' insight-kv-stack'
+        : '';
     const attrs = col ? DashboardHtml.editableAttrs(col) : '';
     return `<div class="insight-kv${stackClass}"><span>${DashboardHtml.esc(label)}</span><strong${attrs}>${inner}</strong></div>`;
   }

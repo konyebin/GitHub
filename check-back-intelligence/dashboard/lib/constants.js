@@ -8,6 +8,7 @@ CheckBack.Dashboard.Constants = {
   LEGACY_ENTITLED_COL: 'Entitled Lic Calling',
   LEGACY_PROVISIONED_COL: 'Providioned Lic Calling',
   WEBEX_ORG_ADMIN_PREFIX: 'https://admin.webex.com/help-desk/org/',
+  CCRC_SUB_DETAIL_PREFIX: 'https://ccrc.cisco.com/subscriptions/detail/',
   DEFAULT_LINK_ORDER: ['S&C', 'Success Portal'],
   ADDON_ROWS: [
     'PSTN Cisco Calling Plans',

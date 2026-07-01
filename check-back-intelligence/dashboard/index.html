@@ -972,7 +972,7 @@ function verifyLocalScripts(){
   if(missing.length){
     const fileMode=location.protocol==='file:';
     const localHint=fileMode||!IS_PUBLIC_HOST
-      ? 'Run in Terminal:<br><code>cd ~/Documents/GitHub/check-back-intelligence/dashboard && ./open-dashboard.sh</code><br><br>'
+      ? 'Run in Terminal:<br><code>cd dashboard && ./open-dashboard.sh</code><br><br>'
       : '';
     showBootError('<strong>Dashboard code did not load.</strong><br><br>Missing: '+missing.join(', ')+'.<br><br>'+
       (fileMode?'<strong>Double-click often fails</strong> — browsers block local scripts.<br><br>':'')+
@@ -990,7 +990,7 @@ function verifyDashboardDeps(){
   if(missing.length){
     showBootError('<strong>Online libraries did not load.</strong><br><br>Missing: '+missing.join(', ')+'.<br><br>'+
       'Check internet access to cdnjs.cloudflare.com and try again, or use:<br>'+
-      '<code>cd ~/Documents/GitHub/check-back-intelligence/dashboard && ./serve.sh</code>');
+      '<code>cd dashboard && ./serve.sh</code>');
     return false;
   }
   const boot=document.getElementById('bootError');
@@ -1192,7 +1192,7 @@ function reloadDefaultWorkbook(){
   if(IS_LOCAL_DASHBOARD&&!confirm(
     'Load the dashboard copy of the baseline workbook (output/Check_Back_standardized.xlsx).\n\n'+
     'After editing the baseline in the repo, run:\n'+
-    '  cd ~/Documents/GitHub/check-back-intelligence/dashboard\n'+
+    '  cd dashboard\n'+
     '  ./sync-default-workbook.sh\n\n'+
     'Or use “Reload spreadsheet” to pick your .xlsx file directly.'
   ))return;

@@ -8,6 +8,8 @@ import sys
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_WORKBOOK = PROJECT_ROOT / "output" / "Check_Back_standardized.xlsx"
+DEFAULT_TEMPLATE = PROJECT_ROOT / "samples" / "check_back_template.xlsx"
 
 
 def _cmd_populate(args: argparse.Namespace) -> int:
@@ -246,7 +248,7 @@ def main(argv: list[str] | None = None) -> int:
     p_up.add_argument(
         "--input",
         "-i",
-        default=str(Path.home() / "Downloads/Check Back Initiative Customer Analysis.xlsx"),
+        default=str(DEFAULT_WORKBOOK),
     )
     p_up.add_argument("--no-backup", action="store_true", help="Do not create .backup_* copy")
     p_up.set_defaults(func=_cmd_upgrade_spreadsheet)
@@ -258,7 +260,7 @@ def main(argv: list[str] | None = None) -> int:
     p_sync.add_argument(
         "--input",
         "-i",
-        default=str(Path.home() / "Downloads/Check Back Initiative Customer Analysis.xlsx"),
+        default=str(DEFAULT_WORKBOOK),
     )
     p_sync.add_argument("--no-backup", action="store_true")
     p_sync.add_argument(
@@ -275,7 +277,7 @@ def main(argv: list[str] | None = None) -> int:
     p_rb.add_argument(
         "--input",
         "-i",
-        default=str(Path.home() / "Downloads/Check Back Initiative Customer Analysis.xlsx"),
+        default=str(DEFAULT_WORKBOOK),
     )
     p_rb.add_argument("--no-backup", action="store_true")
     p_rb.add_argument("--add-columns", action="store_true")
@@ -288,11 +290,11 @@ def main(argv: list[str] | None = None) -> int:
     p_sd.add_argument(
         "--input",
         "-i",
-        default=str(Path.home() / "Downloads/Check Back Initiative Customer Analysis.xlsx"),
+        default=str(DEFAULT_WORKBOOK),
     )
     p_sd.set_defaults(func=_cmd_sync_subscription_dates)
 
-    _default_xlsx = str(Path.home() / "Downloads/Check Back Initiative Customer Analysis.xlsx")
+    _default_xlsx = str(DEFAULT_WORKBOOK)
 
     p_ep = sub.add_parser(
         "export-panels",
@@ -327,7 +329,7 @@ def main(argv: list[str] | None = None) -> int:
     p_std.add_argument(
         "--input",
         "-i",
-        default=str(Path.home() / "Downloads/Check Back Initiative Customer Analysis (1).xlsx"),
+        default=str(DEFAULT_WORKBOOK),
     )
     p_std.add_argument(
         "--output",

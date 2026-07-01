@@ -13,7 +13,7 @@ from openpyxl.worksheet.hyperlink import Hyperlink
 
 from .sub_term import LEGACY_SUB_START_COL, SUB_TERM_COL, sub_term_from_text
 
-PROV_ENT_LICENSE_COL = "Provisioned/Entitled Lic Calling"
+CCRC_SUB_DETAIL_PREFIX = "https://ccrc.cisco.com/subscriptions/detail/"
 
 RED_FONT = Font(color="FF0000")
 UUID_RE = re.compile(
@@ -104,6 +104,18 @@ def _set_url_cell(ws, row: int, col: int, url: str, red: bool = False) -> None:
         cell.font = Font(color="0563C1", underline="single")
 
 
+def _set_hyperlink_cell(
+    ws, row: int, col: int, display: str, url: str, red: bool = False
+) -> None:
+    cell = ws.cell(row, col)
+    cell.value = display
+    cell.hyperlink = Hyperlink(ref=cell.coordinate, target=url)
+    if red:
+        cell.font = RED_FONT
+    else:
+        cell.font = Font(color="0563C1", underline="single")
+
+
 def _salesforce_from_cell(cell, raw: str) -> tuple[str, bool]:
     hl = cell.hyperlink
     if hl and hl.target:
@@ -152,6 +164,26 @@ def _normalize_sub_numbers(text: str) -> str:
         p = re.sub(r"sub(\d+)", lambda m: f"Sub{m.group(1)}", p, flags=re.I)
         out.append(p)
     return ", ".join(out)
+
+
+def _sub_detail_url(sub: str) -> str | None:
+    s = sub.strip()
+    if not s:
+        return None
+    m = re.match(r"^Sub\s*(\d+)$", s, re.I)
+    if m:
+        return f"{CCRC_SUB_DETAIL_PREFIX}Sub{m.group(1)}"
+    if re.match(r"^\d+$", s):
+        return f"{CCRC_SUB_DETAIL_PREFIX}Sub{s}"
+    return None
+
+
+def _first_sub_detail_url(text: str) -> str | None:
+    for part in _normalize_sub_numbers(text).split(","):
+        url = _sub_detail_url(part.strip())
+        if url:
+            return url
+    return None
 
 
 def _uuid_or_red(s: str) -> tuple[str, bool]:
@@ -534,6 +566,7 @@ def standardize_workbook(
             new_val: str | int | float = raw
             red = False
             url_cell = False
+            sub_hyperlink: str | None = None
 
             if name == "Opportunity Name" or name == "Partner" or name == "CSM name":
                 new_val = raw.strip()
@@ -544,6 +577,7 @@ def standardize_workbook(
                 new_val, red = _uuid_or_red(raw)
             elif name == "Sub #":
                 new_val = _normalize_sub_numbers(raw)
+                sub_hyperlink = _first_sub_detail_url(str(new_val))
             elif name == "TCV $":
                 new_val, red = _format_currency(val)
             elif name == "Closed on (MM/YY)":
@@ -584,9 +618,11 @@ def standardize_workbook(
             else:
                 continue
 
-            if new_val != raw or red or url_cell:
+            if new_val != raw or red or url_cell or sub_hyperlink:
                 if url_cell:
                     _set_url_cell(ws, r, c, str(new_val), red=red)
+                elif sub_hyperlink:
+                    _set_hyperlink_cell(ws, r, c, str(new_val), sub_hyperlink, red=red)
                 else:
                     _set_cell(ws, r, c, new_val, red=red)
                 stats["cells_changed"] += 1

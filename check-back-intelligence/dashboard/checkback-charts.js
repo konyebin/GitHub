@@ -375,6 +375,9 @@ const CheckBackDashboard = (function () {
   }
 
   function subNumberLinksHtml(val) {
+    if (typeof DashboardHtml !== 'undefined' && DashboardHtml.subLinksHtml) {
+      return DashboardHtml.subLinksHtml(val);
+    }
     if (val == null || val === '') return '';
     const subs = String(val)
       .split(',')
