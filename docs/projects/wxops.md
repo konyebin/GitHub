@@ -8,6 +8,18 @@
 
 **Webex Calling playbook** — programmatic administration of Webex Calling, devices, routing, contact center, reporting, and CUCM migration. Primary execution is **`wxcli`** (166 command groups from OpenAPI specs), with agents/skills for guided workflows and an MCP server for reports and passthrough CLI.
 
+## Live demo — Misc Operations Report
+
+Static sample dashboard (no Webex bot or local server required):
+
+**[Misc Ops Report demo](https://konyebin.github.io/GitHub/demos/misc-ops-report/index.html)**
+
+Sanitized metrics only — regenerate locally:
+
+```bash
+bash ~/Documents/GitHub/wxops/report_bot/prepare-github-pages.sh
+```
+
 ## When to use it
 
 - Provision users, locations, licenses, devices, workspaces
