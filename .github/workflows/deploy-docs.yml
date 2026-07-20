@@ -44,7 +44,7 @@ jobs:
         run: bash check-back-intelligence/dashboard/prepare-github-pages.sh
 
       - name: Prepare Misc Ops report demo for GitHub Pages
-        run: bash wxops/report_bot/prepare-github-pages.sh
+        run: bash docs/public/demos/misc-ops-report/prepare-github-pages.sh
 
       - name: Install dependencies
         working-directory: docs

@@ -17,7 +17,7 @@ Static sample dashboard (no Webex bot or local server required):
 Sanitized metrics only — regenerate locally:
 
 ```bash
-bash ~/Documents/GitHub/wxops/report_bot/prepare-github-pages.sh
+bash ~/Documents/GitHub/docs/public/demos/misc-ops-report/prepare-github-pages.sh
 ```
 
 ## When to use it
