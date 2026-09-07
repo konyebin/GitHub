@@ -34,11 +34,11 @@ thead th.sort-desc::after { content: ' ▼'; font-size: 9px; opacity: 0.85; }
 /* Info tooltips — hover, focus, or click the i icon */
 .info-tip { position: relative; display: inline-flex; align-items: center; justify-content: center;
   width: 18px; height: 18px; margin-left: 5px; vertical-align: middle; flex-shrink: 0; cursor: help; }
-.info-tip-icon { width: 18px; height: 18px; border-radius: 50%; background: #fff; color: var(--wx-dark);
-  border: 1.5px solid var(--wx); font-size: 11px; font-weight: 800; font-style: italic; line-height: 16px;
+.info-tip-icon { width: 18px; height: 18px; border-radius: 50%; background: #fff; color: var(--ch-link, #049FD9);
+  border: 1.5px solid var(--ch-link, #049FD9); font-size: 11px; font-weight: 800; font-style: italic; line-height: 16px;
   text-align: center; font-family: Georgia, serif; transition: background .15s, color .15s, border-color .15s; }
 .info-tip:hover .info-tip-icon, .info-tip:focus .info-tip-icon, .info-tip.open .info-tip-icon {
-  background: var(--wx); color: #fff; border-color: var(--wx); }
+  background: var(--ch-link, #049FD9); color: #fff; border-color: var(--ch-link, #049FD9); }
 .info-tip-text { position: absolute; z-index: 200; left: 50%; transform: translateX(-50%);
   bottom: calc(100% + 10px); min-width: 220px; max-width: 300px; padding: 10px 12px;
   background: #1B2A3B; color: #fff; font-size: 12px; font-weight: 400; line-height: 1.45;
@@ -835,8 +835,44 @@ def pill(status: str) -> str:
 
 
 def badge(status: str) -> str:
-    icons = {"good": "🟢 Good", "warn": "🟡 Needs Attention", "bad": "🔴 Action Required"}
-    return icons[status]
+    labels = {"good": "Good", "warn": "Needs attention", "bad": "Action required"}
+    return labels[status]
+
+
+def ch_shell_open(org: str, period: str, title: str = "Operations report", hub_link: str = "../index.html") -> str:
+    return f"""<div class="ch-app">
+<aside class="ch-sidebar" aria-label="Navigation">
+  <div class="ch-brand">Control Hub</div>
+  <nav class="ch-nav">
+    <div class="ch-nav-label">Monitoring</div>
+    <a class="ch-nav-link" href="#">Overview</a>
+    <a class="ch-nav-link" href="#">Reports</a>
+    <div class="ch-nav-label">Services</div>
+    <a class="ch-nav-link active" href="#">Calling</a>
+  </nav>
+</aside>
+<div class="ch-main">
+  <header class="ch-topbar">
+    <div class="ch-topbar-title">Control Hub</div>
+    <div class="ch-topbar-actions">
+      <a class="btn btn-outline" href="{hub_link}">All reports</a>
+      <button class="btn btn-outline" type="button" onclick="toggleAll()">Expand all</button>
+      <button class="btn btn-primary" type="button" onclick="window.print()">Export</button>
+    </div>
+  </header>
+  <div class="ch-content">
+    <p class="ch-breadcrumb">Services / <strong>Calling</strong> / {html.escape(title)}</p>
+    <h1 class="ch-page-title">{html.escape(title)}</h1>
+    <p class="ch-page-sub"><span id="org-name">{html.escape(org)}</span> · <span id="period">{html.escape(period)}</span></p>
+    <div class="wrap">
+"""
+
+
+def ch_shell_close() -> str:
+    return """    </div>
+  </div>
+</div>
+</div>"""
 
 
 def pct_status(val: float, good: float, warn: float, high_is_good: bool = False) -> str:
@@ -1229,19 +1265,7 @@ def render_report(
 {css}
 </head>
 <body>
-<div class="hdr">
-  <div class="hdr-left">
-    <h1>Webex Calling — Operations Report</h1>
-    <p>Organization: <span id="org-name">{sc.org_name}</span> · Period: <span id="period">{period_label}</span></p>
-  </div>
-  <div class="hdr-right">
-    <a class="btn btn-ghost" href="../index.html" style="text-decoration:none">All reports</a>
-    <button class="btn btn-ghost" onclick="toggleAll()">Expand All</button>
-    <button class="btn btn-white" onclick="window.print()">Print / Export</button>
-  </div>
-</div>
-<div class="wrap">
-
+{ch_shell_open(sc.org_name, period_label, "Operations report")}
 <div class="scorecard" id="scorecard">{scorecard}</div>
 
 <div class="section" id="s1">
@@ -1372,9 +1396,9 @@ def render_report(
 
 <div style="text-align:center;padding:24px 0 8px;font-size:12px;color:var(--muted)">
   {sc.org_name} · {period_label} ·
-  <a href="../data/{sc.slug}/manifest.json" style="color:var(--wx-dark)">Methodology &amp; data</a>
+  <a href="../data/{sc.slug}/manifest.json" style="color:var(--ch-link)">Methodology &amp; data</a>
 </div>
-</div>
+{ch_shell_close()}
 {script}
 {table_sort_block}
 </body>
@@ -1404,43 +1428,65 @@ def render_hub(summaries: list[dict]) -> str:
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Webex Calling — Operations Reports</title>
 <style>
-:root {{ --wx:#00BCEB; --wx-dark:#007FAD; --bg:#F0F4F8; --card:#fff; --text:#1B2A3B; --muted:#6B7A8D; }}
+:root {{ --ch-bg:#F2F2F2; --ch-sidebar:#1B2C3D; --card:#fff; --text:#393939; --muted:#70757A; --border:#D9D9D9; --wx:#049FD9; --ch-link:#049FD9; }}
 *{{box-sizing:border-box;margin:0;padding:0}}
-body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}}
-.hdr{{background:linear-gradient(135deg,#005E7D,#00BCEB);color:#fff;padding:32px 24px;text-align:center}}
-.hdr h1{{font-size:24px;margin-bottom:8px}}
-.hdr p{{opacity:.9;font-size:15px;max-width:640px;margin:0 auto}}
-.wrap{{max-width:960px;margin:0 auto;padding:32px 16px}}
-.grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}}
-.card{{background:var(--card);border-radius:12px;padding:24px;text-decoration:none;color:inherit;box-shadow:0 2px 12px rgba(0,0,0,.08);transition:transform .15s,box-shadow .15s;border-top:4px solid var(--wx)}}
-.card:hover{{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.12)}}
-.card h2{{font-size:18px;margin-bottom:4px;color:var(--wx-dark)}}
-.org{{font-size:13px;color:var(--muted);margin-bottom:8px}}
-.tag{{font-size:14px;margin-bottom:16px}}
+body{{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,sans-serif;background:var(--ch-bg);color:var(--text);line-height:1.5}}
+.ch-app{{display:flex;min-height:100vh}}
+.ch-sidebar{{width:220px;background:var(--ch-sidebar);color:#C5CED6;padding:16px 0;flex-shrink:0}}
+.ch-brand{{color:#fff;font-weight:600;padding:8px 20px 20px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:8px}}
+.ch-nav-label{{font-size:11px;text-transform:uppercase;padding:12px 20px 6px;color:rgba(255,255,255,.45)}}
+.ch-nav-link{{display:block;padding:8px 20px;color:#C5CED6;text-decoration:none;font-size:13px;border-left:3px solid transparent}}
+.ch-nav-link.active{{color:#fff;background:rgba(255,255,255,.08);border-left-color:var(--wx);font-weight:600}}
+.ch-main{{flex:1;min-width:0}}
+.ch-topbar{{background:#fff;border-bottom:1px solid var(--border);padding:12px 24px;font-weight:600}}
+.ch-content{{padding:24px}}
+.ch-page-title{{font-size:22px;font-weight:400;margin-bottom:4px}}
+.ch-page-sub{{font-size:13px;color:var(--muted);margin-bottom:24px}}
+.wrap{{max-width:1280px;margin:0 auto}}
+.grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}}
+.card{{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:20px;text-decoration:none;color:inherit;box-shadow:0 1px 2px rgba(0,0,0,.06);transition:border-color .15s,box-shadow .15s}}
+.card:hover{{border-color:#bbb;box-shadow:0 2px 8px rgba(0,0,0,.08);text-decoration:none}}
+.card h2{{font-size:16px;font-weight:600;margin-bottom:4px;color:var(--text)}}
+.org{{font-size:12px;color:var(--muted);margin-bottom:8px}}
+.tag{{font-size:13px;color:var(--text);margin-bottom:14px}}
 .stats{{display:flex;flex-wrap:wrap;gap:8px;font-size:12px;margin-bottom:12px}}
-.stats span{{background:#E6F8FD;color:var(--wx-dark);padding:4px 10px;border-radius:20px;font-weight:600}}
-.link{{font-size:13px;font-weight:700;color:var(--wx-dark)}}
-.prov{{background:#fff;border-radius:12px;padding:24px;margin-top:32px;box-shadow:0 2px 12px rgba(0,0,0,.06)}}
-.prov h3{{margin-bottom:12px}}
-.prov ol{{margin-left:20px;font-size:14px}}
+.stats span{{background:#FAFAFA;border:1px solid var(--border);color:var(--text);padding:4px 10px;border-radius:12px}}
+.link{{font-size:13px;font-weight:600;color:var(--ch-link)}}
+.prov{{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:20px;margin-top:24px;box-shadow:0 1px 2px rgba(0,0,0,.06)}}
+.prov h3{{font-size:15px;font-weight:600;margin-bottom:12px}}
+.prov ol{{margin-left:20px;font-size:13px;color:var(--text)}}
 .prov li{{margin:8px 0}}
+@media(max-width:900px){{.ch-sidebar{{display:none}}}}
 </style>
 </head>
 <body>
-<div class="hdr">
-  <h1>Webex Calling — Operations Reports</h1>
-  <p>Three enterprise scenarios with full operational scorecards. Hover the <em>i</em> icons on any dashboard for metric definitions and sources.</p>
-</div>
-<div class="wrap">
-  <div class="grid">{cards}</div>
-  <div class="prov">
-    <h3>About these reports</h3>
-    <ol>
-      <li><strong>Control Hub exports</strong> — CDR, Call Queue, AA Summary, Media Quality, and Connectivity CSVs with standard Webex column headers.</li>
-      <li><strong>Scorecard metrics</strong> — Same calculations as production wxops <code>generate_misc_report.py</code>; formulas available via info icons on each tile.</li>
-      <li><strong>Interactive tables</strong> — Click any column header to sort. Full methodology and downloadable source files are linked from each report footer.</li>
-    </ol>
+<div class="ch-app">
+<aside class="ch-sidebar">
+  <div class="ch-brand">Control Hub</div>
+  <nav>
+    <div class="ch-nav-label">Services</div>
+    <a class="ch-nav-link active" href="#">Calling</a>
+  </nav>
+</aside>
+<div class="ch-main">
+  <header class="ch-topbar">Control Hub</header>
+  <div class="ch-content">
+    <p style="font-size:12px;color:var(--muted);margin-bottom:8px">Services / <strong>Calling</strong> / Operations reports</p>
+    <h1 class="ch-page-title">Operations reports</h1>
+    <p class="ch-page-sub">Three enterprise scenarios · hover <em>i</em> icons on dashboards for metric definitions</p>
+    <div class="wrap">
+      <div class="grid">{cards}</div>
+      <div class="prov">
+        <h3>About these reports</h3>
+        <ol>
+          <li><strong>Control Hub exports</strong> — CDR, Call Queue, AA Summary, Media Quality, and Connectivity CSVs.</li>
+          <li><strong>Scorecard metrics</strong> — Same calculations as production <code>generate_misc_report.py</code>.</li>
+          <li><strong>Regenerate</strong> — <code>bash prepare-github-pages.sh</code> (no AI — pure Python).</li>
+        </ol>
+      </div>
+    </div>
   </div>
+</div>
 </div>
 </body>
 </html>"""

@@ -6,72 +6,79 @@
 <title>Webex Calling — Healthy Campus · Aug 06 – Sep 05, 2026</title>
 <style>
 :root {
-  --wx: #00BCEB; --wx-dark: #007FAD; --wx-light: #E6F8FD;
-  --bg: #F0F4F8; --card: #FFFFFF; --text: #1B2A3B; --muted: #6B7A8D;
-  --border: #E2E8F0; --hover: #F8FAFC;
-  --good: #1A9E4A; --good-bg: #D4F0E0; --good-border: #A7D9B8;
-  --warn: #D68B00; --warn-bg: #FEF3C7; --warn-border: #FCD34D;
-  --bad:  #C0392B; --bad-bg:  #FDECEA; --bad-border:  #F5A89E;
-  --radius: 8px; --shadow: 0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.04);
+  --wx: #049FD9; --wx-dark: #007AA3; --wx-light: #E8F6FC;
+  --ch-bg: #F2F2F2; --ch-sidebar: #1B2C3D; --ch-sidebar-text: #C5CED6;
+  --ch-sidebar-active: #FFFFFF;
+  --card: #FFFFFF; --text: #393939; --muted: #70757A;
+  --border: #D9D9D9; --hover: #FAFAFA;
+  --ch-link: #049FD9;
+  --good: #2E8553; --good-bg: #E8F5EE; --good-border: #B8DFC9;
+  --warn: #B86E00; --warn-bg: #FFF8E6; --warn-border: #F0D78C;
+  --bad:  #C4423A; --bad-bg:  #FDEEED; --bad-border:  #F0B8B4;
+  --radius: 4px; --shadow: 0 1px 2px rgba(0,0,0,.06);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.55}
-a{color:var(--wx-dark)}
+body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,'Helvetica Neue',sans-serif;background:var(--ch-bg);color:var(--text);font-size:14px;line-height:1.5}
+a{color:var(--ch-link);text-decoration:none}
+a:hover{text-decoration:underline}
 
-/* ── Header ── */
-.hdr{background:linear-gradient(135deg,#005E7D 0%,#00BCEB 100%);color:#fff;padding:20px 32px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
-.hdr-left h1{font-size:18px;font-weight:700;letter-spacing:-.2px}
-.hdr-left p{font-size:13px;opacity:.85;margin-top:2px}
-.hdr-left span[contenteditable]{border-bottom:1px dashed rgba(255,255,255,.5);cursor:text;padding:0 2px}
-.hdr-left span[contenteditable]:focus{outline:none;background:rgba(255,255,255,.15);border-radius:3px}
-.hdr-right{display:flex;gap:8px;flex-shrink:0}
-.btn{padding:7px 15px;border-radius:6px;border:none;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s}
-.btn-white{background:#fff;color:var(--wx-dark)}
-.btn-white:hover{background:#E6F8FD}
-.btn-ghost{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3)}
-.btn-ghost:hover{background:rgba(255,255,255,.25)}
+/* ── Control Hub shell ── */
+.ch-app{display:flex;min-height:100vh}
+.ch-sidebar{width:220px;flex-shrink:0;background:var(--ch-sidebar);color:var(--ch-sidebar-text);padding:16px 0}
+.ch-brand{color:#fff;font-size:15px;font-weight:600;padding:8px 20px 20px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:8px}
+.ch-nav-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding:12px 20px 6px;color:rgba(255,255,255,.45)}
+.ch-nav-link{display:block;padding:8px 20px;font-size:13px;color:var(--ch-sidebar-text);text-decoration:none;border-left:3px solid transparent}
+.ch-nav-link:hover{background:rgba(255,255,255,.06);color:#fff;text-decoration:none}
+.ch-nav-link.active{color:var(--ch-sidebar-active);background:rgba(255,255,255,.08);border-left-color:var(--wx);font-weight:600}
+.ch-main{flex:1;min-width:0;display:flex;flex-direction:column}
+.ch-topbar{background:#fff;border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.ch-topbar-title{font-size:14px;font-weight:600;color:var(--text)}
+.ch-topbar-actions{display:flex;gap:8px;flex-wrap:wrap}
+.ch-content{flex:1;padding:20px 24px 32px}
+.ch-breadcrumb{font-size:12px;color:var(--muted);margin-bottom:8px}
+.ch-page-title{font-size:22px;font-weight:400;color:var(--text);margin-bottom:4px}
+.ch-page-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
+
+.btn{padding:6px 14px;border-radius:4px;border:1px solid transparent;cursor:pointer;font-size:13px;font-weight:600;transition:background .12s,border-color .12s}
+.btn-primary{background:var(--wx);color:#fff;border-color:var(--wx)}
+.btn-primary:hover{background:var(--wx-dark);border-color:var(--wx-dark)}
+.btn-outline{background:#fff;color:var(--text);border-color:var(--border)}
+.btn-outline:hover{background:var(--hover);border-color:#bbb}
 
 /* ── Layout ── */
-.wrap{max-width:1080px;margin:0 auto;padding:24px 16px}
+.wrap{max-width:1280px;margin:0 auto}
 
-/* ── Edit hint ── */
-.hint{background:var(--wx-light);border:1px solid #9DE5F7;border-radius:var(--radius);padding:9px 14px;font-size:12px;color:var(--wx-dark);margin-bottom:20px;display:flex;align-items:center;gap:8px}
-.hint svg{flex-shrink:0}
-
-/* ── Scorecard ── */
-.scorecard{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
-.sc{background:var(--card);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);cursor:pointer;transition:box-shadow .15s,transform .15s;border-top:3px solid #CBD5E1;position:relative}
-.sc:hover{box-shadow:0 4px 16px rgba(0,0,0,.1);transform:translateY(-1px)}
-.sc.good{border-top-color:var(--good)}
-.sc.warn{border-top-color:var(--warn)}
-.sc.bad{border-top-color:var(--bad)}
-.sc-num{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:2px}
-.sc-name{font-size:13px;font-weight:600;margin-bottom:8px;line-height:1.3}
-.sc-val{font-size:22px;font-weight:800;line-height:1}
+/* ── Scorecard grid (insight cards) ── */
+.scorecard{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);cursor:pointer;transition:box-shadow .15s,border-color .15s;position:relative}
+.sc:hover{box-shadow:0 2px 8px rgba(0,0,0,.08);border-color:#c5c5c5}
+.sc-num{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px}
+.sc-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:10px;line-height:1.3}
+.sc-val{font-size:28px;font-weight:300;line-height:1.1;color:var(--text)}
 .sc-val.good{color:var(--good)}
 .sc-val.warn{color:var(--warn)}
 .sc-val.bad{color:var(--bad)}
-.sc-sub{font-size:11px;color:var(--muted);margin-top:3px}
-.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;margin-top:6px}
-.badge.good{background:var(--good-bg);color:#155724;border:1px solid var(--good-border)}
-.badge.warn{background:var(--warn-bg);color:#8a5700;border:1px solid var(--warn-border)}
-.badge.bad{background:var(--bad-bg);color:#7B1818;border:1px solid var(--bad-border)}
+.sc-sub{font-size:12px;color:var(--muted);margin-top:6px}
+.badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;margin-top:10px}
+.badge.good{background:var(--good-bg);color:var(--good);border:1px solid var(--good-border)}
+.badge.warn{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-border)}
+.badge.bad{background:var(--bad-bg);color:var(--bad);border:1px solid var(--bad-border)}
 
-/* ── Section panels ── */
-.section{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden}
-.sec-hdr{padding:14px 18px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:background .1s;user-select:none}
+/* ── Section panels (Control Hub cards) ── */
+.section{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px}
+.sec-hdr{padding:16px 20px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:background .1s;user-select:none;border-bottom:1px solid transparent}
 .sec-hdr:hover{background:var(--hover)}
-.sec-hdr.open{border-bottom:1px solid var(--border)}
-.sec-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0}
+.sec-hdr.open{border-bottom-color:var(--border)}
+.sec-dot{width:24px;height:24px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;background:var(--muted)}
 .sec-dot.good{background:var(--good)}
 .sec-dot.warn{background:var(--warn)}
 .sec-dot.bad{background:var(--bad)}
 .sec-info{flex:1;min-width:0}
-.sec-title{font-weight:600;font-size:14px}
-.sec-sub{font-size:12px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.chevron{font-size:18px;color:var(--muted);transition:transform .2s;flex-shrink:0}
+.sec-title{font-weight:600;font-size:15px;color:var(--text)}
+.sec-sub{font-size:12px;color:var(--muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chevron{font-size:16px;color:var(--muted);transition:transform .2s;flex-shrink:0}
 .chevron.open{transform:rotate(90deg)}
-.sec-body{padding:18px 20px;display:none}
+.sec-body{padding:16px 20px 20px;display:none}
 .sec-body.open{display:block}
 
 /* ── Meta bar ── */
@@ -80,106 +87,93 @@ a{color:var(--wx-dark)}
 
 /* ── Tables ── */
 table{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0 4px}
-thead th{text-align:left;padding:7px 10px;background:#F8FAFC;color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border)}
-td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+thead th{text-align:left;padding:10px 12px;background:#FAFAFA;color:var(--muted);font-size:11px;font-weight:600;border-bottom:1px solid var(--border)}
+td{padding:10px 12px;border-bottom:1px solid #EEEEEE;vertical-align:middle}
 tr:last-child td{border-bottom:none}
-tr:hover td{background:#FAFBFC}
+tr:hover td{background:#FAFAFA}
 
 /* ── Inline editable ── */
-[contenteditable]{outline:none;border-radius:3px;padding:1px 3px;cursor:text;transition:background .1s}
-[contenteditable]:hover{background:#EEF9FD}
-[contenteditable]:focus{background:#fff;box-shadow:0 0 0 2px var(--wx)}
+[contenteditable]{outline:none;border-radius:3px;padding:1px 3px;cursor:text}
+[contenteditable]:hover{background:#F5F5F5}
+[contenteditable]:focus{background:#fff;box-shadow:0 0 0 2px var(--wx-light)}
 .no-edit{cursor:default !important}
 .no-edit:hover,[contenteditable].no-edit:hover{background:transparent !important}
 
 /* ── Status pill in table ── */
-.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
-.pill.good{background:var(--good-bg);color:#155724}
-.pill.warn{background:var(--warn-bg);color:#8a5700}
-.pill.bad{background:var(--bad-bg);color:#7B1818}
+.pill{display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600}
+.pill.good{background:var(--good-bg);color:var(--good)}
+.pill.warn{background:var(--warn-bg);color:var(--warn)}
+.pill.bad{background:var(--bad-bg);color:var(--bad)}
 
 /* ── Subsection labels ── */
-.sub-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:16px 0 6px}
+.sub-label{font-size:12px;font-weight:600;color:var(--text);margin:16px 0 8px}
 
 /* ── Network metrics ── */
-.metrics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
-.m-card{background:#F8FAFC;border-radius:6px;padding:12px 14px;border-left:3px solid}
+.metrics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:12px 0}
+.m-card{background:#FAFAFA;border-radius:var(--radius);padding:14px 16px;border:1px solid var(--border);border-left:3px solid var(--muted)}
 .m-card.good{border-left-color:var(--good)}
 .m-card.warn{border-left-color:var(--warn)}
 .m-card.bad{border-left-color:var(--bad)}
-.m-name{font-size:11px;color:var(--muted);margin-bottom:4px}
-.m-val{font-size:20px;font-weight:700}
+.m-name{font-size:12px;color:var(--muted);margin-bottom:4px}
+.m-val{font-size:22px;font-weight:300}
 .m-val.good{color:var(--good)}
 .m-val.warn{color:var(--warn)}
 .m-val.bad{color:var(--bad)}
-.m-thresh{font-size:10px;color:var(--muted);margin-top:2px}
+.m-thresh{font-size:11px;color:var(--muted);margin-top:2px}
 
 /* ── Bar chart (capacity) ── */
-.bar-row{display:flex;align-items:center;gap:10px;margin:4px 0;font-size:12px}
+.bar-row{display:flex;align-items:center;gap:10px;margin:6px 0;font-size:12px}
 .bar-label{width:100px;text-align:right;flex-shrink:0;color:var(--muted)}
-.bar-track{flex:1;background:#E2E8F0;border-radius:4px;height:14px;overflow:hidden}
-.bar-fill{height:100%;border-radius:4px;background:var(--wx);transition:width .4s}
+.bar-track{flex:1;background:#EEEEEE;border-radius:2px;height:12px;overflow:hidden}
+.bar-fill{height:100%;border-radius:2px;background:var(--good);transition:width .4s}
 .bar-fill.dominant{background:var(--warn)}
-.bar-pct{width:40px;font-weight:600;flex-shrink:0}
+.bar-pct{width:40px;font-weight:600;flex-shrink:0;color:var(--text)}
 
 /* ── Actions ── */
-.actions-hdr{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:16px 0 8px;display:flex;align-items:center;gap:6px}
-.actions-hdr::after{content:'';flex:1;height:1px;background:var(--border)}
+.actions-hdr{font-size:12px;font-weight:600;color:var(--muted);margin:16px 0 8px}
 ul.actions{list-style:none}
-ul.actions li{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
-ul.actions li:last-child{border-bottom:none}
-.action-bullet{font-size:15px;flex-shrink:0;margin-top:1px}
+ul.actions li{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid #EEEEEE;font-size:13px}
 .action-text{flex:1;line-height:1.5}
-.action-text:focus{outline:1px dashed var(--wx);border-radius:3px;padding:1px 4px}
-.del-btn{color:#CBD5E1;cursor:pointer;font-size:14px;flex-shrink:0;opacity:0;padding:2px 4px;border:none;background:none;border-radius:3px}
-ul.actions li:hover .del-btn{opacity:1}
-.del-btn:hover{color:var(--bad);background:var(--bad-bg)}
-.add-action{font-size:12px;color:var(--wx);background:none;border:1px dashed var(--wx);padding:4px 12px;border-radius:4px;cursor:pointer;margin-top:8px}
-.add-action:hover{background:var(--wx-light)}
+.del-btn{display:none}
 
 /* ── Cost section ── */
-.usage-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:12px 0}
-.usage-stat{text-align:center;padding:14px;background:#F8FAFC;border-radius:6px}
-.usage-stat .big{font-size:28px;font-weight:800;color:var(--text)}
-.usage-stat .sub{font-size:12px;color:var(--muted);margin-top:2px}
-
-/* ── Trunk health ── */
-.reg-grid{display:flex;gap:16px;flex-wrap:wrap;margin:10px 0}
-.reg-card{background:#F8FAFC;border-radius:6px;padding:12px 16px;text-align:center;flex:1;min-width:80px}
-.reg-card .big{font-size:24px;font-weight:800;color:var(--good)}
-.reg-card .lbl{font-size:11px;color:var(--muted);margin-top:2px}
+.usage-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:12px 0}
+.usage-stat{text-align:center;padding:16px;background:#FAFAFA;border:1px solid var(--border);border-radius:var(--radius)}
+.usage-stat .big{font-size:26px;font-weight:300;color:var(--text)}
+.usage-stat .sub{font-size:12px;color:var(--muted);margin-top:4px}
 
 /* ── Scorecard selected state ── */
-.sc.selected{outline:3px solid var(--wx);outline-offset:-2px;box-shadow:0 0 0 5px rgba(0,188,235,.12),0 4px 16px rgba(0,0,0,.1);transform:translateY(-2px)}
+.sc.selected{border-color:var(--wx);box-shadow:0 0 0 1px var(--wx)}
 
 /* ── Detail Panel ── */
-#detail-panel{background:var(--card);border-radius:var(--radius);box-shadow:0 4px 24px rgba(0,0,0,.12);margin-bottom:24px;overflow:hidden;border:2px solid var(--wx);display:none;animation:fadeSlide .2s ease}
-@keyframes fadeSlide{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
-.dp-header{background:linear-gradient(135deg,#005E7D 0%,#00BCEB 100%);color:#fff;padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.dp-title{font-weight:700;font-size:15px;flex:1;min-width:0}
-.dp-header .badge{margin-top:0;background:rgba(255,255,255,.22)!important;color:#fff!important;border-color:rgba(255,255,255,.35)!important}
-.dp-close{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.3);padding:4px 11px;border-radius:5px;cursor:pointer;font-size:20px;line-height:1;font-weight:300;flex-shrink:0}
-.dp-close:hover{background:rgba(255,255,255,.32)}
-.dp-content{padding:18px 20px;max-height:62vh;overflow-y:auto}
-.dp-footer{padding:10px 20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:#F8FAFC;gap:12px;flex-wrap:wrap}
-.dp-note{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px}
-.btn-jump{background:var(--wx);color:#fff;padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;flex-shrink:0}
+#detail-panel{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:0 4px 16px rgba(0,0,0,.1);margin-bottom:20px;display:none}
+.dp-header{background:#FAFAFA;border-bottom:1px solid var(--border);color:var(--text);padding:14px 20px;display:flex;align-items:center;gap:12px}
+.dp-title{font-weight:600;font-size:15px;flex:1}
+.dp-close{background:#fff;color:var(--muted);border:1px solid var(--border);padding:2px 10px;border-radius:4px;cursor:pointer;font-size:18px;line-height:1}
+.dp-content{padding:16px 20px;max-height:62vh;overflow-y:auto}
+.dp-footer{padding:10px 20px;border-top:1px solid var(--border);background:#FAFAFA}
+.btn-jump{background:var(--wx);color:#fff;padding:8px 16px;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:600}
 .btn-jump:hover{background:var(--wx-dark)}
-/* dp preview — strip edit affordances */
-.dp-content [contenteditable]{cursor:default!important}
-.dp-content [contenteditable]:hover{background:transparent!important}
 
-/* ── Print ── */
+/* ── Legacy header (template fallback) ── */
+.hdr{display:none}
+
 @media print{
-  .hdr-right,.add-action,.del-btn,.hint,#detail-panel{display:none!important}
+  .ch-sidebar,.ch-topbar,.ch-topbar-actions,#detail-panel{display:none!important}
+  .ch-main{margin:0}
   .sec-body{display:block!important}
   body{background:#fff}
-  .section{box-shadow:none;border:1px solid var(--border)}
+  .section{box-shadow:none}
 }
-
-/* ── Responsive ── */
-@media(max-width:700px){.scorecard{grid-template-columns:1fr 1fr}.metrics-grid{grid-template-columns:1fr}.usage-grid{grid-template-columns:1fr}}
-@media(max-width:440px){.scorecard{grid-template-columns:1fr}}
+@media(max-width:900px){
+  .ch-sidebar{display:none}
+  .scorecard{grid-template-columns:repeat(2,1fr)}
+  .usage-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:560px){
+  .scorecard{grid-template-columns:1fr}
+  .metrics-grid{grid-template-columns:1fr}
+}
 
 /* Sortable table columns */
 thead th.sortable-th { cursor: pointer; user-select: none; white-space: nowrap; }
@@ -190,11 +184,11 @@ thead th.sort-desc::after { content: ' ▼'; font-size: 9px; opacity: 0.85; }
 /* Info tooltips — hover, focus, or click the i icon */
 .info-tip { position: relative; display: inline-flex; align-items: center; justify-content: center;
   width: 18px; height: 18px; margin-left: 5px; vertical-align: middle; flex-shrink: 0; cursor: help; }
-.info-tip-icon { width: 18px; height: 18px; border-radius: 50%; background: #fff; color: var(--wx-dark);
-  border: 1.5px solid var(--wx); font-size: 11px; font-weight: 800; font-style: italic; line-height: 16px;
+.info-tip-icon { width: 18px; height: 18px; border-radius: 50%; background: #fff; color: var(--ch-link, #049FD9);
+  border: 1.5px solid var(--ch-link, #049FD9); font-size: 11px; font-weight: 800; font-style: italic; line-height: 16px;
   text-align: center; font-family: Georgia, serif; transition: background .15s, color .15s, border-color .15s; }
 .info-tip:hover .info-tip-icon, .info-tip:focus .info-tip-icon, .info-tip.open .info-tip-icon {
-  background: var(--wx); color: #fff; border-color: var(--wx); }
+  background: var(--ch-link, #049FD9); color: #fff; border-color: var(--ch-link, #049FD9); }
 .info-tip-text { position: absolute; z-index: 200; left: 50%; transform: translateX(-50%);
   bottom: calc(100% + 10px); min-width: 220px; max-width: 300px; padding: 10px 12px;
   background: #1B2A3B; color: #fff; font-size: 12px; font-weight: 400; line-height: 1.45;
@@ -217,18 +211,31 @@ thead th .info-tip-text::after { top: auto; bottom: 100%; border-top-color: tran
 </style>
 </head>
 <body>
-<div class="hdr">
-  <div class="hdr-left">
-    <h1>Webex Calling — Operations Report</h1>
-    <p>Organization: <span id="org-name">Northwind University</span> · Period: <span id="period">Aug 06 – Sep 05, 2026</span></p>
-  </div>
-  <div class="hdr-right">
-    <a class="btn btn-ghost" href="../index.html" style="text-decoration:none">All reports</a>
-    <button class="btn btn-ghost" onclick="toggleAll()">Expand All</button>
-    <button class="btn btn-white" onclick="window.print()">Print / Export</button>
-  </div>
-</div>
-<div class="wrap">
+<div class="ch-app">
+<aside class="ch-sidebar" aria-label="Navigation">
+  <div class="ch-brand">Control Hub</div>
+  <nav class="ch-nav">
+    <div class="ch-nav-label">Monitoring</div>
+    <a class="ch-nav-link" href="#">Overview</a>
+    <a class="ch-nav-link" href="#">Reports</a>
+    <div class="ch-nav-label">Services</div>
+    <a class="ch-nav-link active" href="#">Calling</a>
+  </nav>
+</aside>
+<div class="ch-main">
+  <header class="ch-topbar">
+    <div class="ch-topbar-title">Control Hub</div>
+    <div class="ch-topbar-actions">
+      <a class="btn btn-outline" href="../index.html">All reports</a>
+      <button class="btn btn-outline" type="button" onclick="toggleAll()">Expand all</button>
+      <button class="btn btn-primary" type="button" onclick="window.print()">Export</button>
+    </div>
+  </header>
+  <div class="ch-content">
+    <p class="ch-breadcrumb">Services / <strong>Calling</strong> / Operations report</p>
+    <h1 class="ch-page-title">Operations report</h1>
+    <p class="ch-page-sub"><span id="org-name">Northwind University</span> · <span id="period">Aug 06 – Sep 05, 2026</span></p>
+    <div class="wrap">
 
 <div class="scorecard" id="scorecard">
   <div class="sc warn" id="sc1" onclick="selectCard(1)">
@@ -237,7 +244,7 @@ thead th .info-tip-text::after { top: auto; bottom: 100%; border-top-color: tran
     <div class="sc-name">Reachability</div>
     <div class="sc-val warn" id="sc1-val">89.9%</div>
     <div class="sc-sub">AA answer rate</div>
-    <div class="badge warn" id="sc1-badge">🟡 Needs Attention</div>
+    <div class="badge warn" id="sc1-badge">Needs attention</div>
   </div>
   <div class="sc good" id="sc2" onclick="selectCard(2)">
     <div class="sc-info-tip"><span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Webex report: Call Queue Stats. Calculation: sum(Abandoned Calls) ÷ sum(Total Calls) across all queues. Threshold: ≤ 10% Good · 11–30% Attention · &gt; 30% Action</span></span></div>
@@ -245,7 +252,7 @@ thead th .info-tip-text::after { top: auto; bottom: 100%; border-top-color: tran
     <div class="sc-name">Abandonment</div>
     <div class="sc-val good" id="sc2-val">7.6%</div>
     <div class="sc-sub">queue abandon rate</div>
-    <div class="badge good" id="sc2-badge">🟢 Good</div>
+    <div class="badge good" id="sc2-badge">Good</div>
   </div>
   <div class="sc warn" id="sc3" onclick="selectCard(3)">
     <div class="sc-info-tip"><span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Webex report: Calling Detailed Call History (CDR). Calculation: Count of legs where Related reason = Deflection. Threshold: 0 deflections and 0 UNKNOWN call types = Good</span></span></div>
@@ -253,7 +260,7 @@ thead th .info-tip-text::after { top: auto; bottom: 100%; border-top-color: tran
     <div class="sc-name">Routing</div>
     <div class="sc-val warn" id="sc3-val">100</div>
     <div class="sc-sub">deflection events</div>
-    <div class="badge warn" id="sc3-badge">🟡 Needs Attention</div>
+    <div class="badge warn" id="sc3-badge">Needs attention</div>
   </div>
   <div class="sc good" id="sc4" onclick="selectCard(2)">
     <div class="sc-info-tip"><span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Webex report: Call Queue Stats. Calculation: sum(Answered Calls) ÷ sum(Total Calls) — SLA proxy. Threshold: ≥ 80% Good · 60–79% Attention · &lt; 60% Action</span></span></div>
@@ -261,7 +268,7 @@ thead th .info-tip-text::after { top: auto; bottom: 100%; border-top-color: tran
     <div class="sc-name">SLA</div>
     <div class="sc-val good" id="sc4-val">92.4%</div>
     <div class="sc-sub">queue answer rate</div>
-    <div class="badge good" id="sc4-badge">🟢 Good</div>
+    <div class="badge good" id="sc4-badge">Good</div>
   </div>
   <div class="sc good" id="sc5" onclick="selectCard(5)">
     <div class="sc-info-tip"><span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Webex report: Calling Media Quality Report + CDR outcomes. Calculation: Poor-quality legs ÷ total media quality rows; refusals from CDR. Threshold: ≤ 5% poor rate Good · 6–15% Attention · &gt; 15% Action</span></span></div>
@@ -269,7 +276,7 @@ thead th .info-tip-text::after { top: auto; bottom: 100%; border-top-color: tran
     <div class="sc-name">Call quality</div>
     <div class="sc-val good" id="sc5-val">3.0%</div>
     <div class="sc-sub">poor rate</div>
-    <div class="badge good" id="sc5-badge">🟢 Good</div>
+    <div class="badge good" id="sc5-badge">Good</div>
   </div>
   <div class="sc good" id="sc6" onclick="selectCard(6)">
     <div class="sc-info-tip"><span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Webex report: Calling Detailed Call History (CDR). Calculation: sum(Duration) ÷ 60 for total minutes; PSTN types for billable minutes. Threshold: Informational — no cost target in this report</span></span></div>
@@ -277,7 +284,7 @@ thead th .info-tip-text::after { top: auto; bottom: 100%; border-top-color: tran
     <div class="sc-name">Cost & usage</div>
     <div class="sc-val good" id="sc6-val">17991</div>
     <div class="sc-sub">total minutes</div>
-    <div class="badge good" id="sc6-badge">🟢 Good</div>
+    <div class="badge good" id="sc6-badge">Good</div>
   </div>
   <div class="sc good" id="sc7" onclick="selectCard(7)">
     <div class="sc-info-tip"><span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Webex report: Calling Detailed Call History (CDR). Calculation: Count where Call Recording Result = failed. Threshold: 0 failed Good · 1–2 Attention · 3+ Action</span></span></div>
@@ -285,7 +292,7 @@ thead th .info-tip-text::after { top: auto; bottom: 100%; border-top-color: tran
     <div class="sc-name">Recording</div>
     <div class="sc-val good" id="sc7-val">0</div>
     <div class="sc-sub">failed</div>
-    <div class="badge good" id="sc7-badge">🟢 Good</div>
+    <div class="badge good" id="sc7-badge">Good</div>
   </div>
   <div class="sc good" id="sc8" onclick="selectCard(8)">
     <div class="sc-info-tip"><span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Webex report: Calling Connectivity. Calculation: Endpoints with disconnected or unregistered primary connectivity. Threshold: 0 disconnected Good · 1–5 Attention · &gt; 5 Action</span></span></div>
@@ -293,7 +300,7 @@ thead th .info-tip-text::after { top: auto; bottom: 100%; border-top-color: tran
     <div class="sc-name">Trunk</div>
     <div class="sc-val good" id="sc8-val">0</div>
     <div class="sc-sub">disconnected</div>
-    <div class="badge good" id="sc8-badge">🟢 Good</div>
+    <div class="badge good" id="sc8-badge">Good</div>
   </div>
   <div class="sc good" id="sc9" onclick="selectCard(9)">
     <div class="sc-info-tip"><span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Webex report: Calling Detailed Call History (CDR). Calculation: Peak daily leg count ÷ average daily leg count. Threshold: ≤ 2× Good · &gt; 2× Attention (capacity spike risk)</span></span></div>
@@ -301,7 +308,7 @@ thead th .info-tip-text::after { top: auto; bottom: 100%; border-top-color: tran
     <div class="sc-name">Capacity</div>
     <div class="sc-val good" id="sc9-val">1.3×</div>
     <div class="sc-sub">peak/avg ratio</div>
-    <div class="badge good" id="sc9-badge">🟢 Good</div>
+    <div class="badge good" id="sc9-badge">Good</div>
   </div></div>
 
 <div class="section" id="s1">
@@ -309,7 +316,7 @@ thead th .info-tip-text::after { top: auto; bottom: 100%; border-top-color: tran
     <div class="sec-dot warn">1</div>
     <div class="sec-info"><div class="sec-title">§1 — Reachability<span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Are callers reaching auto attendants and queues? Source: AA Summary + Call Queue Stats.</span></span></div>
     <div class="sec-sub">AA answer rate 89.9% · 8 auto attendants</div></div>
-    <div class="badge warn">🟡 Needs Attention</div><div class="chevron">›</div>
+    <div class="badge warn">Needs attention</div><div class="chevron">›</div>
   </div>
   <div class="sec-body" id="s1-body">
     <div class="sub-label">Auto Attendants</div>
@@ -339,7 +346,7 @@ thead th .info-tip-text::after { top: auto; bottom: 100%; border-top-color: tran
     <div class="sec-dot good">2</div>
     <div class="sec-info"><div class="sec-title">§2/4 — Queue Health<span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Abandonment and SLA compliance across contact-center queues. Source: Call Queue Stats.</span></span></div>
     <div class="sec-sub">7.6% abandon · 92.4% answer rate</div></div>
-    <div class="badge good">🟢 Good</div><div class="chevron">›</div>
+    <div class="badge good">Good</div><div class="chevron">›</div>
   </div>
   <div class="sec-body" id="s2-body">
     <table><thead><tr><th>Queue <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Call queue display name.</span></span></th><th>Location <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Site or location assigned in Control Hub.</span></span></th><th>Total <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Total calls offered in the report period.</span></span></th><th>Abandoned <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Callers who hung up before an agent answered.</span></span></th><th>% Abandon <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Abandoned ÷ total calls, as a percentage.</span></span></th><th>Avg agents handling <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Average agents actively handling queue calls.</span></span></th></tr></thead>
@@ -352,7 +359,7 @@ thead th .info-tip-text::after { top: auto; bottom: 100%; border-top-color: tran
     <div class="sec-dot warn">3</div>
     <div class="sec-info"><div class="sec-title">§3 — Routing Correctness<span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Routing deflections and unrecognized call types from CDR. Source: Calling Detailed Call History.</span></span></div>
     <div class="sec-sub">100 deflections · 9 UNKNOWN types · 920 legs</div></div>
-    <div class="badge warn">🟡 Needs Attention</div><div class="chevron">›</div>
+    <div class="badge warn">Needs attention</div><div class="chevron">›</div>
   </div>
   <div class="sec-body" id="s3-body">
     <div class="sub-label">Call Types</div>
@@ -380,7 +387,7 @@ thead th .info-tip-text::after { top: auto; bottom: 100%; border-top-color: tran
     <div class="sec-dot good">5</div>
     <div class="sec-info"><div class="sec-title">§5 — Call Quality<span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Call outcome refusals — signal not visible as a single Control Hub tile. Source: CDR call outcome fields.</span></span></div>
     <div class="sec-sub">12.2% refusal rate · 112 refused legs</div></div>
-    <div class="badge good">🟢 Good</div><div class="chevron">›</div>
+    <div class="badge good">Good</div><div class="chevron">›</div>
   </div>
   <div class="sec-body" id="s5-body">
     <table><thead><tr><th>Outcome Reason <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">CDR call outcome reason when the leg did not complete successfully.</span></span></th><th>Count <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Number of occurrences in the period.</span></span></th><th>Affected Users <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Users appearing on refused or failed legs.</span></span></th><th>Status <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Good / Needs Attention / Action Required based on thresholds.</span></span></th></tr></thead><tbody><tr><td>CallRejected</td><td>46</td><td>Alex Morgan, Casey Rivera, Jamie Ortiz, Jordan Lee</td><td><span class="pill warn">Needs Attention</span></td></tr><tr><td>NoAnswer</td><td>6</td><td>Casey Rivera, Jordan Lee, Marcus Webb, Morgan Quinn</td><td><span class="pill warn">Needs Attention</span></td></tr><tr><td>Normal</td><td>6</td><td>Casey Rivera, Jordan Lee, Marcus Webb, Morgan Quinn</td><td><span class="pill warn">Needs Attention</span></td></tr><tr><td>TemporarilyUnavailable</td><td>34</td><td>Alex Morgan, Casey Rivera, Jamie Ortiz, Jordan Lee</td><td><span class="pill warn">Needs Attention</span></td></tr><tr><td>UnassignedNumber</td><td>20</td><td>Casey Rivera, Jamie Ortiz, Jordan Lee, Marcus Webb</td><td><span class="pill bad">Action Required</span></td></tr></tbody></table>
@@ -392,7 +399,7 @@ thead th .info-tip-text::after { top: auto; bottom: 100%; border-top-color: tran
     <div class="sec-dot good">6</div>
     <div class="sec-info"><div class="sec-title">§6 — Cost &amp; Usage<span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Usage volume and billable PSTN minutes for the period. Source: Calling Detailed Call History.</span></span></div>
     <div class="sec-sub">17991 total min · 8023 billable PSTN min</div></div>
-    <div class="badge good">🟢 Good</div><div class="chevron">›</div>
+    <div class="badge good">Good</div><div class="chevron">›</div>
   </div>
   <div class="sec-body" id="s6-body">
     <div class="usage-grid">
@@ -411,7 +418,7 @@ thead th .info-tip-text::after { top: auto; bottom: 100%; border-top-color: tran
     <div class="sec-dot good">7</div>
     <div class="sec-info"><div class="sec-title">§7 — Recording Compliance<span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Failed call recordings in the period. Source: Calling Detailed Call History — Call Recording Result field.</span></span></div>
     <div class="sec-sub">0 failed recordings</div></div>
-    <div class="badge good">🟢 Good</div><div class="chevron">›</div>
+    <div class="badge good">Good</div><div class="chevron">›</div>
   </div>
   <div class="sec-body" id="s7-body">
     <p style="font-size:14px;color:var(--muted);margin:0">0 recording failure(s) in this period.</p>
@@ -423,7 +430,7 @@ thead th .info-tip-text::after { top: auto; bottom: 100%; border-top-color: tran
     <div class="sec-dot good">8</div>
     <div class="sec-info"><div class="sec-title">§8 — Trunk Health<span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Endpoints with disconnected or unregistered primary connectivity. Source: Calling Connectivity.</span></span></div>
     <div class="sec-sub">0 disconnected endpoints</div></div>
-    <div class="badge good">🟢 Good</div><div class="chevron">›</div>
+    <div class="badge good">Good</div><div class="chevron">›</div>
   </div>
   <div class="sec-body" id="s8-body">
     <p style="font-size:14px;color:var(--muted);margin:0">0 endpoint(s) with disconnected or unregistered connectivity.</p>
@@ -435,7 +442,7 @@ thead th .info-tip-text::after { top: auto; bottom: 100%; border-top-color: tran
     <div class="sec-dot good">9</div>
     <div class="sec-info"><div class="sec-title">§9 — Capacity Planning<span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Daily volume distribution and location concentration. Source: Calling Detailed Call History.</span></span></div>
     <div class="sec-sub">Peak 2026-09-04 = 40 legs (1.3× avg)</div></div>
-    <div class="badge good">🟢 Good</div><div class="chevron">›</div>
+    <div class="badge good">Good</div><div class="chevron">›</div>
   </div>
   <div class="sec-body" id="s9-body">
     <div class="sub-label">Volume by location</div>
@@ -445,7 +452,10 @@ thead th .info-tip-text::after { top: auto; bottom: 100%; border-top-color: tran
 
 <div style="text-align:center;padding:24px 0 8px;font-size:12px;color:var(--muted)">
   Northwind University · Aug 06 – Sep 05, 2026 ·
-  <a href="../data/healthy-campus/manifest.json" style="color:var(--wx-dark)">Methodology &amp; data</a>
+  <a href="../data/healthy-campus/manifest.json" style="color:var(--ch-link)">Methodology &amp; data</a>
+</div>
+    </div>
+  </div>
 </div>
 </div>
 <script>
