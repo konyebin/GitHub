@@ -199,7 +199,7 @@ SECTION_META: dict[str, dict[str, str]] = {
         "blurb": "Routing deflections and unrecognized call types from CDR.",
         "report": "Calling Detailed Call History",
     },
-    "s3b": {
+    "s4": {
         "blurb": "Who called whom — readable summaries from Detailed Call History (correlation ID groups).",
         "report": "Calling Detailed Call History",
     },
@@ -1180,8 +1180,9 @@ def render_report(
     ]
     for num, val, sub, st in cards:
         name = sub.split("·")[0].strip()
+        card_click = "selectCard(2)" if num == 4 else f"selectCard({num})"
         scorecard += f"""
-  <div class="sc {st}" id="sc{num}" onclick="selectCard({num})">
+  <div class="sc {st}" id="sc{num}" onclick="{card_click}">
     <div class="sc-info-tip">{scorecard_tip(num)}</div>
     <div class="sc-num">§{num}</div>
     <div class="sc-name">{name}</div>
@@ -1288,14 +1289,14 @@ def render_report(
   </div>
 </div>
 
-<div class="section" id="s3b">
-  <div class="sec-hdr" onclick="toggleSection('s3b')">
-    <div class="sec-dot good">↪</div>
-    <div class="sec-info"><div class="sec-title">Call Activity{section_tip('s3b')}</div>
+<div class="section" id="s4">
+  <div class="sec-hdr" onclick="toggleSection('s4')">
+    <div class="sec-dot good">4</div>
+    <div class="sec-info"><div class="sec-title">§4 — Call Activity{section_tip('s4')}</div>
     <div class="sec-sub">Who called whom — recent calls in plain language</div></div>
     <div class="badge good">Readable</div><div class="chevron">›</div>
   </div>
-  <div class="sec-body" id="s3b-body">
+  <div class="sec-body" id="s4-body">
     <p style="font-size:13px;color:var(--muted);margin:0 0 12px">Summaries are built from the Webex Calling Detailed Call History report — grouped by correlation ID. Voicemail, queue, transfer, and internal calls are labeled explicitly.</p>
     <table>{thead(["When", "What happened", "Type", "Result", "Duration"])}<tbody>{activity_rows}</tbody></table>
   </div>
