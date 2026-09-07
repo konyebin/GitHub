@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Generate hackathon demo ops reports from synthetic Webex-style CSVs."""
+"""Generate Webex ops report demos from Control Hub-style CSVs."""
 
 from __future__ import annotations
 
+import html
 import json
 import random
 import re
@@ -29,6 +30,33 @@ thead th.sortable-th { cursor: pointer; user-select: none; white-space: nowrap; 
 thead th.sortable-th:hover { background: #EEF9FD; color: var(--wx-dark); }
 thead th.sort-asc::after { content: ' ▲'; font-size: 9px; opacity: 0.85; }
 thead th.sort-desc::after { content: ' ▼'; font-size: 9px; opacity: 0.85; }
+
+/* Info tooltips — hover, focus, or click the i icon */
+.info-tip { position: relative; display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; margin-left: 5px; vertical-align: middle; flex-shrink: 0; cursor: help; }
+.info-tip-icon { width: 18px; height: 18px; border-radius: 50%; background: #fff; color: var(--wx-dark);
+  border: 1.5px solid var(--wx); font-size: 11px; font-weight: 800; font-style: italic; line-height: 16px;
+  text-align: center; font-family: Georgia, serif; transition: background .15s, color .15s, border-color .15s; }
+.info-tip:hover .info-tip-icon, .info-tip:focus .info-tip-icon, .info-tip.open .info-tip-icon {
+  background: var(--wx); color: #fff; border-color: var(--wx); }
+.info-tip-text { position: absolute; z-index: 200; left: 50%; transform: translateX(-50%);
+  bottom: calc(100% + 10px); min-width: 220px; max-width: 300px; padding: 10px 12px;
+  background: #1B2A3B; color: #fff; font-size: 12px; font-weight: 400; line-height: 1.45;
+  border-radius: 6px; box-shadow: 0 4px 20px rgba(0,0,0,.25); opacity: 0; visibility: hidden;
+  pointer-events: none; transition: opacity .15s, visibility .15s; text-align: left; white-space: normal; }
+.info-tip-text::after { content: ''; position: absolute; top: 100%; left: 50%; margin-left: -6px;
+  border: 6px solid transparent; border-top-color: #1B2A3B; }
+.info-tip:hover .info-tip-text, .info-tip:focus .info-tip-text, .info-tip.open .info-tip-text {
+  opacity: 1; visibility: visible; }
+.sc { position: relative; overflow: visible; }
+.sc .sc-info-tip { position: absolute; top: 8px; right: 8px; z-index: 3; }
+.section { overflow: visible; }
+.sec-hdr { overflow: visible; position: relative; z-index: 1; }
+.sec-title .info-tip { margin-left: 6px; vertical-align: middle; }
+thead th { overflow: visible; position: relative; }
+thead th .info-tip { margin-left: 4px; vertical-align: middle; }
+thead th .info-tip-text { bottom: auto; top: calc(100% + 10px); }
+thead th .info-tip-text::after { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: #1B2A3B; }
 """
 
 TABLE_SORT_JS = """
@@ -64,7 +92,8 @@ TABLE_SORT_JS = """
     headers.forEach((th, colIdx) => {
       th.classList.add('sortable-th');
       th.title = 'Click to sort (text A–Z or numeric size)';
-      th.addEventListener('click', () => {
+      th.addEventListener('click', (e) => {
+        if (e.target.closest('.info-tip')) return;
         const rows = [...tbody.querySelectorAll('tr')];
         const numeric = columnIsNumeric(rows, colIdx);
         const next = th.dataset.sort === 'asc' ? 'desc' : 'asc';
@@ -91,7 +120,165 @@ TABLE_SORT_JS = """
     });
   });
 })();
+
+(function initInfoTips() {
+  document.querySelectorAll('.info-tip').forEach((tip) => {
+    tip.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const wasOpen = tip.classList.contains('open');
+      document.querySelectorAll('.info-tip.open').forEach((t) => t.classList.remove('open'));
+      if (!wasOpen) tip.classList.add('open');
+    });
+  });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.info-tip')) {
+      document.querySelectorAll('.info-tip.open').forEach((t) => t.classList.remove('open'));
+    }
+  });
+})();
 """
+
+SCORECARD_META: dict[int, dict[str, str]] = {
+    1: {
+        "report": "Auto-Attendant Stats Summary",
+        "formula": "sum(Answered) ÷ sum(Total Calls) from the AA Summary export.",
+        "threshold": "≥ 90% Good · 70–89% Attention · < 70% Action",
+    },
+    2: {
+        "report": "Call Queue Stats",
+        "formula": "sum(Abandoned Calls) ÷ sum(Total Calls) across all queues.",
+        "threshold": "≤ 10% Good · 11–30% Attention · > 30% Action",
+    },
+    3: {
+        "report": "Calling Detailed Call History (CDR)",
+        "formula": "Count of legs where Related reason = Deflection.",
+        "threshold": "0 deflections and 0 UNKNOWN call types = Good",
+    },
+    4: {
+        "report": "Call Queue Stats",
+        "formula": "sum(Answered Calls) ÷ sum(Total Calls) — SLA proxy.",
+        "threshold": "≥ 80% Good · 60–79% Attention · < 60% Action",
+    },
+    5: {
+        "report": "Calling Media Quality Report + CDR outcomes",
+        "formula": "Poor-quality legs ÷ total media quality rows; refusals from CDR.",
+        "threshold": "≤ 5% poor rate Good · 6–15% Attention · > 15% Action",
+    },
+    6: {
+        "report": "Calling Detailed Call History (CDR)",
+        "formula": "sum(Duration) ÷ 60 for total minutes; PSTN types for billable minutes.",
+        "threshold": "Informational — no cost target in this report",
+    },
+    7: {
+        "report": "Calling Detailed Call History (CDR)",
+        "formula": "Count where Call Recording Result = failed.",
+        "threshold": "0 failed Good · 1–2 Attention · 3+ Action",
+    },
+    8: {
+        "report": "Calling Connectivity",
+        "formula": "Endpoints with disconnected or unregistered primary connectivity.",
+        "threshold": "0 disconnected Good · 1–5 Attention · > 5 Action",
+    },
+    9: {
+        "report": "Calling Detailed Call History (CDR)",
+        "formula": "Peak daily leg count ÷ average daily leg count.",
+        "threshold": "≤ 2× Good · > 2× Attention (capacity spike risk)",
+    },
+}
+
+SECTION_META: dict[str, dict[str, str]] = {
+    "s1": {
+        "blurb": "Are callers reaching auto attendants and queues?",
+        "report": "AA Summary + Call Queue Stats",
+    },
+    "s2": {
+        "blurb": "Abandonment and SLA compliance across contact-center queues.",
+        "report": "Call Queue Stats",
+    },
+    "s3": {
+        "blurb": "Routing deflections and unrecognized call types from CDR.",
+        "report": "Calling Detailed Call History",
+    },
+    "s5": {
+        "blurb": "Call outcome refusals — signal not visible as a single Control Hub tile.",
+        "report": "CDR call outcome fields",
+    },
+    "s6": {
+        "blurb": "Usage volume and billable PSTN minutes for the period.",
+        "report": "Calling Detailed Call History",
+    },
+    "s7": {
+        "blurb": "Failed call recordings in the period.",
+        "report": "Calling Detailed Call History — Call Recording Result field",
+    },
+    "s8": {
+        "blurb": "Endpoints with disconnected or unregistered primary connectivity.",
+        "report": "Calling Connectivity",
+    },
+    "s9": {
+        "blurb": "Daily volume distribution and location concentration.",
+        "report": "Calling Detailed Call History",
+    },
+}
+
+COLUMN_TIPS: dict[str, str] = {
+    "Auto Attendant": "Name of the auto attendant in Control Hub.",
+    "Queue": "Call queue display name.",
+    "Location": "Site or location assigned in Control Hub.",
+    "Total": "Total calls offered in the report period.",
+    "Answered": "Calls answered by the AA or queue.",
+    "Unanswered": "Calls not answered (AA Summary).",
+    "Abandoned": "Callers who hung up before an agent answered.",
+    "% Ans": "Answered ÷ total calls, as a percentage.",
+    "% Abandon": "Abandoned ÷ total calls, as a percentage.",
+    "Status": "Good / Needs Attention / Action Required based on thresholds.",
+    "Type": "CDR call type (e.g. SIP_INBOUND, SIP_ENTERPRISE).",
+    "Legs": "Number of CDR legs in the period.",
+    "Minutes": "Sum of call duration for that type or user.",
+    "Note": "How this call type is billed or routed.",
+    "Reason": "CDR Related reason or outcome reason field.",
+    "Count": "Number of occurrences in the period.",
+    "Affected Users": "Users appearing on refused or failed legs.",
+    "User": "Webex Calling user display name.",
+    "Avg agents handling": "Average agents actively handling queue calls.",
+    "Outcome Reason": "CDR call outcome reason when the leg did not complete successfully.",
+}
+
+
+def info_tip(text: str) -> str:
+    return (
+        f'<span class="info-tip" tabindex="0" onclick="event.stopPropagation()" '
+        f'role="button" aria-label="More information">'
+        f'<span class="info-tip-icon">i</span>'
+        f'<span class="info-tip-text">{html.escape(text)}</span></span>'
+    )
+
+
+def scorecard_tip(num: int) -> str:
+    meta = SCORECARD_META[num]
+    text = (
+        f"Webex report: {meta['report']}. "
+        f"Calculation: {meta['formula']} "
+        f"Threshold: {meta['threshold']}"
+    )
+    return info_tip(text)
+
+
+def section_tip(section_id: str) -> str:
+    meta = SECTION_META[section_id]
+    return info_tip(f"{meta['blurb']} Source: {meta['report']}.")
+
+
+def th(label: str, tip: str | None = None) -> str:
+    col_tip = tip or COLUMN_TIPS.get(label)
+    label_html = html.escape(label)
+    if col_tip:
+        return f"<th>{label_html} {info_tip(col_tip)}</th>"
+    return f"<th>{label_html}</th>"
+
+
+def thead(labels: list[str]) -> str:
+    return "<thead><tr>" + "".join(th(l) for l in labels) + "</tr></thead>"
 
 
 @dataclass
@@ -423,7 +610,7 @@ def build_manifest(sc: Scenario, start: str, end: str, m: dict, files: dict[str,
         "org_name": sc.org_name,
         "period": {"start": start, "end": end},
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "synthetic": True,
+        "demo_scenario": True,
         "webex_report_templates": REPORT_TYPES,
         "data_files": files,
         "scorecard_derivation": [
@@ -487,12 +674,6 @@ def render_report(
     billable = cdr[cdr["Call type"].isin(["SIP_INBOUND", "SIP_NATIONAL", "SIP_MOBILE", "SIP_INTERNATIONAL"])]
     billable_min = int(billable["Duration"].sum() / 60)
 
-    prov_rows = "".join(
-        f"<tr><td>{d['section']}</td><td>{d['metric']}</td><td style='font-size:12px'>{d['formula']}</td>"
-        f"<td><strong>{d['value']}</strong></td></tr>"
-        for d in manifest["scorecard_derivation"]
-    )
-
     loc_bars = ""
     for loc, pct in m["loc_pct"].items():
         loc_bars += (
@@ -517,6 +698,7 @@ def render_report(
         name = sub.split("·")[0].strip()
         scorecard += f"""
   <div class="sc {st}" id="sc{num}" onclick="selectCard({num})">
+    <div class="sc-info-tip">{scorecard_tip(num)}</div>
     <div class="sc-num">§{num}</div>
     <div class="sc-name">{name}</div>
     <div class="sc-val {st}" id="sc{num}-val">{val}</div>
@@ -526,7 +708,7 @@ def render_report(
 
     ct_rows = "".join(
         f"<tr><td>{r['Call type']}</td><td>{int(r['legs'])}</td>"
-        f"<td>{int(r['minutes']//60)}</td><td style='font-size:12px;color:var(--muted)'>From CDR</td></tr>"
+        f"<td>{int(r['minutes']//60)}</td></tr>"
         for _, r in call_types.iterrows()
     )
     reason_rows = "".join(
@@ -542,7 +724,7 @@ def render_report(
         f"<tr><td>{user}</td><td>{dur/60:.1f}</td></tr>" for user, dur in top_users.items()
     )
 
-    html = f"""<!DOCTYPE html>
+    page = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -551,74 +733,34 @@ def render_report(
 {css}
 </head>
 <body>
-<div style="background:#E6F8FD;border-bottom:1px solid #9DE5F7;color:#005E7D;padding:10px 16px;font-size:13px;text-align:center">
-  <strong>Hackathon demo</strong> — synthetic Control Hub CSVs · scenario: <code>{sc.slug}</code> ·
-  <a href="../index.html">All scenarios</a> ·
-  <a href="../data/{sc.slug}/manifest.json">Data manifest (JSON)</a>
-</div>
 <div class="hdr">
   <div class="hdr-left">
     <h1>Webex Calling — Operations Report</h1>
     <p>Organization: <span id="org-name">{sc.org_name}</span> · Period: <span id="period">{period_label}</span></p>
   </div>
   <div class="hdr-right">
+    <a class="btn btn-ghost" href="../index.html" style="text-decoration:none">All reports</a>
     <button class="btn btn-ghost" onclick="toggleAll()">Expand All</button>
     <button class="btn btn-white" onclick="window.print()">Print / Export</button>
   </div>
 </div>
 <div class="wrap">
-<div class="hint">
-  <span><strong>Explainable AI demo:</strong> Every scorecard metric is computed from downloadable CSV files. <strong>Click any table column header</strong> to sort alphabetically or by numeric size.</span>
-</div>
-
-<div class="section" id="s0">
-  <div class="sec-hdr open" onclick="toggleSection('s0')">
-    <div class="sec-dot good">0</div>
-    <div class="sec-info">
-      <div class="sec-title">§0 — Data Provenance</div>
-      <div class="sec-sub">Where every number comes from · {m['cdr_rows']} CDR legs · {len(aa)} AAs · {len(cq)} queues</div>
-    </div>
-    <div class="badge good">🟢 Traceable</div>
-    <div class="chevron open">›</div>
-  </div>
-  <div class="sec-body open" id="s0-body">
-    <div class="meta-bar">
-      <div class="meta-item">Scenario: <strong>{sc.title}</strong></div>
-      <div class="meta-item">Seed: <strong>{sc.seed}</strong> (reproducible)</div>
-      <div class="meta-item">Manifest: <strong><a href="../data/{sc.slug}/manifest.json">manifest.json</a></strong></div>
-    </div>
-    <div class="sub-label">Scorecard → source report → formula</div>
-    <table>
-      <thead><tr><th>Section</th><th>Metric</th><th>Formula (from CSV columns)</th><th>Value</th></tr></thead>
-      <tbody>{prov_rows}</tbody>
-    </table>
-    <div class="sub-label">Download synthetic source CSVs</div>
-    <p style="font-size:13px">These files use the same column headers as Webex Control Hub exports:
-      <a href="../data/{sc.slug}/cdr_{manifest['period']['start']}_{manifest['period']['end']}.csv">CDR</a>,
-      <a href="../data/{sc.slug}/call_queue_{manifest['period']['start']}_{manifest['period']['end']}.csv">Call Queue</a>,
-      <a href="../data/{sc.slug}/aa_summary_{manifest['period']['start']}_{manifest['period']['end']}.csv">AA Summary</a>,
-      <a href="../data/{sc.slug}/media_quality_{manifest['period']['start']}_{manifest['period']['end']}.csv">Media Quality</a>,
-      <a href="../data/{sc.slug}/connectivity_{manifest['period']['start']}_{manifest['period']['end']}.csv">Connectivity</a>.
-    </p>
-  </div>
-</div>
 
 <div class="scorecard" id="scorecard">{scorecard}</div>
 
 <div class="section" id="s1">
   <div class="sec-hdr" onclick="toggleSection('s1')">
     <div class="sec-dot {m['s1']}">1</div>
-    <div class="sec-info"><div class="sec-title">§1 — Reachability</div>
+    <div class="sec-info"><div class="sec-title">§1 — Reachability{section_tip('s1')}</div>
     <div class="sec-sub">AA answer rate {m['aa_answer_rate']:.1f}% · {len(aa)} auto attendants</div></div>
     <div class="badge {m['s1']}">{badge(m['s1'])}</div><div class="chevron">›</div>
   </div>
   <div class="sec-body" id="s1-body">
-    <div class="meta-bar"><div class="meta-item">Source: <strong>AA Summary + Call Queue Stats</strong></div></div>
     <div class="sub-label">Auto Attendants</div>
-    <table><thead><tr><th>Auto Attendant</th><th>Location</th><th>Total</th><th>Answered</th><th>Unanswered</th><th>% Ans</th><th>Status</th></tr></thead>
+    <table>{thead(["Auto Attendant", "Location", "Total", "Answered", "Unanswered", "% Ans", "Status"])}
     <tbody>{table_rows_aa(aa)}</tbody></table>
     <div class="sub-label">Call Queues</div>
-    <table><thead><tr><th>Queue</th><th>Location</th><th>Total</th><th>Answered</th><th>Abandoned</th><th>% Ans</th><th>Status</th></tr></thead>
+    <table>{thead(["Queue", "Location", "Total", "Answered", "Abandoned", "% Ans", "Status"])}
     <tbody>{table_rows_cq(cq)}</tbody></table>
   </div>
 </div>
@@ -626,13 +768,12 @@ def render_report(
 <div class="section" id="s2">
   <div class="sec-hdr" onclick="toggleSection('s2')">
     <div class="sec-dot {m['s2']}">2</div>
-    <div class="sec-info"><div class="sec-title">§2/4 — Queue Health</div>
+    <div class="sec-info"><div class="sec-title">§2/4 — Queue Health{section_tip('s2')}</div>
     <div class="sec-sub">{m['abandon_rate']:.1f}% abandon · {m['queue_answer_rate']:.1f}% answer rate</div></div>
     <div class="badge {m['s2']}">{badge(m['s2'])}</div><div class="chevron">›</div>
   </div>
   <div class="sec-body" id="s2-body">
-    <div class="meta-bar"><div class="meta-item">Source: <strong>Call Queue Stats CSV</strong></div></div>
-    <table><thead><tr><th>Queue</th><th>Location</th><th>Total</th><th>Abandoned</th><th>% Abandon</th><th>Avg agents handling</th></tr></thead>
+    <table>{thead(["Queue", "Location", "Total", "Abandoned", "% Abandon", "Avg agents handling"])}
     <tbody>{"".join(f"<tr><td>{r['Call Queue']}</td><td>{r['Location']}</td><td>{int(r['Total Calls'])}</td><td>{int(r['Abandoned Calls'])}</td><td>{r['% Abandoned Calls']}%</td><td>{r['Avg No. of Agents Handling Calls']}</td></tr>" for _, r in cq.iterrows())}</tbody></table>
   </div>
 </div>
@@ -640,35 +781,34 @@ def render_report(
 <div class="section" id="s3">
   <div class="sec-hdr" onclick="toggleSection('s3')">
     <div class="sec-dot {m['s3']}">3</div>
-    <div class="sec-info"><div class="sec-title">§3 — Routing Correctness</div>
+    <div class="sec-info"><div class="sec-title">§3 — Routing Correctness{section_tip('s3')}</div>
     <div class="sec-sub">{m['deflections']} deflections · {m['unknown_ct']} UNKNOWN types · {m['cdr_rows']} legs</div></div>
     <div class="badge {m['s3']}">{badge(m['s3'])}</div><div class="chevron">›</div>
   </div>
   <div class="sec-body" id="s3-body">
-    <div class="meta-bar"><div class="meta-item">Source: <strong>CDR</strong></div></div>
     <div class="sub-label">Call Types</div>
-    <table><thead><tr><th>Type</th><th>Legs</th><th>Minutes</th><th>Note</th></tr></thead><tbody>{ct_rows}</tbody></table>
+    <table>{thead(["Type", "Legs", "Minutes"])}<tbody>{ct_rows}</tbody></table>
     <div class="sub-label">Related Reasons</div>
-    <table><thead><tr><th>Reason</th><th>Count</th><th>Status</th></tr></thead><tbody>{reason_rows}</tbody></table>
+    <table>{thead(["Reason", "Count", "Status"])}<tbody>{reason_rows}</tbody></table>
   </div>
 </div>
 
 <div class="section" id="s5">
   <div class="sec-hdr" onclick="toggleSection('s5')">
     <div class="sec-dot {m['s5']}">5</div>
-    <div class="sec-info"><div class="sec-title">§5 — Call Quality</div>
+    <div class="sec-info"><div class="sec-title">§5 — Call Quality{section_tip('s5')}</div>
     <div class="sec-sub">{m['refusal_rate']:.1f}% refusal rate · {m['refusals']} refused legs</div></div>
     <div class="badge {m['s5']}">{badge(m['s5'])}</div><div class="chevron">›</div>
   </div>
   <div class="sec-body" id="s5-body">
-    <table><thead><tr><th>Outcome Reason</th><th>Count</th><th>Affected Users</th><th>Status</th></tr></thead><tbody>{ref_rows}</tbody></table>
+    <table>{thead(["Outcome Reason", "Count", "Affected Users", "Status"])}<tbody>{ref_rows}</tbody></table>
   </div>
 </div>
 
 <div class="section" id="s6">
   <div class="sec-hdr" onclick="toggleSection('s6')">
     <div class="sec-dot {m['s6']}">6</div>
-    <div class="sec-info"><div class="sec-title">§6 — Cost &amp; Usage</div>
+    <div class="sec-info"><div class="sec-title">§6 — Cost &amp; Usage{section_tip('s6')}</div>
     <div class="sec-sub">{int(m['total_min'])} total min · {billable_min} billable PSTN min</div></div>
     <div class="badge {m['s6']}">{badge(m['s6'])}</div><div class="chevron">›</div>
   </div>
@@ -680,39 +820,38 @@ def render_report(
       <div class="usage-stat"><div class="big">{m['refusals']}</div><div class="sub">Refused legs</div></div>
     </div>
     <div class="sub-label">Top users by duration</div>
-    <table><thead><tr><th>User</th><th>Minutes</th></tr></thead><tbody>{user_rows}</tbody></table>
+    <table>{thead(["User", "Minutes"])}<tbody>{user_rows}</tbody></table>
   </div>
 </div>
 
 <div class="section" id="s7">
   <div class="sec-hdr" onclick="toggleSection('s7')">
     <div class="sec-dot {m['s7']}">7</div>
-    <div class="sec-info"><div class="sec-title">§7 — Recording Compliance</div>
+    <div class="sec-info"><div class="sec-title">§7 — Recording Compliance{section_tip('s7')}</div>
     <div class="sec-sub">{m['rec_failed']} failed recordings</div></div>
     <div class="badge {m['s7']}">{badge(m['s7'])}</div><div class="chevron">›</div>
   </div>
   <div class="sec-body" id="s7-body">
-    <div class="meta-bar"><div class="meta-item">Source: <strong>CDR recording fields</strong></div></div>
-    <p>Failed recordings counted where <code>Call Recording Result = failed</code> in CDR export.</p>
+    <p style="font-size:14px;color:var(--muted);margin:0">{m['rec_failed']} recording failure(s) in this period.</p>
   </div>
 </div>
 
 <div class="section" id="s8">
   <div class="sec-hdr" onclick="toggleSection('s8')">
     <div class="sec-dot {m['s8']}">8</div>
-    <div class="sec-info"><div class="sec-title">§8 — Trunk Health</div>
+    <div class="sec-info"><div class="sec-title">§8 — Trunk Health{section_tip('s8')}</div>
     <div class="sec-sub">{m['disconnected']} disconnected endpoints</div></div>
     <div class="badge {m['s8']}">{badge(m['s8'])}</div><div class="chevron">›</div>
   </div>
   <div class="sec-body" id="s8-body">
-    <div class="meta-bar"><div class="meta-item">Source: <strong>Calling Connectivity CSV</strong></div></div>
+    <p style="font-size:14px;color:var(--muted);margin:0">{m['disconnected']} endpoint(s) with disconnected or unregistered connectivity.</p>
   </div>
 </div>
 
 <div class="section" id="s9">
   <div class="sec-hdr" onclick="toggleSection('s9')">
     <div class="sec-dot {m['s9']}">9</div>
-    <div class="sec-info"><div class="sec-title">§9 — Capacity Planning</div>
+    <div class="sec-info"><div class="sec-title">§9 — Capacity Planning{section_tip('s9')}</div>
     <div class="sec-sub">Peak {m['peak_day']} = {m['peak_legs']} legs ({m['peak_avg_ratio']:.1f}× avg)</div></div>
     <div class="badge {m['s9']}">{badge(m['s9'])}</div><div class="chevron">›</div>
   </div>
@@ -723,14 +862,15 @@ def render_report(
 </div>
 
 <div style="text-align:center;padding:24px 0 8px;font-size:12px;color:var(--muted)">
-  {sc.org_name} · {period_label} · Synthetic demo · Top 5 AI Hackathon
+  {sc.org_name} · {period_label} ·
+  <a href="../data/{sc.slug}/manifest.json" style="color:var(--wx-dark)">Methodology &amp; data</a>
 </div>
 </div>
 {script}
 {table_sort_block}
 </body>
 </html>"""
-    return html
+    return page
 
 
 def render_hub(summaries: list[dict]) -> str:
@@ -753,7 +893,7 @@ def render_hub(summaries: list[dict]) -> str:
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Webex Ops Report — Hackathon Demo Hub</title>
+<title>Webex Calling — Operations Reports</title>
 <style>
 :root {{ --wx:#00BCEB; --wx-dark:#007FAD; --bg:#F0F4F8; --card:#fff; --text:#1B2A3B; --muted:#6B7A8D; }}
 *{{box-sizing:border-box;margin:0;padding:0}}
@@ -779,18 +919,17 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
 </head>
 <body>
 <div class="hdr">
-  <h1>Webex Calling Ops Report — AI Hackathon Demo</h1>
-  <p>Top 5 project showcase. Three fully synthetic enterprises built from Webex Control Hub report schemas — every scorecard metric traceable to downloadable CSVs.</p>
+  <h1>Webex Calling — Operations Reports</h1>
+  <p>Three enterprise scenarios with full operational scorecards. Hover the <em>i</em> icons on any dashboard for metric definitions and sources.</p>
 </div>
 <div class="wrap">
   <div class="grid">{cards}</div>
   <div class="prov">
-    <h3>How the data works</h3>
+    <h3>About these reports</h3>
     <ol>
-      <li><strong>Generate CSVs</strong> — Synthetic exports matching real Webex report column headers (CDR, Call Queue, AA Summary, Media Quality, Connectivity).</li>
-      <li><strong>Compute scorecard</strong> — Same formulas as production wxops <code>generate_misc_report.py</code> (sum/aggregate/count on CSV columns).</li>
-      <li><strong>Render dashboard</strong> — Interactive HTML with §0 Data Provenance linking each metric to its source file and formula.</li>
-      <li><strong>Reproducible</strong> — Each scenario uses a fixed random seed; re-run <code>generate_demo_reports.py</code> to regenerate.</li>
+      <li><strong>Control Hub exports</strong> — CDR, Call Queue, AA Summary, Media Quality, and Connectivity CSVs with standard Webex column headers.</li>
+      <li><strong>Scorecard metrics</strong> — Same calculations as production wxops <code>generate_misc_report.py</code>; formulas available via info icons on each tile.</li>
+      <li><strong>Interactive tables</strong> — Click any column header to sort. Full methodology and downloadable source files are linked from each report footer.</li>
     </ol>
   </div>
 </div>

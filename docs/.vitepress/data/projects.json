@@ -120,14 +120,14 @@
     {
       "id": "misc-ops-report",
       "name": "Misc Ops Report",
-      "tagline": "Hackathon demo — explainable Webex ops dashboards from synthetic CSVs.",
-      "description": "Three fully synthetic enterprise scenarios with 900+ CDR legs each. Every scorecard metric traceable to downloadable Control Hub-style CSVs and a JSON manifest.",
+      "tagline": "Webex ops dashboards from Control Hub-style CSV exports.",
+      "description": "Three enterprise scenarios with 900+ CDR legs each. Scorecard metrics with hover info icons; methodology and CSVs linked from each report.",
       "categories": ["webex", "data"],
       "path": "/projects/misc-ops-report",
       "repoPath": "docs/public/demos/misc-ops-report/",
       "demo": { "type": "iframe", "src": "/demos/misc-ops-report/index.html", "height": "520px" },
       "runCommand": "open https://konyebin.github.io/GitHub/demos/misc-ops-report/index.html",
-      "routingTasks": ["Webex ops report hackathon demo", "Miscellaneous operations dashboard"]
+      "routingTasks": ["Webex ops report demo", "Miscellaneous operations dashboard"]
     },
     {
       "id": "ctfmonopoly",
@@ -162,7 +162,7 @@
     { "task": "OCR Control Hub screenshots to Excel", "projectId": "lookback" },
     { "task": "List/discover local MCP servers", "projectId": "my-orchestrator" },
     { "task": "Customer adoption analytics dashboard", "projectId": "check-back-intelligence" },
-    { "task": "Webex ops report hackathon demo", "projectId": "misc-ops-report" },
+    { "task": "Webex ops report demo", "projectId": "misc-ops-report" },
     { "task": "Miscellaneous operations dashboard", "projectId": "misc-ops-report" },
     { "task": "Shared Webex OAuth token", "projectId": null, "link": "/shared/root-setup" },
     { "task": "Experimental Webex OCR bot", "projectId": "test" },

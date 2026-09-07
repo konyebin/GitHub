@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build hackathon demo hub + scenario dashboards for GitHub Pages.
+# Build ops report demo hub + scenario dashboards for GitHub Pages.
 set -euo pipefail
 
 DEMO="$(cd "$(dirname "$0")" && pwd)"
@@ -9,7 +9,7 @@ if [ -x "$HOME/Documents/GitHub/wxops/.venv/bin/python3" ]; then
   PYTHON="$HOME/Documents/GitHub/wxops/.venv/bin/python3"
 fi
 
-echo "Generating synthetic demo reports…"
+echo "Generating ops report demos…"
 "$PYTHON" "$DEMO/generate_demo_reports.py"
 
 echo ""

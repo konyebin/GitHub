@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Webex Ops Report — Hackathon Demo Hub</title>
+<title>Webex Calling — Operations Reports</title>
 <style>
 :root { --wx:#00BCEB; --wx-dark:#007FAD; --bg:#F0F4F8; --card:#fff; --text:#1B2A3B; --muted:#6B7A8D; }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -29,8 +29,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </head>
 <body>
 <div class="hdr">
-  <h1>Webex Calling Ops Report — AI Hackathon Demo</h1>
-  <p>Top 5 project showcase. Three fully synthetic enterprises built from Webex Control Hub report schemas — every scorecard metric traceable to downloadable CSVs.</p>
+  <h1>Webex Calling — Operations Reports</h1>
+  <p>Three enterprise scenarios with full operational scorecards. Hover the <em>i</em> icons on any dashboard for metric definitions and sources.</p>
 </div>
 <div class="wrap">
   <div class="grid">
@@ -68,12 +68,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <p class="link">Open dashboard →</p>
     </a></div>
   <div class="prov">
-    <h3>How the data works</h3>
+    <h3>About these reports</h3>
     <ol>
-      <li><strong>Generate CSVs</strong> — Synthetic exports matching real Webex report column headers (CDR, Call Queue, AA Summary, Media Quality, Connectivity).</li>
-      <li><strong>Compute scorecard</strong> — Same formulas as production wxops <code>generate_misc_report.py</code> (sum/aggregate/count on CSV columns).</li>
-      <li><strong>Render dashboard</strong> — Interactive HTML with §0 Data Provenance linking each metric to its source file and formula.</li>
-      <li><strong>Reproducible</strong> — Each scenario uses a fixed random seed; re-run <code>generate_demo_reports.py</code> to regenerate.</li>
+      <li><strong>Control Hub exports</strong> — CDR, Call Queue, AA Summary, Media Quality, and Connectivity CSVs with standard Webex column headers.</li>
+      <li><strong>Scorecard metrics</strong> — Same calculations as production wxops <code>generate_misc_report.py</code>; formulas available via info icons on each tile.</li>
+      <li><strong>Interactive tables</strong> — Click any column header to sort. Full methodology and downloadable source files are linked from each report footer.</li>
     </ol>
   </div>
 </div>

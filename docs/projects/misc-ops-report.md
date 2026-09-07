@@ -1,4 +1,4 @@
-# Misc Ops Report (Hackathon Demo)
+# Misc Ops Report
 
 <ClientOnly>
   <DemoPanel slug="misc-ops-report" />
@@ -6,11 +6,11 @@
 
 ## What it is
 
-**Webex Calling Miscellaneous Operations Report** — a 9-section health-check dashboard built from Control Hub CSV exports. This hackathon demo uses **synthetic but realistic data** with full traceability: every scorecard metric links back to a source CSV and formula.
+**Webex Calling Miscellaneous Operations Report** — a 9-section health-check dashboard built from Control Hub CSV exports. Three sample enterprises illustrate different operational profiles; hover the **i** icons on scorecards, sections, and table columns for metric definitions and sources.
 
 ## Live dashboard (GitHub Pages)
 
-**[Open demo hub — 3 scenarios](https://konyebin.github.io/GitHub/demos/misc-ops-report/index.html)**
+**[Open report hub — 3 scenarios](https://konyebin.github.io/GitHub/demos/misc-ops-report/index.html)**
 
 | Scenario | Best for showing |
 |----------|------------------|
@@ -18,7 +18,7 @@
 | [Contact Center Under Pressure](https://konyebin.github.io/GitHub/demos/misc-ops-report/reports/contact-center-pressure.html) | Queue abandonment, staffing gaps |
 | [Global Expansion](https://konyebin.github.io/GitHub/demos/misc-ops-report/reports/global-expansion.html) | International routing, recording signals |
 
-Each report includes **§0 Data Provenance** — metric → Webex report type → CSV column formula → downloadable files.
+Full methodology and downloadable source files are linked from each report footer.
 
 ## How to regenerate
 

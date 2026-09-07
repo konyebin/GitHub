@@ -12,9 +12,9 @@
 
 Static sample dashboard (no Webex bot or local server required):
 
-**[Hackathon demo hub — 3 scenarios](https://konyebin.github.io/GitHub/demos/misc-ops-report/index.html)**
+**[Ops report hub — 3 scenarios](https://konyebin.github.io/GitHub/demos/misc-ops-report/index.html)**
 
-Each scenario includes synthetic Control Hub CSVs, a data manifest (JSON), and §0 provenance explaining every scorecard metric.
+Each scenario includes Control Hub-style CSVs and a methodology manifest (JSON). Hover the **i** icons on dashboards for metric definitions.
 
 Regenerate locally:
 

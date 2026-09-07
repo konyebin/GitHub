@@ -187,63 +187,52 @@ thead th.sortable-th:hover { background: #EEF9FD; color: var(--wx-dark); }
 thead th.sort-asc::after { content: ' ▲'; font-size: 9px; opacity: 0.85; }
 thead th.sort-desc::after { content: ' ▼'; font-size: 9px; opacity: 0.85; }
 
+/* Info tooltips — hover, focus, or click the i icon */
+.info-tip { position: relative; display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; margin-left: 5px; vertical-align: middle; flex-shrink: 0; cursor: help; }
+.info-tip-icon { width: 18px; height: 18px; border-radius: 50%; background: #fff; color: var(--wx-dark);
+  border: 1.5px solid var(--wx); font-size: 11px; font-weight: 800; font-style: italic; line-height: 16px;
+  text-align: center; font-family: Georgia, serif; transition: background .15s, color .15s, border-color .15s; }
+.info-tip:hover .info-tip-icon, .info-tip:focus .info-tip-icon, .info-tip.open .info-tip-icon {
+  background: var(--wx); color: #fff; border-color: var(--wx); }
+.info-tip-text { position: absolute; z-index: 200; left: 50%; transform: translateX(-50%);
+  bottom: calc(100% + 10px); min-width: 220px; max-width: 300px; padding: 10px 12px;
+  background: #1B2A3B; color: #fff; font-size: 12px; font-weight: 400; line-height: 1.45;
+  border-radius: 6px; box-shadow: 0 4px 20px rgba(0,0,0,.25); opacity: 0; visibility: hidden;
+  pointer-events: none; transition: opacity .15s, visibility .15s; text-align: left; white-space: normal; }
+.info-tip-text::after { content: ''; position: absolute; top: 100%; left: 50%; margin-left: -6px;
+  border: 6px solid transparent; border-top-color: #1B2A3B; }
+.info-tip:hover .info-tip-text, .info-tip:focus .info-tip-text, .info-tip.open .info-tip-text {
+  opacity: 1; visibility: visible; }
+.sc { position: relative; overflow: visible; }
+.sc .sc-info-tip { position: absolute; top: 8px; right: 8px; z-index: 3; }
+.section { overflow: visible; }
+.sec-hdr { overflow: visible; position: relative; z-index: 1; }
+.sec-title .info-tip { margin-left: 6px; vertical-align: middle; }
+thead th { overflow: visible; position: relative; }
+thead th .info-tip { margin-left: 4px; vertical-align: middle; }
+thead th .info-tip-text { bottom: auto; top: calc(100% + 10px); }
+thead th .info-tip-text::after { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: #1B2A3B; }
+
 </style>
 </head>
 <body>
-<div style="background:#E6F8FD;border-bottom:1px solid #9DE5F7;color:#005E7D;padding:10px 16px;font-size:13px;text-align:center">
-  <strong>Hackathon demo</strong> — synthetic Control Hub CSVs · scenario: <code>healthy-campus</code> ·
-  <a href="../index.html">All scenarios</a> ·
-  <a href="../data/healthy-campus/manifest.json">Data manifest (JSON)</a>
-</div>
 <div class="hdr">
   <div class="hdr-left">
     <h1>Webex Calling — Operations Report</h1>
     <p>Organization: <span id="org-name">Northwind University</span> · Period: <span id="period">Aug 06 – Sep 05, 2026</span></p>
   </div>
   <div class="hdr-right">
+    <a class="btn btn-ghost" href="../index.html" style="text-decoration:none">All reports</a>
     <button class="btn btn-ghost" onclick="toggleAll()">Expand All</button>
     <button class="btn btn-white" onclick="window.print()">Print / Export</button>
   </div>
 </div>
 <div class="wrap">
-<div class="hint">
-  <span><strong>Explainable AI demo:</strong> Every scorecard metric is computed from downloadable CSV files. <strong>Click any table column header</strong> to sort alphabetically or by numeric size.</span>
-</div>
-
-<div class="section" id="s0">
-  <div class="sec-hdr open" onclick="toggleSection('s0')">
-    <div class="sec-dot good">0</div>
-    <div class="sec-info">
-      <div class="sec-title">§0 — Data Provenance</div>
-      <div class="sec-sub">Where every number comes from · 920 CDR legs · 8 AAs · 7 queues</div>
-    </div>
-    <div class="badge good">🟢 Traceable</div>
-    <div class="chevron open">›</div>
-  </div>
-  <div class="sec-body open" id="s0-body">
-    <div class="meta-bar">
-      <div class="meta-item">Scenario: <strong>Healthy Campus</strong></div>
-      <div class="meta-item">Seed: <strong>42</strong> (reproducible)</div>
-      <div class="meta-item">Manifest: <strong><a href="../data/healthy-campus/manifest.json">manifest.json</a></strong></div>
-    </div>
-    <div class="sub-label">Scorecard → source report → formula</div>
-    <table>
-      <thead><tr><th>Section</th><th>Metric</th><th>Formula (from CSV columns)</th><th>Value</th></tr></thead>
-      <tbody><tr><td>§1 Reachability</td><td>AA answer rate</td><td style='font-size:12px'>sum(Answered) / sum(Total Calls) from aa_summary CSV</td><td><strong>89.9%</strong></td></tr><tr><td>§2 Abandonment</td><td>Queue abandon rate</td><td style='font-size:12px'>sum(Abandoned Calls) / sum(Total Calls) from call_queue CSV</td><td><strong>7.6%</strong></td></tr><tr><td>§3 Routing</td><td>Deflections</td><td style='font-size:12px'>count(Related reason = Deflection) in CDR</td><td><strong>149</strong></td></tr><tr><td>§4 SLA</td><td>Queue answer rate</td><td style='font-size:12px'>sum(Answered Calls) / sum(Total Calls) from call_queue CSV</td><td><strong>92.4%</strong></td></tr><tr><td>§5 Quality</td><td>Poor call rate</td><td style='font-size:12px'>count(Call Quality = Poor) / rows in media_quality CSV</td><td><strong>1.5%</strong></td></tr><tr><td>§6 Usage</td><td>Total minutes</td><td style='font-size:12px'>sum(Duration) / 60 from CDR</td><td><strong>18521</strong></td></tr><tr><td>§7 Recording</td><td>Failed recordings</td><td style='font-size:12px'>count(Call Recording Result = failed) in CDR</td><td><strong>0</strong></td></tr><tr><td>§8 Trunk</td><td>Disconnected endpoints</td><td style='font-size:12px'>count(Primary connectivity contains disconnect/unregistered) in connectivity CSV</td><td><strong>0</strong></td></tr><tr><td>§9 Capacity</td><td>Peak/avg day ratio</td><td style='font-size:12px'>max(daily CDR legs) / mean(daily CDR legs)</td><td><strong>1.4×</strong></td></tr></tbody>
-    </table>
-    <div class="sub-label">Download synthetic source CSVs</div>
-    <p style="font-size:13px">These files use the same column headers as Webex Control Hub exports:
-      <a href="../data/healthy-campus/cdr_2026-08-06_2026-09-05.csv">CDR</a>,
-      <a href="../data/healthy-campus/call_queue_2026-08-06_2026-09-05.csv">Call Queue</a>,
-      <a href="../data/healthy-campus/aa_summary_2026-08-06_2026-09-05.csv">AA Summary</a>,
-      <a href="../data/healthy-campus/media_quality_2026-08-06_2026-09-05.csv">Media Quality</a>,
-      <a href="../data/healthy-campus/connectivity_2026-08-06_2026-09-05.csv">Connectivity</a>.
-    </p>
-  </div>
-</div>
 
 <div class="scorecard" id="scorecard">
   <div class="sc warn" id="sc1" onclick="selectCard(1)">
+    <div class="sc-info-tip"><span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Webex report: Auto-Attendant Stats Summary. Calculation: sum(Answered) ÷ sum(Total Calls) from the AA Summary export. Threshold: ≥ 90% Good · 70–89% Attention · &lt; 70% Action</span></span></div>
     <div class="sc-num">§1</div>
     <div class="sc-name">Reachability</div>
     <div class="sc-val warn" id="sc1-val">89.9%</div>
@@ -251,6 +240,7 @@ thead th.sort-desc::after { content: ' ▼'; font-size: 9px; opacity: 0.85; }
     <div class="badge warn" id="sc1-badge">🟡 Needs Attention</div>
   </div>
   <div class="sc good" id="sc2" onclick="selectCard(2)">
+    <div class="sc-info-tip"><span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Webex report: Call Queue Stats. Calculation: sum(Abandoned Calls) ÷ sum(Total Calls) across all queues. Threshold: ≤ 10% Good · 11–30% Attention · &gt; 30% Action</span></span></div>
     <div class="sc-num">§2</div>
     <div class="sc-name">Abandonment</div>
     <div class="sc-val good" id="sc2-val">7.6%</div>
@@ -258,6 +248,7 @@ thead th.sort-desc::after { content: ' ▼'; font-size: 9px; opacity: 0.85; }
     <div class="badge good" id="sc2-badge">🟢 Good</div>
   </div>
   <div class="sc warn" id="sc3" onclick="selectCard(3)">
+    <div class="sc-info-tip"><span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Webex report: Calling Detailed Call History (CDR). Calculation: Count of legs where Related reason = Deflection. Threshold: 0 deflections and 0 UNKNOWN call types = Good</span></span></div>
     <div class="sc-num">§3</div>
     <div class="sc-name">Routing</div>
     <div class="sc-val warn" id="sc3-val">149</div>
@@ -265,6 +256,7 @@ thead th.sort-desc::after { content: ' ▼'; font-size: 9px; opacity: 0.85; }
     <div class="badge warn" id="sc3-badge">🟡 Needs Attention</div>
   </div>
   <div class="sc good" id="sc4" onclick="selectCard(4)">
+    <div class="sc-info-tip"><span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Webex report: Call Queue Stats. Calculation: sum(Answered Calls) ÷ sum(Total Calls) — SLA proxy. Threshold: ≥ 80% Good · 60–79% Attention · &lt; 60% Action</span></span></div>
     <div class="sc-num">§4</div>
     <div class="sc-name">SLA</div>
     <div class="sc-val good" id="sc4-val">92.4%</div>
@@ -272,6 +264,7 @@ thead th.sort-desc::after { content: ' ▼'; font-size: 9px; opacity: 0.85; }
     <div class="badge good" id="sc4-badge">🟢 Good</div>
   </div>
   <div class="sc good" id="sc5" onclick="selectCard(5)">
+    <div class="sc-info-tip"><span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Webex report: Calling Media Quality Report + CDR outcomes. Calculation: Poor-quality legs ÷ total media quality rows; refusals from CDR. Threshold: ≤ 5% poor rate Good · 6–15% Attention · &gt; 15% Action</span></span></div>
     <div class="sc-num">§5</div>
     <div class="sc-name">Call quality</div>
     <div class="sc-val good" id="sc5-val">1.5%</div>
@@ -279,6 +272,7 @@ thead th.sort-desc::after { content: ' ▼'; font-size: 9px; opacity: 0.85; }
     <div class="badge good" id="sc5-badge">🟢 Good</div>
   </div>
   <div class="sc good" id="sc6" onclick="selectCard(6)">
+    <div class="sc-info-tip"><span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Webex report: Calling Detailed Call History (CDR). Calculation: sum(Duration) ÷ 60 for total minutes; PSTN types for billable minutes. Threshold: Informational — no cost target in this report</span></span></div>
     <div class="sc-num">§6</div>
     <div class="sc-name">Cost & usage</div>
     <div class="sc-val good" id="sc6-val">18521</div>
@@ -286,6 +280,7 @@ thead th.sort-desc::after { content: ' ▼'; font-size: 9px; opacity: 0.85; }
     <div class="badge good" id="sc6-badge">🟢 Good</div>
   </div>
   <div class="sc good" id="sc7" onclick="selectCard(7)">
+    <div class="sc-info-tip"><span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Webex report: Calling Detailed Call History (CDR). Calculation: Count where Call Recording Result = failed. Threshold: 0 failed Good · 1–2 Attention · 3+ Action</span></span></div>
     <div class="sc-num">§7</div>
     <div class="sc-name">Recording</div>
     <div class="sc-val good" id="sc7-val">0</div>
@@ -293,6 +288,7 @@ thead th.sort-desc::after { content: ' ▼'; font-size: 9px; opacity: 0.85; }
     <div class="badge good" id="sc7-badge">🟢 Good</div>
   </div>
   <div class="sc good" id="sc8" onclick="selectCard(8)">
+    <div class="sc-info-tip"><span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Webex report: Calling Connectivity. Calculation: Endpoints with disconnected or unregistered primary connectivity. Threshold: 0 disconnected Good · 1–5 Attention · &gt; 5 Action</span></span></div>
     <div class="sc-num">§8</div>
     <div class="sc-name">Trunk</div>
     <div class="sc-val good" id="sc8-val">0</div>
@@ -300,6 +296,7 @@ thead th.sort-desc::after { content: ' ▼'; font-size: 9px; opacity: 0.85; }
     <div class="badge good" id="sc8-badge">🟢 Good</div>
   </div>
   <div class="sc good" id="sc9" onclick="selectCard(9)">
+    <div class="sc-info-tip"><span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Webex report: Calling Detailed Call History (CDR). Calculation: Peak daily leg count ÷ average daily leg count. Threshold: ≤ 2× Good · &gt; 2× Attention (capacity spike risk)</span></span></div>
     <div class="sc-num">§9</div>
     <div class="sc-name">Capacity</div>
     <div class="sc-val good" id="sc9-val">1.4×</div>
@@ -310,14 +307,13 @@ thead th.sort-desc::after { content: ' ▼'; font-size: 9px; opacity: 0.85; }
 <div class="section" id="s1">
   <div class="sec-hdr" onclick="toggleSection('s1')">
     <div class="sec-dot warn">1</div>
-    <div class="sec-info"><div class="sec-title">§1 — Reachability</div>
+    <div class="sec-info"><div class="sec-title">§1 — Reachability<span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Are callers reaching auto attendants and queues? Source: AA Summary + Call Queue Stats.</span></span></div>
     <div class="sec-sub">AA answer rate 89.9% · 8 auto attendants</div></div>
     <div class="badge warn">🟡 Needs Attention</div><div class="chevron">›</div>
   </div>
   <div class="sec-body" id="s1-body">
-    <div class="meta-bar"><div class="meta-item">Source: <strong>AA Summary + Call Queue Stats</strong></div></div>
     <div class="sub-label">Auto Attendants</div>
-    <table><thead><tr><th>Auto Attendant</th><th>Location</th><th>Total</th><th>Answered</th><th>Unanswered</th><th>% Ans</th><th>Status</th></tr></thead>
+    <table><thead><tr><th>Auto Attendant <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Name of the auto attendant in Control Hub.</span></span></th><th>Location <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Site or location assigned in Control Hub.</span></span></th><th>Total <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Total calls offered in the report period.</span></span></th><th>Answered <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Calls answered by the AA or queue.</span></span></th><th>Unanswered <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Calls not answered (AA Summary).</span></span></th><th>% Ans <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Answered ÷ total calls, as a percentage.</span></span></th><th>Status <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Good / Needs Attention / Action Required based on thresholds.</span></span></th></tr></thead>
     <tbody><tr><td>Main Reception AA</td><td>Chicago</td><td>11</td><td>10</td><td>1</td><td>90.9%</td><td><span class="pill good">Good</span></td></tr>
 <tr><td>After Hours AA</td><td>Singapore</td><td>19</td><td>17</td><td>2</td><td>89.5%</td><td><span class="pill warn">Needs Attention</span></td></tr>
 <tr><td>Sales IVR</td><td>Singapore</td><td>85</td><td>73</td><td>12</td><td>85.9%</td><td><span class="pill warn">Needs Attention</span></td></tr>
@@ -327,7 +323,7 @@ thead th.sort-desc::after { content: ' ▼'; font-size: 9px; opacity: 0.85; }
 <tr><td>Facilities AA</td><td>Singapore</td><td>23</td><td>22</td><td>1</td><td>95.7%</td><td><span class="pill good">Good</span></td></tr>
 <tr><td>Executive AA</td><td>Singapore</td><td>118</td><td>107</td><td>11</td><td>90.7%</td><td><span class="pill good">Good</span></td></tr></tbody></table>
     <div class="sub-label">Call Queues</div>
-    <table><thead><tr><th>Queue</th><th>Location</th><th>Total</th><th>Answered</th><th>Abandoned</th><th>% Ans</th><th>Status</th></tr></thead>
+    <table><thead><tr><th>Queue <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Call queue display name.</span></span></th><th>Location <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Site or location assigned in Control Hub.</span></span></th><th>Total <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Total calls offered in the report period.</span></span></th><th>Answered <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Calls answered by the AA or queue.</span></span></th><th>Abandoned <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Callers who hung up before an agent answered.</span></span></th><th>% Ans <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Answered ÷ total calls, as a percentage.</span></span></th><th>Status <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Good / Needs Attention / Action Required based on thresholds.</span></span></th></tr></thead>
     <tbody><tr><td>Sales Queue East</td><td>Dallas</td><td>237</td><td>233</td><td>4</td><td>98.3%</td><td><span class="pill good">Good</span></td></tr>
 <tr><td>Support Queue East</td><td>Dallas</td><td>134</td><td>132</td><td>2</td><td>98.5%</td><td><span class="pill good">Good</span></td></tr>
 <tr><td>Billing Queue</td><td>London</td><td>109</td><td>89</td><td>20</td><td>81.7%</td><td><span class="pill good">Good</span></td></tr>
@@ -341,13 +337,12 @@ thead th.sort-desc::after { content: ' ▼'; font-size: 9px; opacity: 0.85; }
 <div class="section" id="s2">
   <div class="sec-hdr" onclick="toggleSection('s2')">
     <div class="sec-dot good">2</div>
-    <div class="sec-info"><div class="sec-title">§2/4 — Queue Health</div>
+    <div class="sec-info"><div class="sec-title">§2/4 — Queue Health<span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Abandonment and SLA compliance across contact-center queues. Source: Call Queue Stats.</span></span></div>
     <div class="sec-sub">7.6% abandon · 92.4% answer rate</div></div>
     <div class="badge good">🟢 Good</div><div class="chevron">›</div>
   </div>
   <div class="sec-body" id="s2-body">
-    <div class="meta-bar"><div class="meta-item">Source: <strong>Call Queue Stats CSV</strong></div></div>
-    <table><thead><tr><th>Queue</th><th>Location</th><th>Total</th><th>Abandoned</th><th>% Abandon</th><th>Avg agents handling</th></tr></thead>
+    <table><thead><tr><th>Queue <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Call queue display name.</span></span></th><th>Location <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Site or location assigned in Control Hub.</span></span></th><th>Total <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Total calls offered in the report period.</span></span></th><th>Abandoned <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Callers who hung up before an agent answered.</span></span></th><th>% Abandon <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Abandoned ÷ total calls, as a percentage.</span></span></th><th>Avg agents handling <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Average agents actively handling queue calls.</span></span></th></tr></thead>
     <tbody><tr><td>Sales Queue East</td><td>Dallas</td><td>237</td><td>4</td><td>1.7%</td><td>1.8</td></tr><tr><td>Support Queue East</td><td>Dallas</td><td>134</td><td>2</td><td>1.5%</td><td>0.9</td></tr><tr><td>Billing Queue</td><td>London</td><td>109</td><td>20</td><td>18.3%</td><td>3.8</td></tr><tr><td>VIP Queue</td><td>Chicago</td><td>246</td><td>4</td><td>1.6%</td><td>2.6</td></tr><tr><td>Overflow Queue</td><td>London</td><td>141</td><td>22</td><td>15.6%</td><td>1.3</td></tr><tr><td>Technical Triage</td><td>Singapore</td><td>149</td><td>24</td><td>16.1%</td><td>0.8</td></tr><tr><td>Returns Desk</td><td>Chicago</td><td>79</td><td>7</td><td>8.9%</td><td>2.8</td></tr></tbody></table>
   </div>
 </div>
@@ -355,35 +350,34 @@ thead th.sort-desc::after { content: ' ▼'; font-size: 9px; opacity: 0.85; }
 <div class="section" id="s3">
   <div class="sec-hdr" onclick="toggleSection('s3')">
     <div class="sec-dot warn">3</div>
-    <div class="sec-info"><div class="sec-title">§3 — Routing Correctness</div>
+    <div class="sec-info"><div class="sec-title">§3 — Routing Correctness<span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Routing deflections and unrecognized call types from CDR. Source: Calling Detailed Call History.</span></span></div>
     <div class="sec-sub">149 deflections · 8 UNKNOWN types · 920 legs</div></div>
     <div class="badge warn">🟡 Needs Attention</div><div class="chevron">›</div>
   </div>
   <div class="sec-body" id="s3-body">
-    <div class="meta-bar"><div class="meta-item">Source: <strong>CDR</strong></div></div>
     <div class="sub-label">Call Types</div>
-    <table><thead><tr><th>Type</th><th>Legs</th><th>Minutes</th><th>Note</th></tr></thead><tbody><tr><td>SIP_ENTERPRISE</td><td>509</td><td>10254</td><td style='font-size:12px;color:var(--muted)'>From CDR</td></tr><tr><td>SIP_INBOUND</td><td>157</td><td>3220</td><td style='font-size:12px;color:var(--muted)'>From CDR</td></tr><tr><td>SIP_INTERNATIONAL</td><td>48</td><td>794</td><td style='font-size:12px;color:var(--muted)'>From CDR</td></tr><tr><td>SIP_MOBILE</td><td>77</td><td>1624</td><td style='font-size:12px;color:var(--muted)'>From CDR</td></tr><tr><td>SIP_NATIONAL</td><td>111</td><td>2208</td><td style='font-size:12px;color:var(--muted)'>From CDR</td></tr><tr><td>SIP_SHORTCODE</td><td>10</td><td>218</td><td style='font-size:12px;color:var(--muted)'>From CDR</td></tr><tr><td>UNKNOWN</td><td>8</td><td>200</td><td style='font-size:12px;color:var(--muted)'>From CDR</td></tr></tbody></table>
+    <table><thead><tr><th>Type <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">CDR call type (e.g. SIP_INBOUND, SIP_ENTERPRISE).</span></span></th><th>Legs <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Number of CDR legs in the period.</span></span></th><th>Minutes <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Sum of call duration for that type or user.</span></span></th></tr></thead><tbody><tr><td>SIP_ENTERPRISE</td><td>509</td><td>10254</td></tr><tr><td>SIP_INBOUND</td><td>157</td><td>3220</td></tr><tr><td>SIP_INTERNATIONAL</td><td>48</td><td>794</td></tr><tr><td>SIP_MOBILE</td><td>77</td><td>1624</td></tr><tr><td>SIP_NATIONAL</td><td>111</td><td>2208</td></tr><tr><td>SIP_SHORTCODE</td><td>10</td><td>218</td></tr><tr><td>UNKNOWN</td><td>8</td><td>200</td></tr></tbody></table>
     <div class="sub-label">Related Reasons</div>
-    <table><thead><tr><th>Reason</th><th>Count</th><th>Status</th></tr></thead><tbody><tr><td>CallForwardBusy</td><td>173</td><td><span class="pill good">Good</span></td></tr><tr><td>ConsultativeTransfer</td><td>153</td><td><span class="pill good">Good</span></td></tr><tr><td>CallQueue</td><td>152</td><td><span class="pill good">Good</span></td></tr><tr><td>Deflection</td><td>149</td><td><span class="pill bad">Action Required</span></td></tr><tr><td>CallForwardNoAnswer</td><td>147</td><td><span class="pill good">Good</span></td></tr></tbody></table>
+    <table><thead><tr><th>Reason <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">CDR Related reason or outcome reason field.</span></span></th><th>Count <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Number of occurrences in the period.</span></span></th><th>Status <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Good / Needs Attention / Action Required based on thresholds.</span></span></th></tr></thead><tbody><tr><td>CallForwardBusy</td><td>173</td><td><span class="pill good">Good</span></td></tr><tr><td>ConsultativeTransfer</td><td>153</td><td><span class="pill good">Good</span></td></tr><tr><td>CallQueue</td><td>152</td><td><span class="pill good">Good</span></td></tr><tr><td>Deflection</td><td>149</td><td><span class="pill bad">Action Required</span></td></tr><tr><td>CallForwardNoAnswer</td><td>147</td><td><span class="pill good">Good</span></td></tr></tbody></table>
   </div>
 </div>
 
 <div class="section" id="s5">
   <div class="sec-hdr" onclick="toggleSection('s5')">
     <div class="sec-dot good">5</div>
-    <div class="sec-info"><div class="sec-title">§5 — Call Quality</div>
+    <div class="sec-info"><div class="sec-title">§5 — Call Quality<span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Call outcome refusals — signal not visible as a single Control Hub tile. Source: CDR call outcome fields.</span></span></div>
     <div class="sec-sub">11.7% refusal rate · 108 refused legs</div></div>
     <div class="badge good">🟢 Good</div><div class="chevron">›</div>
   </div>
   <div class="sec-body" id="s5-body">
-    <table><thead><tr><th>Outcome Reason</th><th>Count</th><th>Affected Users</th><th>Status</th></tr></thead><tbody><tr><td>CallRejected</td><td>44</td><td>Alex Morgan, Casey Rivera, Jamie Ortiz, Jordan Lee</td><td><span class="pill warn">Needs Attention</span></td></tr><tr><td>TemporarilyUnavailable</td><td>34</td><td>Alex Morgan, Casey Rivera, Jamie Ortiz, Jordan Lee</td><td><span class="pill warn">Needs Attention</span></td></tr><tr><td>UnassignedNumber</td><td>30</td><td>Alex Morgan, Jamie Ortiz, Jordan Lee, Marcus Webb</td><td><span class="pill bad">Action Required</span></td></tr></tbody></table>
+    <table><thead><tr><th>Outcome Reason <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">CDR call outcome reason when the leg did not complete successfully.</span></span></th><th>Count <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Number of occurrences in the period.</span></span></th><th>Affected Users <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Users appearing on refused or failed legs.</span></span></th><th>Status <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Good / Needs Attention / Action Required based on thresholds.</span></span></th></tr></thead><tbody><tr><td>CallRejected</td><td>44</td><td>Alex Morgan, Casey Rivera, Jamie Ortiz, Jordan Lee</td><td><span class="pill warn">Needs Attention</span></td></tr><tr><td>TemporarilyUnavailable</td><td>34</td><td>Alex Morgan, Casey Rivera, Jamie Ortiz, Jordan Lee</td><td><span class="pill warn">Needs Attention</span></td></tr><tr><td>UnassignedNumber</td><td>30</td><td>Alex Morgan, Jamie Ortiz, Jordan Lee, Marcus Webb</td><td><span class="pill bad">Action Required</span></td></tr></tbody></table>
   </div>
 </div>
 
 <div class="section" id="s6">
   <div class="sec-hdr" onclick="toggleSection('s6')">
     <div class="sec-dot good">6</div>
-    <div class="sec-info"><div class="sec-title">§6 — Cost &amp; Usage</div>
+    <div class="sec-info"><div class="sec-title">§6 — Cost &amp; Usage<span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Usage volume and billable PSTN minutes for the period. Source: Calling Detailed Call History.</span></span></div>
     <div class="sec-sub">18521 total min · 7847 billable PSTN min</div></div>
     <div class="badge good">🟢 Good</div><div class="chevron">›</div>
   </div>
@@ -395,39 +389,38 @@ thead th.sort-desc::after { content: ' ▼'; font-size: 9px; opacity: 0.85; }
       <div class="usage-stat"><div class="big">108</div><div class="sub">Refused legs</div></div>
     </div>
     <div class="sub-label">Top users by duration</div>
-    <table><thead><tr><th>User</th><th>Minutes</th></tr></thead><tbody><tr><td>Casey Rivera</td><td>2194.2</td></tr><tr><td>Marcus Webb</td><td>2004.7</td></tr><tr><td>Jordan Lee</td><td>1959.8</td></tr><tr><td>Priya Nair</td><td>1947.8</td></tr><tr><td>Taylor Brooks</td><td>1848.3</td></tr><tr><td>Sam Chen</td><td>1815.0</td></tr><tr><td>Jamie Ortiz</td><td>1774.7</td></tr><tr><td>Riley Park</td><td>1759.0</td></tr></tbody></table>
+    <table><thead><tr><th>User <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Webex Calling user display name.</span></span></th><th>Minutes <span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Sum of call duration for that type or user.</span></span></th></tr></thead><tbody><tr><td>Casey Rivera</td><td>2194.2</td></tr><tr><td>Marcus Webb</td><td>2004.7</td></tr><tr><td>Jordan Lee</td><td>1959.8</td></tr><tr><td>Priya Nair</td><td>1947.8</td></tr><tr><td>Taylor Brooks</td><td>1848.3</td></tr><tr><td>Sam Chen</td><td>1815.0</td></tr><tr><td>Jamie Ortiz</td><td>1774.7</td></tr><tr><td>Riley Park</td><td>1759.0</td></tr></tbody></table>
   </div>
 </div>
 
 <div class="section" id="s7">
   <div class="sec-hdr" onclick="toggleSection('s7')">
     <div class="sec-dot good">7</div>
-    <div class="sec-info"><div class="sec-title">§7 — Recording Compliance</div>
+    <div class="sec-info"><div class="sec-title">§7 — Recording Compliance<span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Failed call recordings in the period. Source: Calling Detailed Call History — Call Recording Result field.</span></span></div>
     <div class="sec-sub">0 failed recordings</div></div>
     <div class="badge good">🟢 Good</div><div class="chevron">›</div>
   </div>
   <div class="sec-body" id="s7-body">
-    <div class="meta-bar"><div class="meta-item">Source: <strong>CDR recording fields</strong></div></div>
-    <p>Failed recordings counted where <code>Call Recording Result = failed</code> in CDR export.</p>
+    <p style="font-size:14px;color:var(--muted);margin:0">0 recording failure(s) in this period.</p>
   </div>
 </div>
 
 <div class="section" id="s8">
   <div class="sec-hdr" onclick="toggleSection('s8')">
     <div class="sec-dot good">8</div>
-    <div class="sec-info"><div class="sec-title">§8 — Trunk Health</div>
+    <div class="sec-info"><div class="sec-title">§8 — Trunk Health<span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Endpoints with disconnected or unregistered primary connectivity. Source: Calling Connectivity.</span></span></div>
     <div class="sec-sub">0 disconnected endpoints</div></div>
     <div class="badge good">🟢 Good</div><div class="chevron">›</div>
   </div>
   <div class="sec-body" id="s8-body">
-    <div class="meta-bar"><div class="meta-item">Source: <strong>Calling Connectivity CSV</strong></div></div>
+    <p style="font-size:14px;color:var(--muted);margin:0">0 endpoint(s) with disconnected or unregistered connectivity.</p>
   </div>
 </div>
 
 <div class="section" id="s9">
   <div class="sec-hdr" onclick="toggleSection('s9')">
     <div class="sec-dot good">9</div>
-    <div class="sec-info"><div class="sec-title">§9 — Capacity Planning</div>
+    <div class="sec-info"><div class="sec-title">§9 — Capacity Planning<span class="info-tip" tabindex="0" onclick="event.stopPropagation()" role="button" aria-label="More information"><span class="info-tip-icon">i</span><span class="info-tip-text">Daily volume distribution and location concentration. Source: Calling Detailed Call History.</span></span></div>
     <div class="sec-sub">Peak 2026-08-30 = 42 legs (1.4× avg)</div></div>
     <div class="badge good">🟢 Good</div><div class="chevron">›</div>
   </div>
@@ -438,7 +431,8 @@ thead th.sort-desc::after { content: ' ▼'; font-size: 9px; opacity: 0.85; }
 </div>
 
 <div style="text-align:center;padding:24px 0 8px;font-size:12px;color:var(--muted)">
-  Northwind University · Aug 06 – Sep 05, 2026 · Synthetic demo · Top 5 AI Hackathon
+  Northwind University · Aug 06 – Sep 05, 2026 ·
+  <a href="../data/healthy-campus/manifest.json" style="color:var(--wx-dark)">Methodology &amp; data</a>
 </div>
 </div>
 <script>
@@ -727,7 +721,8 @@ document.querySelectorAll('.add-action,.del-btn').forEach(btn => {
     headers.forEach((th, colIdx) => {
       th.classList.add('sortable-th');
       th.title = 'Click to sort (text A–Z or numeric size)';
-      th.addEventListener('click', () => {
+      th.addEventListener('click', (e) => {
+        if (e.target.closest('.info-tip')) return;
         const rows = [...tbody.querySelectorAll('tr')];
         const numeric = columnIsNumeric(rows, colIdx);
         const next = th.dataset.sort === 'asc' ? 'desc' : 'asc';
@@ -752,6 +747,22 @@ document.querySelectorAll('.add-action,.del-btn').forEach(btn => {
         rows.forEach((r) => tbody.appendChild(r));
       });
     });
+  });
+})();
+
+(function initInfoTips() {
+  document.querySelectorAll('.info-tip').forEach((tip) => {
+    tip.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const wasOpen = tip.classList.contains('open');
+      document.querySelectorAll('.info-tip.open').forEach((t) => t.classList.remove('open'));
+      if (!wasOpen) tip.classList.add('open');
+    });
+  });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.info-tip')) {
+      document.querySelectorAll('.info-tip.open').forEach((t) => t.classList.remove('open'));
+    }
   });
 })();
 
