@@ -15,7 +15,7 @@ hero:
 
 <div class="scale-ticker" aria-hidden="true">
   <div class="scale-ticker-track">
-    <span>wxops</span><span>vidcastmcp</span><span>RoomOS</span><span>scrapeweb</span><span>Lookback</span><span>MCP</span><span>Check Back</span><span>CDR</span><span>wxcli</span><span>GenAI</span><span>wxops</span><span>vidcastmcp</span><span>RoomOS</span><span>scrapeweb</span><span>Lookback</span><span>MCP</span><span>Check Back</span><span>CDR</span><span>wxcli</span><span>GenAI</span>
+    <span>wxops</span><span>vidcastmcp</span><span>RoomOS</span><span>scrapeweb</span><span>Lookback</span><span>MCP</span><span>Check Back</span><span>Ops Report</span><span>CDR</span><span>wxcli</span><span>GenAI</span><span>wxops</span><span>vidcastmcp</span><span>RoomOS</span><span>scrapeweb</span><span>Lookback</span><span>MCP</span><span>Check Back</span><span>Ops Report</span><span>CDR</span><span>wxcli</span><span>GenAI</span>
   </div>
 </div>
 

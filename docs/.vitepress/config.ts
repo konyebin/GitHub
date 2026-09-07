@@ -40,6 +40,7 @@ export default defineConfig({
         text: "Projects",
         items: [
           { text: "wxops", link: "/projects/wxops" },
+          { text: "Misc Ops Report (demo)", link: "/projects/misc-ops-report" },
           { text: "vidcastmcp", link: "/projects/vidcastmcp" },
           { text: "scrapeweb", link: "/projects/scrapeweb" },
           { text: "Lookback", link: "/projects/lookback" },
