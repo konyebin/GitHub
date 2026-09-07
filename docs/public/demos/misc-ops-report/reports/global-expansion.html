@@ -22,19 +22,12 @@ body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,'Helvetica N
 a{color:var(--ch-link);text-decoration:none}
 a:hover{text-decoration:underline}
 
-/* ── Control Hub shell ── */
-.ch-app{display:flex;min-height:100vh}
-.ch-sidebar{width:220px;flex-shrink:0;background:var(--ch-sidebar);color:var(--ch-sidebar-text);padding:16px 0}
-.ch-brand{color:#fff;font-size:15px;font-weight:600;padding:8px 20px 20px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:8px}
-.ch-nav-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding:12px 20px 6px;color:rgba(255,255,255,.45)}
-.ch-nav-link{display:block;padding:8px 20px;font-size:13px;color:var(--ch-sidebar-text);text-decoration:none;border-left:3px solid transparent}
-.ch-nav-link:hover{background:rgba(255,255,255,.06);color:#fff;text-decoration:none}
-.ch-nav-link.active{color:var(--ch-sidebar-active);background:rgba(255,255,255,.08);border-left-color:var(--wx);font-weight:600}
-.ch-main{flex:1;min-width:0;display:flex;flex-direction:column}
-.ch-topbar{background:#fff;border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+/* ── Control Hub page chrome (no sidebar) ── */
+.ch-page-wrap{min-height:100vh;background:var(--ch-bg)}
+.ch-topbar{background:#fff;border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .ch-topbar-title{font-size:14px;font-weight:600;color:var(--text)}
 .ch-topbar-actions{display:flex;gap:8px;flex-wrap:wrap}
-.ch-content{flex:1;padding:20px 24px 32px}
+.ch-content{padding:20px 24px 32px}
 .ch-breadcrumb{font-size:12px;color:var(--muted);margin-bottom:8px}
 .ch-page-title{font-size:22px;font-weight:400;color:var(--text);margin-bottom:4px}
 .ch-page-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
@@ -151,7 +144,8 @@ ul.actions li{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-b
 .dp-title{font-weight:600;font-size:15px;flex:1}
 .dp-close{background:#fff;color:var(--muted);border:1px solid var(--border);padding:2px 10px;border-radius:4px;cursor:pointer;font-size:18px;line-height:1}
 .dp-content{padding:16px 20px;max-height:62vh;overflow-y:auto}
-.dp-footer{padding:10px 20px;border-top:1px solid var(--border);background:#FAFAFA}
+.dp-footer{padding:10px 20px;border-top:1px solid var(--border);background:#FAFAFA;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.dp-note{font-size:12px;color:var(--muted)}
 .btn-jump{background:var(--wx);color:#fff;padding:8px 16px;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:600}
 .btn-jump:hover{background:var(--wx-dark)}
 
@@ -159,14 +153,12 @@ ul.actions li{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-b
 .hdr{display:none}
 
 @media print{
-  .ch-sidebar,.ch-topbar,.ch-topbar-actions,#detail-panel{display:none!important}
-  .ch-main{margin:0}
+  .ch-topbar,.ch-topbar-actions,#detail-panel{display:none!important}
   .sec-body{display:block!important}
   body{background:#fff}
   .section{box-shadow:none}
 }
 @media(max-width:900px){
-  .ch-sidebar{display:none}
   .scorecard{grid-template-columns:repeat(2,1fr)}
   .usage-grid{grid-template-columns:repeat(2,1fr)}
 }
@@ -211,23 +203,12 @@ thead th .info-tip-text::after { top: auto; bottom: 100%; border-top-color: tran
 </style>
 </head>
 <body>
-<div class="ch-app">
-<aside class="ch-sidebar" aria-label="Navigation">
-  <div class="ch-brand">Control Hub</div>
-  <nav class="ch-nav">
-    <div class="ch-nav-label">Monitoring</div>
-    <a class="ch-nav-link" href="#">Overview</a>
-    <a class="ch-nav-link" href="#">Reports</a>
-    <div class="ch-nav-label">Services</div>
-    <a class="ch-nav-link active" href="#">Calling</a>
-  </nav>
-</aside>
-<div class="ch-main">
+<div class="ch-page-wrap">
   <header class="ch-topbar">
-    <div class="ch-topbar-title">Control Hub</div>
+    <div class="ch-topbar-title">Control Hub · Calling</div>
     <div class="ch-topbar-actions">
       <a class="btn btn-outline" href="../index.html">All reports</a>
-      <button class="btn btn-outline" type="button" onclick="toggleAll()">Expand all</button>
+      <button class="btn btn-outline" id="btn-expand-all" type="button" onclick="toggleAll()">Expand all</button>
       <button class="btn btn-primary" type="button" onclick="window.print()">Export</button>
     </div>
   </header>
@@ -310,6 +291,20 @@ thead th .info-tip-text::after { top: auto; bottom: 100%; border-top-color: tran
     <div class="sc-sub">peak/avg ratio</div>
     <div class="badge good" id="sc9-badge">Good</div>
   </div></div>
+
+<div id="detail-panel">
+  <div class="dp-header">
+    <div class="dp-title" id="dp-title"></div>
+    <div id="dp-badge"></div>
+    <button class="dp-close" onclick="closePanel()" title="Close panel" type="button">×</button>
+  </div>
+  <div class="dp-content" id="dp-content"></div>
+  <div class="dp-footer">
+    <div class="dp-note">Preview — use Jump to open the full section below.</div>
+    <button class="btn-jump" id="dp-jump-btn" type="button">Jump to full section</button>
+  </div>
+</div>
+
 
 <div class="section" id="s1">
   <div class="sec-hdr" onclick="toggleSection('s1')">
@@ -456,7 +451,6 @@ thead th .info-tip-text::after { top: auto; bottom: 100%; border-top-color: tran
 </div>
     </div>
   </div>
-</div>
 </div>
 <script>
 let activeSection = null;
@@ -607,6 +601,7 @@ function selectCard(num) {
 
   panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   activeSection = id;
+  jumpToSection(id);
 }
 
 // ── Jump to section: expand + scroll + flash highlight ──
@@ -670,7 +665,7 @@ function toggleAll() {
       body.classList.remove('open'); hdr.classList.remove('open'); chev.classList.remove('open');
     }
   });
-  document.querySelector('.btn-ghost').textContent = allExpanded ? 'Collapse All' : 'Expand All';
+  document.getElementById('btn-expand-all').textContent = allExpanded ? 'Collapse all' : 'Expand all';
 }
 
 // ── Add action item ──

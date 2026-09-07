@@ -840,23 +840,12 @@ def badge(status: str) -> str:
 
 
 def ch_shell_open(org: str, period: str, title: str = "Operations report", hub_link: str = "../index.html") -> str:
-    return f"""<div class="ch-app">
-<aside class="ch-sidebar" aria-label="Navigation">
-  <div class="ch-brand">Control Hub</div>
-  <nav class="ch-nav">
-    <div class="ch-nav-label">Monitoring</div>
-    <a class="ch-nav-link" href="#">Overview</a>
-    <a class="ch-nav-link" href="#">Reports</a>
-    <div class="ch-nav-label">Services</div>
-    <a class="ch-nav-link active" href="#">Calling</a>
-  </nav>
-</aside>
-<div class="ch-main">
+    return f"""<div class="ch-page-wrap">
   <header class="ch-topbar">
-    <div class="ch-topbar-title">Control Hub</div>
+    <div class="ch-topbar-title">Control Hub · Calling</div>
     <div class="ch-topbar-actions">
       <a class="btn btn-outline" href="{hub_link}">All reports</a>
-      <button class="btn btn-outline" type="button" onclick="toggleAll()">Expand all</button>
+      <button class="btn btn-outline" id="btn-expand-all" type="button" onclick="toggleAll()">Expand all</button>
       <button class="btn btn-primary" type="button" onclick="window.print()">Export</button>
     </div>
   </header>
@@ -871,8 +860,23 @@ def ch_shell_open(org: str, period: str, title: str = "Operations report", hub_l
 def ch_shell_close() -> str:
     return """    </div>
   </div>
-</div>
 </div>"""
+
+
+DETAIL_PANEL_HTML = """
+<div id="detail-panel">
+  <div class="dp-header">
+    <div class="dp-title" id="dp-title"></div>
+    <div id="dp-badge"></div>
+    <button class="dp-close" onclick="closePanel()" title="Close panel" type="button">×</button>
+  </div>
+  <div class="dp-content" id="dp-content"></div>
+  <div class="dp-footer">
+    <div class="dp-note">Preview — use Jump to open the full section below.</div>
+    <button class="btn-jump" id="dp-jump-btn" type="button">Jump to full section</button>
+  </div>
+</div>
+"""
 
 
 def pct_status(val: float, good: float, warn: float, high_is_good: bool = False) -> str:
@@ -1267,6 +1271,7 @@ def render_report(
 <body>
 {ch_shell_open(sc.org_name, period_label, "Operations report")}
 <div class="scorecard" id="scorecard">{scorecard}</div>
+{DETAIL_PANEL_HTML}
 
 <div class="section" id="s1">
   <div class="sec-hdr" onclick="toggleSection('s1')">
@@ -1428,16 +1433,10 @@ def render_hub(summaries: list[dict]) -> str:
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Webex Calling — Operations Reports</title>
 <style>
-:root {{ --ch-bg:#F2F2F2; --ch-sidebar:#1B2C3D; --card:#fff; --text:#393939; --muted:#70757A; --border:#D9D9D9; --wx:#049FD9; --ch-link:#049FD9; }}
+:root {{ --ch-bg:#F2F2F2; --card:#fff; --text:#393939; --muted:#70757A; --border:#D9D9D9; --wx:#049FD9; --ch-link:#049FD9; }}
 *{{box-sizing:border-box;margin:0;padding:0}}
 body{{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,sans-serif;background:var(--ch-bg);color:var(--text);line-height:1.5}}
-.ch-app{{display:flex;min-height:100vh}}
-.ch-sidebar{{width:220px;background:var(--ch-sidebar);color:#C5CED6;padding:16px 0;flex-shrink:0}}
-.ch-brand{{color:#fff;font-weight:600;padding:8px 20px 20px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:8px}}
-.ch-nav-label{{font-size:11px;text-transform:uppercase;padding:12px 20px 6px;color:rgba(255,255,255,.45)}}
-.ch-nav-link{{display:block;padding:8px 20px;color:#C5CED6;text-decoration:none;font-size:13px;border-left:3px solid transparent}}
-.ch-nav-link.active{{color:#fff;background:rgba(255,255,255,.08);border-left-color:var(--wx);font-weight:600}}
-.ch-main{{flex:1;min-width:0}}
+.ch-page-wrap{{min-height:100vh;background:var(--ch-bg)}}
 .ch-topbar{{background:#fff;border-bottom:1px solid var(--border);padding:12px 24px;font-weight:600}}
 .ch-content{{padding:24px}}
 .ch-page-title{{font-size:22px;font-weight:400;margin-bottom:4px}}
@@ -1456,20 +1455,11 @@ body{{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,sans-serif;
 .prov h3{{font-size:15px;font-weight:600;margin-bottom:12px}}
 .prov ol{{margin-left:20px;font-size:13px;color:var(--text)}}
 .prov li{{margin:8px 0}}
-@media(max-width:900px){{.ch-sidebar{{display:none}}}}
 </style>
 </head>
 <body>
-<div class="ch-app">
-<aside class="ch-sidebar">
-  <div class="ch-brand">Control Hub</div>
-  <nav>
-    <div class="ch-nav-label">Services</div>
-    <a class="ch-nav-link active" href="#">Calling</a>
-  </nav>
-</aside>
-<div class="ch-main">
-  <header class="ch-topbar">Control Hub</header>
+<div class="ch-page-wrap">
+  <header class="ch-topbar">Control Hub · Calling</header>
   <div class="ch-content">
     <p style="font-size:12px;color:var(--muted);margin-bottom:8px">Services / <strong>Calling</strong> / Operations reports</p>
     <h1 class="ch-page-title">Operations reports</h1>
@@ -1486,7 +1476,6 @@ body{{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,sans-serif;
       </div>
     </div>
   </div>
-</div>
 </div>
 </body>
 </html>"""
