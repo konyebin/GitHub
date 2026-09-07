@@ -12,9 +12,11 @@
 
 Static sample dashboard (no Webex bot or local server required):
 
-**[Misc Ops Report demo](https://konyebin.github.io/GitHub/demos/misc-ops-report/index.html)**
+**[Hackathon demo hub — 3 scenarios](https://konyebin.github.io/GitHub/demos/misc-ops-report/index.html)**
 
-Sanitized metrics only — regenerate locally:
+Each scenario includes synthetic Control Hub CSVs, a data manifest (JSON), and §0 provenance explaining every scorecard metric.
+
+Regenerate locally:
 
 ```bash
 bash ~/Documents/GitHub/docs/public/demos/misc-ops-report/prepare-github-pages.sh

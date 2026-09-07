@@ -1,0 +1,93 @@
+{
+  "scenario": "global-expansion",
+  "title": "Global Expansion",
+  "org_name": "Horizon Logistics",
+  "period": {
+    "start": "2026-08-06",
+    "end": "2026-09-05"
+  },
+  "generated_at": "2026-09-07T01:28:48.515106+00:00",
+  "synthetic": true,
+  "webex_report_templates": {
+    "cdr": "Calling Detailed Call History",
+    "call_queue": "Call Queue Stats",
+    "aa_summary": "Auto-Attendant Stats Summary",
+    "media_quality": "Calling Media Quality Report",
+    "connectivity": "Calling Connectivity"
+  },
+  "data_files": {
+    "cdr": "data/global-expansion/cdr_2026-08-06_2026-09-05.csv",
+    "cdr_rows": 1050,
+    "call_queue": "data/global-expansion/call_queue_2026-08-06_2026-09-05.csv",
+    "call_queue_rows": 7,
+    "aa_summary": "data/global-expansion/aa_summary_2026-08-06_2026-09-05.csv",
+    "aa_summary_rows": 8,
+    "media_quality": "data/global-expansion/media_quality_2026-08-06_2026-09-05.csv",
+    "media_quality_rows": 525,
+    "connectivity": "data/global-expansion/connectivity_2026-08-06_2026-09-05.csv",
+    "connectivity_rows": 96
+  },
+  "scorecard_derivation": [
+    {
+      "section": "\u00a71 Reachability",
+      "metric": "AA answer rate",
+      "formula": "sum(Answered) / sum(Total Calls) from aa_summary CSV",
+      "value": "78.4%"
+    },
+    {
+      "section": "\u00a72 Abandonment",
+      "metric": "Queue abandon rate",
+      "formula": "sum(Abandoned Calls) / sum(Total Calls) from call_queue CSV",
+      "value": "19.1%"
+    },
+    {
+      "section": "\u00a73 Routing",
+      "metric": "Deflections",
+      "formula": "count(Related reason = Deflection) in CDR",
+      "value": "147"
+    },
+    {
+      "section": "\u00a74 SLA",
+      "metric": "Queue answer rate",
+      "formula": "sum(Answered Calls) / sum(Total Calls) from call_queue CSV",
+      "value": "80.9%"
+    },
+    {
+      "section": "\u00a75 Quality",
+      "metric": "Poor call rate",
+      "formula": "count(Call Quality = Poor) / rows in media_quality CSV",
+      "value": "9.9%"
+    },
+    {
+      "section": "\u00a76 Usage",
+      "metric": "Total minutes",
+      "formula": "sum(Duration) / 60 from CDR",
+      "value": "21145"
+    },
+    {
+      "section": "\u00a77 Recording",
+      "metric": "Failed recordings",
+      "formula": "count(Call Recording Result = failed) in CDR",
+      "value": "8"
+    },
+    {
+      "section": "\u00a78 Trunk",
+      "metric": "Disconnected endpoints",
+      "formula": "count(Primary connectivity contains disconnect/unregistered) in connectivity CSV",
+      "value": "5"
+    },
+    {
+      "section": "\u00a79 Capacity",
+      "metric": "Peak/avg day ratio",
+      "formula": "max(daily CDR legs) / mean(daily CDR legs)",
+      "value": "1.5\u00d7"
+    }
+  ],
+  "row_counts": {
+    "cdr": 1050,
+    "call_queue": 7,
+    "aa_summary": 8,
+    "media_quality": 525,
+    "connectivity": 96
+  }
+}

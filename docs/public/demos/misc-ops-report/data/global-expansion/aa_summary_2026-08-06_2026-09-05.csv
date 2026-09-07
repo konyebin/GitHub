@@ -1,0 +1,9 @@
+Auto Attendant,Ph.No./Extn.,Location,Total Calls,Answered,Unanswered,Busy,Others,% Answered,Total Duration,Total AA Talktime
+Main Reception AA,+13833931583,London,56,42,14,1,0,75.0,1291,3212
+After Hours AA,+17437740396,Chicago,40,32,8,4,0,80.0,935,3943
+Sales IVR,+19397144029,Singapore,70,52,18,3,0,74.3,6693,3794
+Support IVR,+18983783341,Denver,113,88,25,2,0,77.9,3980,2805
+Billing AA,+12849942829,Dallas,116,93,23,11,0,80.2,4531,2874
+HR Hotline AA,+12434259884,Chicago,68,52,16,4,0,76.5,262,1841
+Facilities AA,+17472677937,Dallas,54,46,8,3,0,85.2,4448,3787
+Executive AA,+12524999136,Dallas,85,67,18,2,0,78.8,1968,3871

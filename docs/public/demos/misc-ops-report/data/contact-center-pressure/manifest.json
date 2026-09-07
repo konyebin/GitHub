@@ -1,0 +1,93 @@
+{
+  "scenario": "contact-center-pressure",
+  "title": "Contact Center Under Pressure",
+  "org_name": "Acme Retail Group",
+  "period": {
+    "start": "2026-08-06",
+    "end": "2026-09-05"
+  },
+  "generated_at": "2026-09-07T01:28:48.412914+00:00",
+  "synthetic": true,
+  "webex_report_templates": {
+    "cdr": "Calling Detailed Call History",
+    "call_queue": "Call Queue Stats",
+    "aa_summary": "Auto-Attendant Stats Summary",
+    "media_quality": "Calling Media Quality Report",
+    "connectivity": "Calling Connectivity"
+  },
+  "data_files": {
+    "cdr": "data/contact-center-pressure/cdr_2026-08-06_2026-09-05.csv",
+    "cdr_rows": 1180,
+    "call_queue": "data/contact-center-pressure/call_queue_2026-08-06_2026-09-05.csv",
+    "call_queue_rows": 7,
+    "aa_summary": "data/contact-center-pressure/aa_summary_2026-08-06_2026-09-05.csv",
+    "aa_summary_rows": 8,
+    "media_quality": "data/contact-center-pressure/media_quality_2026-08-06_2026-09-05.csv",
+    "media_quality_rows": 590,
+    "connectivity": "data/contact-center-pressure/connectivity_2026-08-06_2026-09-05.csv",
+    "connectivity_rows": 111
+  },
+  "scorecard_derivation": [
+    {
+      "section": "\u00a71 Reachability",
+      "metric": "AA answer rate",
+      "formula": "sum(Answered) / sum(Total Calls) from aa_summary CSV",
+      "value": "59.4%"
+    },
+    {
+      "section": "\u00a72 Abandonment",
+      "metric": "Queue abandon rate",
+      "formula": "sum(Abandoned Calls) / sum(Total Calls) from call_queue CSV",
+      "value": "48.1%"
+    },
+    {
+      "section": "\u00a73 Routing",
+      "metric": "Deflections",
+      "formula": "count(Related reason = Deflection) in CDR",
+      "value": "188"
+    },
+    {
+      "section": "\u00a74 SLA",
+      "metric": "Queue answer rate",
+      "formula": "sum(Answered Calls) / sum(Total Calls) from call_queue CSV",
+      "value": "51.9%"
+    },
+    {
+      "section": "\u00a75 Quality",
+      "metric": "Poor call rate",
+      "formula": "count(Call Quality = Poor) / rows in media_quality CSV",
+      "value": "6.4%"
+    },
+    {
+      "section": "\u00a76 Usage",
+      "metric": "Total minutes",
+      "formula": "sum(Duration) / 60 from CDR",
+      "value": "22917"
+    },
+    {
+      "section": "\u00a77 Recording",
+      "metric": "Failed recordings",
+      "formula": "count(Call Recording Result = failed) in CDR",
+      "value": "5"
+    },
+    {
+      "section": "\u00a78 Trunk",
+      "metric": "Disconnected endpoints",
+      "formula": "count(Primary connectivity contains disconnect/unregistered) in connectivity CSV",
+      "value": "2"
+    },
+    {
+      "section": "\u00a79 Capacity",
+      "metric": "Peak/avg day ratio",
+      "formula": "max(daily CDR legs) / mean(daily CDR legs)",
+      "value": "1.3\u00d7"
+    }
+  ],
+  "row_counts": {
+    "cdr": 1180,
+    "call_queue": 7,
+    "aa_summary": 8,
+    "media_quality": 590,
+    "connectivity": 111
+  }
+}

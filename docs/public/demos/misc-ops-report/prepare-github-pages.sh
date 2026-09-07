@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
-# Rebuild index.html from ops-report-source.html for GitHub Pages deploy.
+# Build hackathon demo hub + scenario dashboards for GitHub Pages.
 set -euo pipefail
 
 DEMO="$(cd "$(dirname "$0")" && pwd)"
 PYTHON="${PYTHON:-python3}"
 
-echo "Building misc ops report demo…"
-"$PYTHON" "$DEMO/create-demo-ops-report.py" \
-  --source "$DEMO/ops-report-source.html" \
-  --dest "$DEMO/index.html"
+if [ -x "$HOME/Documents/GitHub/wxops/.venv/bin/python3" ]; then
+  PYTHON="$HOME/Documents/GitHub/wxops/.venv/bin/python3"
+fi
 
-echo "Published → $DEMO/index.html"
+echo "Generating synthetic demo reports…"
+"$PYTHON" "$DEMO/generate_demo_reports.py"
+
+echo ""
+echo "Published hub → $DEMO/index.html"
 echo "Live URL: https://konyebin.github.io/GitHub/demos/misc-ops-report/index.html"

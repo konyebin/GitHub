@@ -1,0 +1,8 @@
+Call Queue,Location,Phone NO.,Extension,Total Calls,Answered Calls,% Answered Calls,Abandoned Calls,% Abandoned Calls,Avg No. of Agents Assigned,Avg No. of Agents Handling Calls,Avg Wait Time,Avg Talk Time
+Sales Queue East,Dallas,+12819174925,4814,237,233,98.3,4,1.7,5.4,1.8,89.8,360.3
+Support Queue East,Dallas,+18864239572,2169,134,132,98.5,2,1.5,4.2,0.9,135.3,118.8
+Billing Queue,London,+18557772720,4598,109,89,81.7,20,18.3,4.6,3.8,143.0,142.5
+VIP Queue,Chicago,+14742555230,4456,246,242,98.4,4,1.6,5.6,2.6,133.5,136.5
+Overflow Queue,London,+18585849128,3340,141,119,84.4,22,15.6,2.7,1.3,107.6,154.6
+Technical Triage,Singapore,+16085036646,4593,149,125,83.9,24,16.1,6.0,0.8,96.4,332.1
+Returns Desk,Chicago,+18965541334,2040,79,72,91.1,7,8.9,3.2,2.8,92.2,150.5

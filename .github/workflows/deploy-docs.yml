@@ -38,7 +38,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install Python deps (Check Back demo workbook)
-        run: pip install openpyxl
+        run: pip install openpyxl pandas
 
       - name: Prepare Check Back dashboard for GitHub Pages
         run: bash check-back-intelligence/dashboard/prepare-github-pages.sh

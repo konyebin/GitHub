@@ -1,0 +1,93 @@
+{
+  "scenario": "healthy-campus",
+  "title": "Healthy Campus",
+  "org_name": "Northwind University",
+  "period": {
+    "start": "2026-08-06",
+    "end": "2026-09-05"
+  },
+  "generated_at": "2026-09-07T01:28:48.300823+00:00",
+  "synthetic": true,
+  "webex_report_templates": {
+    "cdr": "Calling Detailed Call History",
+    "call_queue": "Call Queue Stats",
+    "aa_summary": "Auto-Attendant Stats Summary",
+    "media_quality": "Calling Media Quality Report",
+    "connectivity": "Calling Connectivity"
+  },
+  "data_files": {
+    "cdr": "data/healthy-campus/cdr_2026-08-06_2026-09-05.csv",
+    "cdr_rows": 920,
+    "call_queue": "data/healthy-campus/call_queue_2026-08-06_2026-09-05.csv",
+    "call_queue_rows": 7,
+    "aa_summary": "data/healthy-campus/aa_summary_2026-08-06_2026-09-05.csv",
+    "aa_summary_rows": 8,
+    "media_quality": "data/healthy-campus/media_quality_2026-08-06_2026-09-05.csv",
+    "media_quality_rows": 460,
+    "connectivity": "data/healthy-campus/connectivity_2026-08-06_2026-09-05.csv",
+    "connectivity_rows": 97
+  },
+  "scorecard_derivation": [
+    {
+      "section": "\u00a71 Reachability",
+      "metric": "AA answer rate",
+      "formula": "sum(Answered) / sum(Total Calls) from aa_summary CSV",
+      "value": "89.9%"
+    },
+    {
+      "section": "\u00a72 Abandonment",
+      "metric": "Queue abandon rate",
+      "formula": "sum(Abandoned Calls) / sum(Total Calls) from call_queue CSV",
+      "value": "7.6%"
+    },
+    {
+      "section": "\u00a73 Routing",
+      "metric": "Deflections",
+      "formula": "count(Related reason = Deflection) in CDR",
+      "value": "149"
+    },
+    {
+      "section": "\u00a74 SLA",
+      "metric": "Queue answer rate",
+      "formula": "sum(Answered Calls) / sum(Total Calls) from call_queue CSV",
+      "value": "92.4%"
+    },
+    {
+      "section": "\u00a75 Quality",
+      "metric": "Poor call rate",
+      "formula": "count(Call Quality = Poor) / rows in media_quality CSV",
+      "value": "1.5%"
+    },
+    {
+      "section": "\u00a76 Usage",
+      "metric": "Total minutes",
+      "formula": "sum(Duration) / 60 from CDR",
+      "value": "18521"
+    },
+    {
+      "section": "\u00a77 Recording",
+      "metric": "Failed recordings",
+      "formula": "count(Call Recording Result = failed) in CDR",
+      "value": "0"
+    },
+    {
+      "section": "\u00a78 Trunk",
+      "metric": "Disconnected endpoints",
+      "formula": "count(Primary connectivity contains disconnect/unregistered) in connectivity CSV",
+      "value": "0"
+    },
+    {
+      "section": "\u00a79 Capacity",
+      "metric": "Peak/avg day ratio",
+      "formula": "max(daily CDR legs) / mean(daily CDR legs)",
+      "value": "1.4\u00d7"
+    }
+  ],
+  "row_counts": {
+    "cdr": 920,
+    "call_queue": 7,
+    "aa_summary": 8,
+    "media_quality": 460,
+    "connectivity": 97
+  }
+}
