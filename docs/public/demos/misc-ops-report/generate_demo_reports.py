@@ -23,6 +23,76 @@ REPORT_TYPES = {
     "connectivity": "Calling Connectivity",
 }
 
+TABLE_SORT_CSS = """
+/* Sortable table columns */
+thead th.sortable-th { cursor: pointer; user-select: none; white-space: nowrap; }
+thead th.sortable-th:hover { background: #EEF9FD; color: var(--wx-dark); }
+thead th.sort-asc::after { content: ' ▲'; font-size: 9px; opacity: 0.85; }
+thead th.sort-desc::after { content: ' ▼'; font-size: 9px; opacity: 0.85; }
+"""
+
+TABLE_SORT_JS = """
+// Click any column header to sort A→Z or smallest→largest; click again to reverse.
+(function initTableSorting() {
+  function cellSortKey(cell) {
+    if (!cell) return { kind: 'str', value: '' };
+    const raw = (cell.textContent || '').replace(/\\s+/g, ' ').trim();
+    const stripped = raw.replace(/,/g, '').replace(/%$/, '').replace(/×$/, '').trim();
+    if (stripped !== '' && !isNaN(Number(stripped))) {
+      return { kind: 'num', value: Number(stripped) };
+    }
+    return { kind: 'str', value: raw.toLowerCase() };
+  }
+
+  function columnIsNumeric(rows, colIdx) {
+    let numeric = 0;
+    let total = 0;
+    for (const row of rows) {
+      if (!row.cells[colIdx]) continue;
+      total++;
+      if (cellSortKey(row.cells[colIdx]).kind === 'num') numeric++;
+    }
+    return total > 0 && numeric / total >= 0.5;
+  }
+
+  document.querySelectorAll('.wrap table').forEach((table) => {
+    const thead = table.querySelector('thead');
+    const tbody = table.querySelector('tbody');
+    if (!thead || !tbody || !tbody.rows.length) return;
+
+    const headers = [...thead.querySelectorAll('th')];
+    headers.forEach((th, colIdx) => {
+      th.classList.add('sortable-th');
+      th.title = 'Click to sort (text A–Z or numeric size)';
+      th.addEventListener('click', () => {
+        const rows = [...tbody.querySelectorAll('tr')];
+        const numeric = columnIsNumeric(rows, colIdx);
+        const next = th.dataset.sort === 'asc' ? 'desc' : 'asc';
+        headers.forEach((h) => {
+          h.dataset.sort = '';
+          h.classList.remove('sort-asc', 'sort-desc');
+        });
+        th.dataset.sort = next;
+        th.classList.add(next === 'asc' ? 'sort-asc' : 'sort-desc');
+
+        rows.sort((a, b) => {
+          const ak = cellSortKey(a.cells[colIdx]);
+          const bk = cellSortKey(b.cells[colIdx]);
+          let cmp = 0;
+          if (numeric || (ak.kind === 'num' && bk.kind === 'num')) {
+            cmp = ak.value - bk.value;
+          } else {
+            cmp = String(ak.value).localeCompare(String(bk.value));
+          }
+          return next === 'asc' ? cmp : -cmp;
+        });
+        rows.forEach((r) => tbody.appendChild(r));
+      });
+    });
+  });
+})();
+"""
+
 
 @dataclass
 class Scenario:
@@ -403,7 +473,9 @@ def render_report(
 ) -> str:
     full = TEMPLATE.read_text(encoding="utf-8")
     css = full[full.find("<style>") : full.find("</style>") + 8]
+    css = css.replace("</style>", TABLE_SORT_CSS + "\n</style>")
     script = full[full.find("<script>") :]
+    table_sort_block = f"<script>\n{TABLE_SORT_JS}\n</script>"
 
     call_types = cdr.groupby("Call type").agg(legs=("Call type", "count"), minutes=("Duration", "sum")).reset_index()
     reasons = cdr[cdr["Related reason"].astype(str).str.len() > 0].groupby("Related reason").size().sort_values(ascending=False).head(8)
@@ -496,7 +568,7 @@ def render_report(
 </div>
 <div class="wrap">
 <div class="hint">
-  <span><strong>Explainable AI demo:</strong> Every scorecard metric is computed from downloadable CSV files that mirror real Webex Control Hub report exports. See §0 below for formulas and file names.</span>
+  <span><strong>Explainable AI demo:</strong> Every scorecard metric is computed from downloadable CSV files. <strong>Click any table column header</strong> to sort alphabetically or by numeric size.</span>
 </div>
 
 <div class="section" id="s0">
@@ -655,6 +727,7 @@ def render_report(
 </div>
 </div>
 {script}
+{table_sort_block}
 </body>
 </html>"""
     return html
