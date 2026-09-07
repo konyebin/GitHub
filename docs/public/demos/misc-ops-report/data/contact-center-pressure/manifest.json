@@ -6,7 +6,7 @@
     "start": "2026-08-06",
     "end": "2026-09-05"
   },
-  "generated_at": "2026-09-07T01:44:41.043267+00:00",
+  "generated_at": "2026-09-07T01:57:54.572203+00:00",
   "demo_scenario": true,
   "webex_report_templates": {
     "cdr": "Calling Detailed Call History",
@@ -25,7 +25,7 @@
     "media_quality": "data/contact-center-pressure/media_quality_2026-08-06_2026-09-05.csv",
     "media_quality_rows": 590,
     "connectivity": "data/contact-center-pressure/connectivity_2026-08-06_2026-09-05.csv",
-    "connectivity_rows": 111
+    "connectivity_rows": 99
   },
   "scorecard_derivation": [
     {
@@ -44,7 +44,7 @@
       "section": "\u00a73 Routing",
       "metric": "Deflections",
       "formula": "count(Related reason = Deflection) in CDR",
-      "value": "188"
+      "value": "141"
     },
     {
       "section": "\u00a74 SLA",
@@ -56,19 +56,19 @@
       "section": "\u00a75 Quality",
       "metric": "Poor call rate",
       "formula": "count(Call Quality = Poor) / rows in media_quality CSV",
-      "value": "6.4%"
+      "value": "6.6%"
     },
     {
       "section": "\u00a76 Usage",
       "metric": "Total minutes",
       "formula": "sum(Duration) / 60 from CDR",
-      "value": "22917"
+      "value": "22833"
     },
     {
       "section": "\u00a77 Recording",
       "metric": "Failed recordings",
       "formula": "count(Call Recording Result = failed) in CDR",
-      "value": "5"
+      "value": "7"
     },
     {
       "section": "\u00a78 Trunk",
@@ -88,6 +88,6 @@
     "call_queue": 7,
     "aa_summary": 8,
     "media_quality": 590,
-    "connectivity": 111
+    "connectivity": 99
   }
 }

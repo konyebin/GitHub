@@ -199,6 +199,10 @@ SECTION_META: dict[str, dict[str, str]] = {
         "blurb": "Routing deflections and unrecognized call types from CDR.",
         "report": "Calling Detailed Call History",
     },
+    "s3b": {
+        "blurb": "Who called whom — readable summaries from Detailed Call History (correlation ID groups).",
+        "report": "Calling Detailed Call History",
+    },
     "s5": {
         "blurb": "Call outcome refusals — signal not visible as a single Control Hub tile.",
         "report": "CDR call outcome fields",
@@ -242,7 +246,19 @@ COLUMN_TIPS: dict[str, str] = {
     "User": "Webex Calling user display name.",
     "Avg agents handling": "Average agents actively handling queue calls.",
     "Outcome Reason": "CDR call outcome reason when the leg did not complete successfully.",
+    "When": "Date and time the call started (site timezone).",
+    "What happened": "Plain-language summary built from Detailed Call History fields.",
+    "Result": "How the call ended — answered, voicemail, queue, transfer, and so on.",
 }
+
+
+def label_with_tip(value: str, tips: dict[str, str], display: str | None = None) -> str:
+    text = str(value).strip()
+    shown = html.escape(display if display is not None else text)
+    tip = tips.get(text)
+    if tip:
+        return f"{shown} {info_tip(tip)}"
+    return shown
 
 
 def info_tip(text: str) -> str:
@@ -366,6 +382,445 @@ CALL_TYPES = [
 ]
 OUTCOME_REASONS = ["CallRejected", "TemporarilyUnavailable", "UnassignedNumber", "Success"]
 
+# Plain-language definitions from Webex Detailed Call History report docs
+# https://help.webex.com/en-us/article/nmug598
+CALL_TYPE_TIPS: dict[str, str] = {
+    "SIP_ENTERPRISE": "An on-network call between people or workspaces in your organization (extension to extension). No public phone line charge.",
+    "SIP_INBOUND": "Someone called your organization from an outside phone number (public phone network).",
+    "SIP_NATIONAL": "An outgoing call to a regular domestic phone number in the same country.",
+    "SIP_INTERNATIONAL": "An outgoing call to a phone number in another country.",
+    "SIP_MOBILE": "A call to or from a mobile/cell number.",
+    "SIP_TOLLFREE": "A call to a toll-free (freephone) number — free for the person calling.",
+    "SIP_MEETING": "Audio joined from a Webex Meeting using Webex Calling.",
+    "SIP_EMERGENCY": "An emergency call (for example 911 in the U.S.).",
+    "SIP_SHORTCODE": "A short service number (for example star codes or premium-rate numbers).",
+    "SIP_PREMIUM": "A call to a premium-rate or special-service number.",
+    "SIP_URI": "A call dialed as an internet address (for example name@company.com).",
+    "SIP_OPERATOR": "Operator-assisted calling.",
+    "SIP_CLICKTOCALL": "A guest clicked to call from a web browser into your organization.",
+    "UNKNOWN": "Webex could not classify this call type — worth reviewing routing.",
+    "ZTN": "Zero-touch meeting audio — may be miscategorized when PSTN routing uses dial plans.",
+}
+
+RELATED_REASON_TIPS: dict[str, str] = {
+    "Deflection": "The call was redirected — for example blind transfer, auto attendant transfer, or transfer out of a call queue.",
+    "ConsultativeTransfer": "Someone transferred the call after announcing it to the other person first (attended transfer).",
+    "CallForwardAlways": "Calls are always forwarded to another number or voicemail, no matter what.",
+    "CallForwardNoAnswer": "The person did not answer in time, so the call went to voicemail or another destination.",
+    "CallForwardBusy": "The person was busy or declined, so the call was sent to voicemail or another number.",
+    "CallForwardSelective": "Call forwarding turned on for a schedule or specific callers.",
+    "CallForwardNotReachable": "The person could not be reached on any device (often hunt group / not reachable).",
+    "CallQueue": "The call was routed to a call queue (contact center queue).",
+    "HuntGroup": "The call rang a hunt group — a shared team of people.",
+    "CallPark": "An active call was parked so someone else can pick it up from another phone.",
+    "CallParkRetrieve": "Someone retrieved a parked call.",
+    "SimultaneousRingPersonal": "Multiple phones rang at once for the same person; the first to answer got the call.",
+    "SequentialRing": "Several destinations rang one after another until someone answered.",
+    "DirectedCallPickup": "Someone picked up a ringing call for a coworker in their pickup group.",
+    "CallRetrieve": "Someone used call retrieve to pick up a parked call.",
+    "Remote Office": "The call reached the person's remote office / single number reach destination.",
+    "RoutePoint": "The call hit a route point — often a queued contact-center entry point.",
+    "Unavailable": "No phone or app was available, so the call went to voicemail.",
+}
+
+AGENT_PHONES = {name: f"+1312555{1000 + i:04d}" for i, name in enumerate(AGENTS)}
+AA_PHONES = {name: f"+1312555{2000 + i:04d}" for i, name in enumerate(AA_NAMES)}
+QUEUE_PHONES = {name: f"+1312555{3000 + i:04d}" for i, name in enumerate(QUEUE_NAMES)}
+
+
+def format_phone(num: str) -> str:
+    n = re.sub(r"\D", "", str(num))
+    if len(n) == 11 and n.startswith("1"):
+        return f"({n[1:4]}) {n[4:7]}-{n[7:11]}"
+    if len(n) == 10:
+        return f"({n[0:3]}) {n[3:6]}-{n[6:10]}"
+    return str(num)
+
+
+def friendly_call_type_label(ctype: str) -> str:
+    labels = {
+        "SIP_ENTERPRISE": "Internal",
+        "SIP_INBOUND": "Inbound",
+        "SIP_NATIONAL": "Outbound domestic",
+        "SIP_INTERNATIONAL": "Outbound international",
+        "SIP_MOBILE": "Mobile",
+        "SIP_TOLLFREE": "Toll-free",
+        "SIP_SHORTCODE": "Short code",
+        "UNKNOWN": "Unknown",
+    }
+    return labels.get(ctype, ctype.replace("SIP_", "").replace("_", " ").title())
+
+
+def cdr_leg(
+    *,
+    ts: datetime,
+    correlation_id: str,
+    user: str,
+    location: str,
+    call_type: str,
+    direction: str,
+    calling: str,
+    called: str,
+    calling_display: str,
+    called_display: str,
+    related_reason: str,
+    user_type: str,
+    duration: int,
+    answered: bool,
+    answer_indicator: str,
+    call_outcome: str,
+    outcome_reason: str,
+    rec_result: str = "",
+) -> dict:
+    return {
+        "Start time": ts.strftime("%Y-%m-%d %H:%M:%S"),
+        "Duration": duration,
+        "User": user,
+        "Location": location,
+        "Call type": call_type,
+        "Direction": direction,
+        "Calling number": calling,
+        "Called number": called,
+        "Calling display": calling_display,
+        "Called display": called_display,
+        "Correlation ID": correlation_id,
+        "Related reason": related_reason,
+        "User type": user_type,
+        "Answered": answered,
+        "Answer indicator": answer_indicator,
+        "Call outcome": call_outcome,
+        "Call outcome reason": outcome_reason,
+        "Call Recording Result": rec_result,
+        "Call Recording Trigger": "",
+    }
+
+
+def generate_story_calls(rng: random.Random, sc: Scenario, start_d: datetime, span: float) -> list[dict]:
+    """Curated call journeys for the human-readable activity log."""
+    rows: list[dict] = []
+    external_pool = [f"+1555010{i:02d}" for i in range(20, 80)]
+
+    def ts() -> datetime:
+        return start_d + timedelta(seconds=rng.uniform(0, span))
+
+    def add_group(*legs: dict) -> None:
+        rows.extend(legs)
+
+    # Internal calls — "Bob called Alice"
+    for _ in range(8):
+        caller, callee = rng.sample(AGENTS, 2)
+        cid = f"story-{len(rows)}"
+        t = ts()
+        dur = rng.randint(30, 900)
+        add_group(
+            cdr_leg(
+                ts=t,
+                correlation_id=cid,
+                user=caller,
+                location=rng.choice(LOCATIONS),
+                call_type="SIP_ENTERPRISE",
+                direction="ORIGINATING",
+                calling=AGENT_PHONES[caller],
+                called=AGENT_PHONES[callee],
+                calling_display=caller,
+                called_display=callee,
+                related_reason="",
+                user_type="User",
+                duration=dur,
+                answered=True,
+                answer_indicator="Yes",
+                call_outcome="Success",
+                outcome_reason="Success",
+            ),
+            cdr_leg(
+                ts=t + timedelta(seconds=2),
+                correlation_id=cid,
+                user=callee,
+                location=rng.choice(LOCATIONS),
+                call_type="SIP_ENTERPRISE",
+                direction="TERMINATING",
+                calling=AGENT_PHONES[caller],
+                called=AGENT_PHONES[callee],
+                calling_display=caller,
+                called_display=callee,
+                related_reason="",
+                user_type="User",
+                duration=dur,
+                answered=True,
+                answer_indicator="Yes",
+                call_outcome="Success",
+                outcome_reason="Success",
+            ),
+        )
+
+    # Outside caller → user's voicemail (patient / customer left message)
+    vm_targets = rng.sample(AGENTS, min(6, len(AGENTS)))
+    for owner in vm_targets:
+        ext = rng.choice(external_pool)
+        cid = f"story-{len(rows)}"
+        t = ts()
+        dur = rng.randint(20, 180)
+        add_group(
+            cdr_leg(
+                ts=t,
+                correlation_id=cid,
+                user=owner,
+                location=rng.choice(LOCATIONS),
+                call_type="SIP_INBOUND",
+                direction="TERMINATING",
+                calling=ext,
+                called=AGENT_PHONES[owner],
+                calling_display=format_phone(ext),
+                called_display=owner,
+                related_reason="CallForwardNoAnswer",
+                user_type="User",
+                duration=0,
+                answered=False,
+                answer_indicator="No",
+                call_outcome="Success",
+                outcome_reason="NoAnswer",
+            ),
+            cdr_leg(
+                ts=t + timedelta(seconds=8),
+                correlation_id=cid,
+                user=owner,
+                location=rng.choice(LOCATIONS),
+                call_type="SIP_INBOUND",
+                direction="TERMINATING",
+                calling=ext,
+                called=AGENT_PHONES[owner],
+                calling_display=format_phone(ext),
+                called_display=f"{owner}'s voicemail",
+                related_reason="CallForwardNoAnswer",
+                user_type="VoiceMailRetrieval",
+                duration=dur,
+                answered=True,
+                answer_indicator="Yes-PostRedirection",
+                call_outcome="Success",
+                outcome_reason="Normal",
+            ),
+        )
+
+    # Outside caller → auto attendant → queue → agent
+    for _ in range(5):
+        aa = rng.choice(AA_NAMES)
+        queue = rng.choice(QUEUE_NAMES)
+        agent = rng.choice(AGENTS)
+        ext = rng.choice(external_pool)
+        cid = f"story-{len(rows)}"
+        t = ts()
+        dur = rng.randint(60, 600)
+        add_group(
+            cdr_leg(
+                ts=t,
+                correlation_id=cid,
+                user=aa,
+                location=rng.choice(LOCATIONS),
+                call_type="SIP_INBOUND",
+                direction="TERMINATING",
+                calling=ext,
+                called=AA_PHONES[aa],
+                calling_display=format_phone(ext),
+                called_display=aa,
+                related_reason="Deflection",
+                user_type="AutomatedAttendantVideo",
+                duration=rng.randint(5, 45),
+                answered=True,
+                answer_indicator="Yes",
+                call_outcome="Success",
+                outcome_reason="Success",
+            ),
+            cdr_leg(
+                ts=t + timedelta(seconds=20),
+                correlation_id=cid,
+                user=agent,
+                location=rng.choice(LOCATIONS),
+                call_type="SIP_INBOUND",
+                direction="TERMINATING",
+                calling=ext,
+                called=QUEUE_PHONES[queue],
+                calling_display=format_phone(ext),
+                called_display=queue,
+                related_reason="CallQueue",
+                user_type="CallCenterPremium",
+                duration=dur,
+                answered=True,
+                answer_indicator="Yes",
+                call_outcome="Success",
+                outcome_reason="Success",
+            ),
+        )
+
+    # Consultative transfer
+    for _ in range(4):
+        a, b = rng.sample(AGENTS, 2)
+        ext = rng.choice(external_pool)
+        cid = f"story-{len(rows)}"
+        t = ts()
+        add_group(
+            cdr_leg(
+                ts=t,
+                correlation_id=cid,
+                user=a,
+                location=rng.choice(LOCATIONS),
+                call_type="SIP_INBOUND",
+                direction="TERMINATING",
+                calling=ext,
+                called=AGENT_PHONES[a],
+                calling_display=format_phone(ext),
+                called_display=a,
+                related_reason="",
+                user_type="User",
+                duration=rng.randint(30, 120),
+                answered=True,
+                answer_indicator="Yes",
+                call_outcome="Success",
+                outcome_reason="Success",
+            ),
+            cdr_leg(
+                ts=t + timedelta(seconds=90),
+                correlation_id=cid,
+                user=b,
+                location=rng.choice(LOCATIONS),
+                call_type="SIP_INBOUND",
+                direction="TERMINATING",
+                calling=ext,
+                called=AGENT_PHONES[b],
+                calling_display=format_phone(ext),
+                called_display=b,
+                related_reason="ConsultativeTransfer",
+                user_type="User",
+                duration=rng.randint(60, 300),
+                answered=True,
+                answer_indicator="Yes",
+                call_outcome="Success",
+                outcome_reason="Success",
+            ),
+        )
+
+    return rows
+
+
+def summarize_call_group(group: pd.DataFrame) -> dict | None:
+    group = group.sort_values("Start time")
+    first = group.iloc[0]
+    start_ts = str(first["Start time"])
+    total_dur = int(pd.to_numeric(group["Duration"], errors="coerce").fillna(0).sum())
+
+    vm = group[group["User type"].astype(str) == "VoiceMailRetrieval"]
+    if not vm.empty:
+        owner = ""
+        users = group[group["User type"].astype(str) == "User"]
+        if not users.empty:
+            owner = str(users.iloc[0]["User"])
+        else:
+            owner = str(vm.iloc[0]["User"])
+        caller = str(first.get("Calling display") or format_phone(first.get("Calling number", "")))
+        return {
+            "start_ts": start_ts,
+            "summary": f"{caller} reached {owner}'s voicemail (no answer)",
+            "call_type": friendly_call_type_label(str(first["Call type"])),
+            "call_type_code": str(first["Call type"]),
+            "result": "Voicemail",
+            "result_class": "warn",
+            "duration_sec": total_dur,
+        }
+
+    if str(first["Call type"]) == "SIP_ENTERPRISE":
+        caller = str(first.get("Calling display") or first["User"])
+        callee = str(first.get("Called display") or "")
+        answered = bool(group["Answered"].any())
+        return {
+            "start_ts": start_ts,
+            "summary": f"{caller} called {callee}" if callee else f"{caller} placed an internal call",
+            "call_type": "Internal",
+            "call_type_code": "SIP_ENTERPRISE",
+            "result": "Answered" if answered else "No answer",
+            "result_class": "good" if answered else "warn",
+            "duration_sec": total_dur,
+        }
+
+    cq = group[group["Related reason"].astype(str) == "CallQueue"]
+    if not cq.empty:
+        agent = str(cq.iloc[0]["User"])
+        queue = str(cq.iloc[0].get("Called display") or "call queue")
+        caller = str(first.get("Calling display") or format_phone(first.get("Calling number", "")))
+        return {
+            "start_ts": start_ts,
+            "summary": f"{caller} called {queue} — answered by {agent}",
+            "call_type": "Inbound",
+            "call_type_code": "SIP_INBOUND",
+            "result": "Queue answered",
+            "result_class": "good",
+            "duration_sec": total_dur,
+        }
+
+    if str(first["Related reason"]) == "Deflection":
+        caller = str(first.get("Calling display") or format_phone(first.get("Calling number", "")))
+        dest = str(first.get("Called display") or "another destination")
+        return {
+            "start_ts": start_ts,
+            "summary": f"{caller} was transferred from {dest}",
+            "call_type": friendly_call_type_label(str(first["Call type"])),
+            "call_type_code": str(first["Call type"]),
+            "result": "Transferred",
+            "result_class": "warn",
+            "duration_sec": total_dur,
+        }
+
+    if str(first["Related reason"]) == "ConsultativeTransfer":
+        caller = str(first.get("Calling display") or format_phone(first.get("Calling number", "")))
+        dest = str(group.iloc[-1].get("Called display") or group.iloc[-1]["User"])
+        return {
+            "start_ts": start_ts,
+            "summary": f"{caller} was announced and transferred to {dest}",
+            "call_type": friendly_call_type_label(str(first["Call type"])),
+            "call_type_code": str(first["Call type"]),
+            "result": "Transferred",
+            "result_class": "good",
+            "duration_sec": total_dur,
+        }
+
+    if str(first["Call type"]) == "SIP_INBOUND":
+        caller = str(first.get("Calling display") or format_phone(first.get("Calling number", "")))
+        dest = str(first.get("Called display") or first["User"])
+        answered = bool(group["Answered"].any())
+        return {
+            "start_ts": start_ts,
+            "summary": f"{caller} called {dest}",
+            "call_type": "Inbound",
+            "call_type_code": "SIP_INBOUND",
+            "result": "Answered" if answered else "No answer",
+            "result_class": "good" if answered else "warn",
+            "duration_sec": total_dur,
+        }
+
+    return None
+
+
+def build_call_activity(cdr: pd.DataFrame, limit: int = 28) -> list[dict]:
+    if cdr.empty or "Correlation ID" not in cdr.columns:
+        return []
+    stories: list[dict] = []
+    for cid, group in cdr.groupby("Correlation ID"):
+        if not str(cid).startswith("story-"):
+            continue
+        summary = summarize_call_group(group)
+        if summary:
+            stories.append(summary)
+    stories.sort(key=lambda s: s["start_ts"], reverse=True)
+    return stories[:limit]
+
+
+def format_duration(seconds: int) -> str:
+    if seconds < 60:
+        return f"{seconds}s"
+    m, s = divmod(seconds, 60)
+    if m < 60:
+        return f"{m}:{s:02d}"
+    h, m = divmod(m, 60)
+    return f"{h}:{m:02d}:{s:02d}"
+
 
 def period() -> tuple[str, str, str]:
     end = date.today() - timedelta(days=1)
@@ -463,14 +918,22 @@ def generate_cdr(rng: random.Random, sc: Scenario, start: str, end: str) -> pd.D
     start_d = datetime.fromisoformat(start)
     end_d = datetime.fromisoformat(end) + timedelta(days=1)
     span = (end_d - start_d).total_seconds()
-    rows = []
-    reasons = ["Deflection", "CallQueue", "ConsultativeTransfer", "CallForwardBusy", "CallForwardNoAnswer", ""]
-    for i in range(sc.cdr_legs):
+    rows: list[dict] = []
+
+    rows.extend(generate_story_calls(rng, sc, start_d, span))
+
+    reasons = [
+        "Deflection", "CallQueue", "ConsultativeTransfer", "CallForwardBusy",
+        "CallForwardNoAnswer", "HuntGroup", "SimultaneousRingPersonal", "",
+    ]
+    user_types = ["User", "User", "User", "CallCenterPremium", "AutomatedAttendantVideo", "HuntGroup"]
+
+    remaining = max(0, sc.cdr_legs - len(rows))
+    for i in range(remaining):
         ts = start_d + timedelta(seconds=rng.uniform(0, span))
         ctype = weighted_choice(rng, CALL_TYPES)
-        if ctype == "SIP_INTERNATIONAL":
-            if rng.random() > sc.intl_share / 0.05:
-                ctype = "SIP_NATIONAL"
+        if ctype == "SIP_INTERNATIONAL" and rng.random() > sc.intl_share / 0.05:
+            ctype = "SIP_NATIONAL"
         user = rng.choice(AGENTS)
         loc = rng.choice(LOCATIONS)
         dur = 0 if (ctype == "SIP_INTERNATIONAL" and rng.random() < 0.15) else rng.randint(5, 2400)
@@ -482,18 +945,39 @@ def generate_cdr(rng: random.Random, sc: Scenario, start: str, end: str) -> pd.D
         rec_result = "failed" if rng.random() < sc.rec_fail_rate else (
             "success" if rng.random() < 0.12 else ""
         )
+        caller = rng.choice(AGENTS)
+        callee = rng.choice([a for a in AGENTS if a != caller])
+        ext = f"+1555099{rng.randint(10, 99):02d}"
+        if ctype == "SIP_ENTERPRISE":
+            calling, called = AGENT_PHONES[caller], AGENT_PHONES[callee]
+            calling_display, called_display = caller, callee
+        elif ctype == "SIP_INBOUND":
+            calling, called = ext, AGENT_PHONES[user]
+            calling_display, called_display = format_phone(ext), user
+        else:
+            calling, called = AGENT_PHONES[user], ext
+            calling_display, called_display = user, format_phone(ext)
+
         rows.append({
             "Start time": ts.strftime("%Y-%m-%d %H:%M:%S"),
             "Duration": dur,
             "User": user,
             "Location": loc,
             "Call type": ctype,
+            "Direction": rng.choice(["ORIGINATING", "TERMINATING"]),
+            "Calling number": calling,
+            "Called number": called,
+            "Calling display": calling_display,
+            "Called display": called_display,
+            "Correlation ID": f"rnd-{i}-{sc.seed}",
             "Related reason": rng.choice(reasons),
+            "User type": rng.choice(user_types),
+            "Answered": outcome == "Success",
+            "Answer indicator": rng.choice(["Yes", "No", "Yes-PostRedirection"]),
+            "Call outcome": "Success" if outcome == "Success" else "Refusal",
             "Call outcome reason": outcome,
             "Call Recording Result": rec_result,
             "Call Recording Trigger": rng.choice(["always", "always-pause-resume", ""]),
-            "Answered": outcome == "Success",
-            "Direction": rng.choice(["ORIGINATING", "TERMINATING", "ORIGINATING"]),
         })
     return pd.DataFrame(rows)
 
@@ -707,12 +1191,13 @@ def render_report(
   </div>"""
 
     ct_rows = "".join(
-        f"<tr><td>{r['Call type']}</td><td>{int(r['legs'])}</td>"
-        f"<td>{int(r['minutes']//60)}</td></tr>"
+        f"<tr><td>{label_with_tip(r['Call type'], CALL_TYPE_TIPS, display=friendly_call_type_label(r['Call type']))}</td>"
+        f"<td>{int(r['legs'])}</td><td>{int(r['minutes']//60)}</td></tr>"
         for _, r in call_types.iterrows()
     )
     reason_rows = "".join(
-        f"<tr><td>{name}</td><td>{int(cnt)}</td><td>{pill('bad' if name=='Deflection' else 'good')}</td></tr>"
+        f"<tr><td>{label_with_tip(name, RELATED_REASON_TIPS)}</td><td>{int(cnt)}</td>"
+        f"<td>{pill('bad' if name=='Deflection' else 'good')}</td></tr>"
         for name, cnt in reasons.items()
     )
     ref_rows = "".join(
@@ -722,6 +1207,16 @@ def render_report(
     )
     user_rows = "".join(
         f"<tr><td>{user}</td><td>{dur/60:.1f}</td></tr>" for user, dur in top_users.items()
+    )
+
+    activity = build_call_activity(cdr)
+    activity_rows = "".join(
+        f"<tr><td>{html.escape(a['start_ts'])}</td>"
+        f"<td>{html.escape(a['summary'])}</td>"
+        f"<td>{label_with_tip(a['call_type_code'], CALL_TYPE_TIPS, display=a['call_type'])}</td>"
+        f"<td><span class=\"pill {a['result_class']}\">{html.escape(a['result'])}</span></td>"
+        f"<td>{format_duration(a['duration_sec'])}</td></tr>"
+        for a in activity
     )
 
     page = f"""<!DOCTYPE html>
@@ -790,6 +1285,19 @@ def render_report(
     <table>{thead(["Type", "Legs", "Minutes"])}<tbody>{ct_rows}</tbody></table>
     <div class="sub-label">Related Reasons</div>
     <table>{thead(["Reason", "Count", "Status"])}<tbody>{reason_rows}</tbody></table>
+  </div>
+</div>
+
+<div class="section" id="s3b">
+  <div class="sec-hdr" onclick="toggleSection('s3b')">
+    <div class="sec-dot good">↪</div>
+    <div class="sec-info"><div class="sec-title">Call Activity{section_tip('s3b')}</div>
+    <div class="sec-sub">Who called whom — recent calls in plain language</div></div>
+    <div class="badge good">Readable</div><div class="chevron">›</div>
+  </div>
+  <div class="sec-body" id="s3b-body">
+    <p style="font-size:13px;color:var(--muted);margin:0 0 12px">Summaries are built from the Webex Calling Detailed Call History report — grouped by correlation ID. Voicemail, queue, transfer, and internal calls are labeled explicitly.</p>
+    <table>{thead(["When", "What happened", "Type", "Result", "Duration"])}<tbody>{activity_rows}</tbody></table>
   </div>
 </div>
 

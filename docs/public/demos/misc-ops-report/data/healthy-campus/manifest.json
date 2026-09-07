@@ -6,7 +6,7 @@
     "start": "2026-08-06",
     "end": "2026-09-05"
   },
-  "generated_at": "2026-09-07T01:44:41.016243+00:00",
+  "generated_at": "2026-09-07T01:57:54.478072+00:00",
   "demo_scenario": true,
   "webex_report_templates": {
     "cdr": "Calling Detailed Call History",
@@ -25,7 +25,7 @@
     "media_quality": "data/healthy-campus/media_quality_2026-08-06_2026-09-05.csv",
     "media_quality_rows": 460,
     "connectivity": "data/healthy-campus/connectivity_2026-08-06_2026-09-05.csv",
-    "connectivity_rows": 97
+    "connectivity_rows": 125
   },
   "scorecard_derivation": [
     {
@@ -44,7 +44,7 @@
       "section": "\u00a73 Routing",
       "metric": "Deflections",
       "formula": "count(Related reason = Deflection) in CDR",
-      "value": "149"
+      "value": "100"
     },
     {
       "section": "\u00a74 SLA",
@@ -56,13 +56,13 @@
       "section": "\u00a75 Quality",
       "metric": "Poor call rate",
       "formula": "count(Call Quality = Poor) / rows in media_quality CSV",
-      "value": "1.5%"
+      "value": "3.0%"
     },
     {
       "section": "\u00a76 Usage",
       "metric": "Total minutes",
       "formula": "sum(Duration) / 60 from CDR",
-      "value": "18521"
+      "value": "17991"
     },
     {
       "section": "\u00a77 Recording",
@@ -80,7 +80,7 @@
       "section": "\u00a79 Capacity",
       "metric": "Peak/avg day ratio",
       "formula": "max(daily CDR legs) / mean(daily CDR legs)",
-      "value": "1.4\u00d7"
+      "value": "1.3\u00d7"
     }
   ],
   "row_counts": {
@@ -88,6 +88,6 @@
     "call_queue": 7,
     "aa_summary": 8,
     "media_quality": 460,
-    "connectivity": 97
+    "connectivity": 125
   }
 }

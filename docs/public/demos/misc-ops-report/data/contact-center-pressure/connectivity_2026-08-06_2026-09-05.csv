@@ -1,112 +1,100 @@
 Account name,Account type,Email,Location,Country,Connected endpoint,Primary connectivity,Event type
-endpoint-1,Place,user1@demo.example,Chicago,GB,No,Disconnected,Unregistered
-endpoint-2,User,user2@demo.example,Dallas,SG,No,Disconnected,Unregistered
-endpoint-3,User,user3@demo.example,Dallas,US,Yes,SIP,Registration
-endpoint-4,User,user4@demo.example,Chicago,US,Yes,PN,Registration
-endpoint-5,Virtual Line,user5@demo.example,London,SG,Yes,SIP,Registration
-endpoint-6,Virtual Line,user6@demo.example,Chicago,US,Yes,SIP,Registration
-endpoint-7,User,user7@demo.example,Denver,SG,Yes,PN,Registration
-endpoint-8,User,user8@demo.example,London,SG,Yes,SIP,Registration
-endpoint-9,User,user9@demo.example,Dallas,SG,Yes,SIP,Registration
-endpoint-10,User,user10@demo.example,Dallas,US,Yes,SIP,Registration
-endpoint-11,Virtual Line,user11@demo.example,London,US,Yes,PN,Registration
-endpoint-12,User,user12@demo.example,London,US,Yes,SIP,Registration
-endpoint-13,Virtual Line,user13@demo.example,Singapore,GB,Yes,PN,Registration
-endpoint-14,Virtual Line,user14@demo.example,London,US,Yes,PN,Registration
-endpoint-15,User,user15@demo.example,London,US,Yes,PN,Registration
-endpoint-16,User,user16@demo.example,London,US,Yes,SIP,Registration
-endpoint-17,Virtual Line,user17@demo.example,Chicago,US,Yes,PN,Registration
-endpoint-18,User,user18@demo.example,Dallas,GB,Yes,PN,Registration
-endpoint-19,Virtual Line,user19@demo.example,Singapore,US,Yes,SIP,Registration
-endpoint-20,User,user20@demo.example,Singapore,US,Yes,SIP,Registration
-endpoint-21,Virtual Line,user21@demo.example,Chicago,US,Yes,SIP,Registration
-endpoint-22,User,user22@demo.example,London,SG,Yes,SIP,Registration
-endpoint-23,Virtual Line,user23@demo.example,Chicago,GB,Yes,PN,Registration
-endpoint-24,Virtual Line,user24@demo.example,London,GB,Yes,PN,Registration
-endpoint-25,User,user25@demo.example,London,GB,Yes,SIP,Registration
-endpoint-26,User,user26@demo.example,Denver,GB,Yes,PN,Registration
-endpoint-27,Virtual Line,user27@demo.example,Singapore,SG,Yes,SIP,Registration
-endpoint-28,User,user28@demo.example,Chicago,US,Yes,SIP,Registration
+endpoint-1,User,user1@demo.example,London,GB,No,Disconnected,Unregistered
+endpoint-2,User,user2@demo.example,London,US,No,Disconnected,Unregistered
+endpoint-3,User,user3@demo.example,Chicago,GB,Yes,PN,Registration
+endpoint-4,Virtual Line,user4@demo.example,Chicago,US,Yes,SIP,Registration
+endpoint-5,Place,user5@demo.example,Chicago,SG,Yes,SIP,Registration
+endpoint-6,User,user6@demo.example,London,GB,Yes,SIP,Registration
+endpoint-7,User,user7@demo.example,Dallas,GB,Yes,PN,Registration
+endpoint-8,User,user8@demo.example,Singapore,US,Yes,SIP,Registration
+endpoint-9,Virtual Line,user9@demo.example,Singapore,GB,Yes,SIP,Registration
+endpoint-10,User,user10@demo.example,London,US,Yes,SIP,Registration
+endpoint-11,User,user11@demo.example,Singapore,US,Yes,PN,Registration
+endpoint-12,Place,user12@demo.example,Chicago,US,Yes,SIP,Registration
+endpoint-13,Place,user13@demo.example,Dallas,SG,Yes,SIP,Registration
+endpoint-14,Place,user14@demo.example,Denver,SG,Yes,PN,Registration
+endpoint-15,Virtual Line,user15@demo.example,London,GB,Yes,SIP,Registration
+endpoint-16,User,user16@demo.example,Dallas,US,Yes,SIP,Registration
+endpoint-17,User,user17@demo.example,Chicago,GB,Yes,PN,Registration
+endpoint-18,Place,user18@demo.example,Singapore,US,Yes,SIP,Registration
+endpoint-19,Place,user19@demo.example,Dallas,US,Yes,PN,Registration
+endpoint-20,Place,user20@demo.example,Denver,GB,Yes,PN,Registration
+endpoint-21,User,user21@demo.example,London,SG,Yes,SIP,Registration
+endpoint-22,User,user22@demo.example,London,US,Yes,PN,Registration
+endpoint-23,Virtual Line,user23@demo.example,Denver,US,Yes,PN,Registration
+endpoint-24,User,user24@demo.example,Chicago,SG,Yes,PN,Registration
+endpoint-25,Virtual Line,user25@demo.example,Singapore,GB,Yes,SIP,Registration
+endpoint-26,Virtual Line,user26@demo.example,Chicago,US,Yes,PN,Registration
+endpoint-27,User,user27@demo.example,Singapore,GB,Yes,PN,Registration
+endpoint-28,User,user28@demo.example,London,US,Yes,SIP,Registration
 endpoint-29,User,user29@demo.example,Dallas,GB,Yes,SIP,Registration
-endpoint-30,User,user30@demo.example,Chicago,SG,Yes,SIP,Registration
-endpoint-31,User,user31@demo.example,London,SG,Yes,PN,Registration
-endpoint-32,User,user32@demo.example,London,US,Yes,PN,Registration
-endpoint-33,Place,user33@demo.example,Singapore,US,Yes,PN,Registration
-endpoint-34,Place,user34@demo.example,London,SG,Yes,SIP,Registration
-endpoint-35,User,user35@demo.example,Dallas,US,Yes,PN,Registration
-endpoint-36,User,user36@demo.example,London,US,Yes,PN,Registration
-endpoint-37,Virtual Line,user37@demo.example,Denver,SG,Yes,PN,Registration
-endpoint-38,User,user38@demo.example,London,GB,Yes,SIP,Registration
-endpoint-39,Virtual Line,user39@demo.example,Chicago,GB,Yes,SIP,Registration
-endpoint-40,User,user40@demo.example,Denver,SG,Yes,PN,Registration
-endpoint-41,User,user41@demo.example,Dallas,SG,Yes,SIP,Registration
-endpoint-42,Place,user42@demo.example,London,SG,Yes,PN,Registration
-endpoint-43,User,user43@demo.example,London,SG,Yes,SIP,Registration
-endpoint-44,Place,user44@demo.example,Dallas,SG,Yes,SIP,Registration
-endpoint-45,User,user45@demo.example,Denver,GB,Yes,SIP,Registration
-endpoint-46,User,user46@demo.example,London,US,Yes,SIP,Registration
-endpoint-47,User,user47@demo.example,Chicago,US,Yes,PN,Registration
-endpoint-48,Place,user48@demo.example,Denver,US,Yes,SIP,Registration
-endpoint-49,Virtual Line,user49@demo.example,Dallas,US,Yes,SIP,Registration
-endpoint-50,User,user50@demo.example,Denver,GB,Yes,PN,Registration
-endpoint-51,User,user51@demo.example,Dallas,US,Yes,SIP,Registration
-endpoint-52,Place,user52@demo.example,London,SG,Yes,SIP,Registration
-endpoint-53,User,user53@demo.example,Chicago,US,Yes,PN,Registration
-endpoint-54,User,user54@demo.example,Denver,US,Yes,SIP,Registration
+endpoint-30,Place,user30@demo.example,Chicago,US,Yes,PN,Registration
+endpoint-31,Place,user31@demo.example,Dallas,GB,Yes,SIP,Registration
+endpoint-32,User,user32@demo.example,Chicago,US,Yes,PN,Registration
+endpoint-33,User,user33@demo.example,Singapore,SG,Yes,SIP,Registration
+endpoint-34,Virtual Line,user34@demo.example,Chicago,SG,Yes,PN,Registration
+endpoint-35,User,user35@demo.example,Denver,SG,Yes,SIP,Registration
+endpoint-36,User,user36@demo.example,London,SG,Yes,SIP,Registration
+endpoint-37,Place,user37@demo.example,Singapore,GB,Yes,SIP,Registration
+endpoint-38,Virtual Line,user38@demo.example,London,GB,Yes,SIP,Registration
+endpoint-39,Virtual Line,user39@demo.example,Singapore,US,Yes,SIP,Registration
+endpoint-40,User,user40@demo.example,Dallas,SG,Yes,SIP,Registration
+endpoint-41,Virtual Line,user41@demo.example,Denver,US,Yes,PN,Registration
+endpoint-42,User,user42@demo.example,Chicago,US,Yes,SIP,Registration
+endpoint-43,User,user43@demo.example,Dallas,US,Yes,PN,Registration
+endpoint-44,Place,user44@demo.example,Denver,US,Yes,PN,Registration
+endpoint-45,User,user45@demo.example,Singapore,US,Yes,PN,Registration
+endpoint-46,User,user46@demo.example,Singapore,US,Yes,SIP,Registration
+endpoint-47,Place,user47@demo.example,Dallas,SG,Yes,SIP,Registration
+endpoint-48,User,user48@demo.example,London,US,Yes,PN,Registration
+endpoint-49,Place,user49@demo.example,Denver,US,Yes,PN,Registration
+endpoint-50,User,user50@demo.example,Denver,US,Yes,PN,Registration
+endpoint-51,Place,user51@demo.example,Denver,GB,Yes,PN,Registration
+endpoint-52,User,user52@demo.example,Chicago,GB,Yes,SIP,Registration
+endpoint-53,Virtual Line,user53@demo.example,Denver,SG,Yes,PN,Registration
+endpoint-54,User,user54@demo.example,Denver,US,Yes,PN,Registration
 endpoint-55,User,user55@demo.example,Singapore,US,Yes,PN,Registration
-endpoint-56,User,user56@demo.example,Chicago,US,Yes,PN,Registration
-endpoint-57,Virtual Line,user57@demo.example,Singapore,GB,Yes,SIP,Registration
-endpoint-58,Place,user58@demo.example,Singapore,GB,Yes,SIP,Registration
-endpoint-59,User,user59@demo.example,Chicago,GB,Yes,PN,Registration
-endpoint-60,Virtual Line,user60@demo.example,Dallas,US,Yes,PN,Registration
-endpoint-61,Virtual Line,user61@demo.example,Denver,SG,Yes,PN,Registration
-endpoint-62,User,user62@demo.example,Denver,US,Yes,PN,Registration
-endpoint-63,User,user63@demo.example,London,US,Yes,PN,Registration
-endpoint-64,Virtual Line,user64@demo.example,Chicago,US,Yes,SIP,Registration
+endpoint-56,Virtual Line,user56@demo.example,London,GB,Yes,PN,Registration
+endpoint-57,User,user57@demo.example,Denver,SG,Yes,PN,Registration
+endpoint-58,User,user58@demo.example,Singapore,SG,Yes,PN,Registration
+endpoint-59,User,user59@demo.example,London,SG,Yes,SIP,Registration
+endpoint-60,User,user60@demo.example,Singapore,US,Yes,SIP,Registration
+endpoint-61,User,user61@demo.example,Chicago,GB,Yes,PN,Registration
+endpoint-62,Place,user62@demo.example,Singapore,US,Yes,PN,Registration
+endpoint-63,User,user63@demo.example,Denver,US,Yes,PN,Registration
+endpoint-64,User,user64@demo.example,London,US,Yes,PN,Registration
 endpoint-65,Virtual Line,user65@demo.example,Dallas,US,Yes,SIP,Registration
-endpoint-66,Virtual Line,user66@demo.example,Denver,US,Yes,SIP,Registration
-endpoint-67,User,user67@demo.example,London,US,Yes,PN,Registration
-endpoint-68,User,user68@demo.example,Dallas,SG,Yes,SIP,Registration
-endpoint-69,User,user69@demo.example,Denver,US,Yes,PN,Registration
-endpoint-70,User,user70@demo.example,Chicago,US,Yes,SIP,Registration
-endpoint-71,Place,user71@demo.example,London,SG,Yes,PN,Registration
-endpoint-72,User,user72@demo.example,Chicago,GB,Yes,SIP,Registration
-endpoint-73,Place,user73@demo.example,Singapore,US,Yes,PN,Registration
-endpoint-74,Place,user74@demo.example,London,SG,Yes,PN,Registration
-endpoint-75,Place,user75@demo.example,London,US,Yes,SIP,Registration
-endpoint-76,Virtual Line,user76@demo.example,Dallas,SG,Yes,SIP,Registration
-endpoint-77,User,user77@demo.example,Singapore,US,Yes,SIP,Registration
-endpoint-78,User,user78@demo.example,Denver,US,Yes,SIP,Registration
-endpoint-79,User,user79@demo.example,London,US,Yes,SIP,Registration
-endpoint-80,Virtual Line,user80@demo.example,Singapore,SG,Yes,PN,Registration
-endpoint-81,User,user81@demo.example,Dallas,SG,Yes,SIP,Registration
-endpoint-82,User,user82@demo.example,Denver,SG,Yes,SIP,Registration
-endpoint-83,Virtual Line,user83@demo.example,London,SG,Yes,SIP,Registration
-endpoint-84,User,user84@demo.example,Singapore,GB,Yes,SIP,Registration
-endpoint-85,Place,user85@demo.example,London,US,Yes,SIP,Registration
-endpoint-86,Place,user86@demo.example,Dallas,SG,Yes,SIP,Registration
-endpoint-87,Place,user87@demo.example,Denver,GB,Yes,SIP,Registration
-endpoint-88,Virtual Line,user88@demo.example,London,GB,Yes,PN,Registration
-endpoint-89,User,user89@demo.example,Dallas,SG,Yes,PN,Registration
-endpoint-90,Virtual Line,user90@demo.example,Singapore,GB,Yes,SIP,Registration
-endpoint-91,User,user91@demo.example,Dallas,SG,Yes,SIP,Registration
-endpoint-92,User,user92@demo.example,London,US,Yes,PN,Registration
-endpoint-93,Place,user93@demo.example,Dallas,US,Yes,SIP,Registration
-endpoint-94,Virtual Line,user94@demo.example,Singapore,US,Yes,PN,Registration
-endpoint-95,Virtual Line,user95@demo.example,Chicago,GB,Yes,SIP,Registration
-endpoint-96,User,user96@demo.example,Denver,GB,Yes,PN,Registration
-endpoint-97,User,user97@demo.example,Singapore,US,Yes,PN,Registration
-endpoint-98,Place,user98@demo.example,Dallas,GB,Yes,SIP,Registration
-endpoint-99,User,user99@demo.example,Chicago,SG,Yes,SIP,Registration
-endpoint-100,User,user100@demo.example,Denver,GB,Yes,PN,Registration
-endpoint-101,User,user101@demo.example,London,SG,Yes,PN,Registration
-endpoint-102,Place,user102@demo.example,Denver,GB,Yes,PN,Registration
-endpoint-103,User,user103@demo.example,Denver,SG,Yes,PN,Registration
-endpoint-104,Virtual Line,user104@demo.example,London,US,Yes,SIP,Registration
-endpoint-105,User,user105@demo.example,Singapore,SG,Yes,PN,Registration
-endpoint-106,User,user106@demo.example,London,US,Yes,SIP,Registration
-endpoint-107,User,user107@demo.example,Chicago,SG,Yes,SIP,Registration
-endpoint-108,Place,user108@demo.example,Singapore,GB,Yes,SIP,Registration
-endpoint-109,Virtual Line,user109@demo.example,Denver,US,Yes,PN,Registration
-endpoint-110,User,user110@demo.example,Denver,GB,Yes,SIP,Registration
-endpoint-111,Place,user111@demo.example,Denver,US,Yes,PN,Registration
+endpoint-66,Place,user66@demo.example,Dallas,SG,Yes,SIP,Registration
+endpoint-67,Virtual Line,user67@demo.example,Chicago,US,Yes,SIP,Registration
+endpoint-68,Place,user68@demo.example,London,US,Yes,SIP,Registration
+endpoint-69,Virtual Line,user69@demo.example,Singapore,US,Yes,SIP,Registration
+endpoint-70,Place,user70@demo.example,Denver,US,Yes,PN,Registration
+endpoint-71,Virtual Line,user71@demo.example,Singapore,GB,Yes,SIP,Registration
+endpoint-72,Virtual Line,user72@demo.example,Denver,SG,Yes,SIP,Registration
+endpoint-73,Virtual Line,user73@demo.example,Denver,US,Yes,PN,Registration
+endpoint-74,User,user74@demo.example,London,US,Yes,SIP,Registration
+endpoint-75,Virtual Line,user75@demo.example,Chicago,US,Yes,SIP,Registration
+endpoint-76,User,user76@demo.example,Chicago,GB,Yes,PN,Registration
+endpoint-77,User,user77@demo.example,London,US,Yes,PN,Registration
+endpoint-78,Virtual Line,user78@demo.example,Chicago,GB,Yes,SIP,Registration
+endpoint-79,Place,user79@demo.example,Singapore,US,Yes,PN,Registration
+endpoint-80,Place,user80@demo.example,London,SG,Yes,SIP,Registration
+endpoint-81,Place,user81@demo.example,London,SG,Yes,SIP,Registration
+endpoint-82,User,user82@demo.example,Denver,SG,Yes,PN,Registration
+endpoint-83,User,user83@demo.example,London,US,Yes,PN,Registration
+endpoint-84,User,user84@demo.example,Denver,US,Yes,SIP,Registration
+endpoint-85,User,user85@demo.example,London,GB,Yes,SIP,Registration
+endpoint-86,User,user86@demo.example,Chicago,SG,Yes,SIP,Registration
+endpoint-87,User,user87@demo.example,Denver,SG,Yes,PN,Registration
+endpoint-88,User,user88@demo.example,Chicago,GB,Yes,PN,Registration
+endpoint-89,Place,user89@demo.example,London,SG,Yes,SIP,Registration
+endpoint-90,User,user90@demo.example,Chicago,US,Yes,SIP,Registration
+endpoint-91,User,user91@demo.example,London,SG,Yes,SIP,Registration
+endpoint-92,Place,user92@demo.example,Singapore,US,Yes,PN,Registration
+endpoint-93,Place,user93@demo.example,Chicago,US,Yes,PN,Registration
+endpoint-94,User,user94@demo.example,London,SG,Yes,PN,Registration
+endpoint-95,User,user95@demo.example,Chicago,GB,Yes,SIP,Registration
+endpoint-96,Place,user96@demo.example,Chicago,US,Yes,PN,Registration
+endpoint-97,Virtual Line,user97@demo.example,Dallas,US,Yes,SIP,Registration
+endpoint-98,Virtual Line,user98@demo.example,Dallas,SG,Yes,SIP,Registration
+endpoint-99,Place,user99@demo.example,Dallas,US,Yes,PN,Registration
