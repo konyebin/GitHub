@@ -108,6 +108,7 @@
     th[aria-sort="ascending"] .mark,
     th[aria-sort="descending"] .mark { opacity: 1; }
     td { vertical-align: top; padding: 12px; border-bottom: 1px solid var(--line); }
+    td a { color: #003a70; font-weight: 650; }
     tr:last-child td { border-bottom: 0; }
     .plain { background: #fffdf8; }
     .skill-text, .note-text { margin: 0; white-space: pre-wrap; }
@@ -129,7 +130,7 @@
 <body>
   <header>
     <h1>ASE candidate screen</h1>
-    <p class="lede">Status and score colors match the spreadsheet legend. A score of 21 or higher is passing. N/A scores are marked separately. Scores under 21, name, graduation date, home city, skills, and notes stay plain.</p>
+    <p class="lede">Status and score colors match the spreadsheet legend. Scores above 23 are green, and 21 through 23 are yellow. N/A scores are marked separately. Scores under 21, graduation date, home city, skills, and notes stay plain. Each name opens a LinkedIn search for that name and home city.</p>
     <div class="banner" id="banner">Loading</div>
   </header>
   <main>
@@ -268,7 +269,8 @@
         }));
       });
       [
-        ["Passing", "score 21+"],
+        ["Passing", "score above 23"],
+        ["NearPass", "score 21–23"],
         ["N/A", "score N/A"],
         ["Below", "score under 21"]
       ].forEach(([key, label]) => {
@@ -311,7 +313,7 @@
     }
 
     function scoreRank(row) {
-      if (row.scoreKey !== "Passing" && row.scoreKey !== "Below") return null;
+      if (row.scoreKey !== "Passing" && row.scoreKey !== "NearPass" && row.scoreKey !== "Below") return null;
       const number = Number(row.score);
       return Number.isFinite(number) ? number : null;
     }
@@ -396,7 +398,16 @@
         const tr = document.createElement("tr");
         const name = document.createElement("td");
         name.className = "plain";
-        name.textContent = row.name;
+        if (row.linkedin) {
+          const link = document.createElement("a");
+          link.href = row.linkedin;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = row.name;
+          name.append(link);
+        } else {
+          name.textContent = row.name;
+        }
         const grad = document.createElement("td");
         grad.className = "plain";
         grad.textContent = row.graduation;
@@ -413,7 +424,7 @@
         notes.className = "plain";
         notes.append(noteCell(row.notes));
         const score = document.createElement("td");
-        if (row.scoreKey === "Passing" || row.scoreKey === "N/A") paint(score, row.scoreKey);
+        if (row.scoreKey === "Passing" || row.scoreKey === "NearPass" || row.scoreKey === "N/A") paint(score, row.scoreKey);
         else score.className = "plain";
         score.textContent = row.score || "—";
         const status = document.createElement("td");
@@ -439,7 +450,8 @@
         ["Instructions sent", "Sent"],
         ["Not interested", "Not interested"],
         ["Blank status", null],
-        ["Score 21 or higher", "Passing"],
+        ["Score above 23", "Passing"],
+        ["Score 21 to 23", "NearPass"],
         ["Score N/A", "N/A"],
         ["Score under 21", null]
       ];

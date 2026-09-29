@@ -9,7 +9,16 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from color_workbook import load_rows, read_names, select_rows, write_colored
-from rules import COLORS, graduation_term, primary_skill, score_display, score_key, skill_tags, status_key
+from rules import (
+    COLORS,
+    graduation_term,
+    linkedin_search_url,
+    primary_skill,
+    score_display,
+    score_key,
+    skill_tags,
+    status_key,
+)
 
 ROOT = Path(__file__).resolve().parent
 DASHBOARD = ROOT / "dashboard" / "index.html"
@@ -31,6 +40,7 @@ def candidate_payload(row: tuple) -> dict:
     score = row[SCORE_INDEX]
     return {
         "name": "" if row[NAME_INDEX] is None else str(row[NAME_INDEX]).strip(),
+        "linkedin": linkedin_search_url(row[NAME_INDEX], row[CITY_INDEX]),
         "graduation": "" if graduation is None else str(graduation).strip(),
         "graduationTerm": graduation_term(graduation),
         "city": "" if row[CITY_INDEX] is None else str(row[CITY_INDEX]).strip(),

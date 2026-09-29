@@ -115,7 +115,7 @@ def write_legend(workbook) -> None:
     sheet["A1"] = "ASE color legend"
     sheet["A1"].font = Font(name="Calibri", bold=True, size=16, color="1C1915")
     sheet["A2"] = (
-        "Status and score are colored. A score of 21 or higher is passing. "
+        "Status and score are colored. Scores above 23 are green, and 21 through 23 are yellow. "
         "N/A scores are colored separately. Scores under 21, full name, graduation date, "
         "home cities, skills and technologies, and notes stay uncolored."
     )
@@ -135,7 +135,8 @@ def write_legend(workbook) -> None:
         ("Sent", "Status", "Instructions sent", f'Exact text, after trimming spaces: "{STATUS_TEXT["Sent"]}"'),
         ("Not interested", "Status", "Not interested", f'Exact text: "{STATUS_TEXT["Not interested"]}"'),
         (None, "Status", "Blank", "No fill"),
-        ("Passing", "Score", "21 or higher", "Numeric score is 21 or higher. 21 is the passing score."),
+        ("Passing", "Score", "Above 23", "Numeric score is greater than 23."),
+        ("NearPass", "Score", "21 to 23", "Numeric score is 21, 22, or 23."),
         ("N/A", "Score", "N/A", "Cell is N/A or NA."),
         (None, "Score", "Under 21", "No fill"),
     ]
@@ -218,7 +219,7 @@ def write_colored(source: Path, output: Path, names: list[str] | None) -> int:
         sheet.row_dimensions[row_index].height = 48
 
     sheet.cell(1, SCORE_COL).comment = Comment(
-        "21 or higher and N/A are colored. Scores under 21 are not.",
+        "Above 23 is green. 21 to 23 is yellow. N/A is gray. Scores under 21 are not colored.",
         "ASE screen",
     )
     sheet.cell(1, STATUS_COL).comment = Comment(

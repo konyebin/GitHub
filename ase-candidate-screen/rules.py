@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from urllib.parse import quote
 
 # Fill, then font. Light fills keep the sheet readable.
 COLORS = {
@@ -16,6 +17,7 @@ COLORS = {
     "Sent": ("FFE2B8", "7A4E00"),
     "Not interested": ("FFC7CE", "9C0006"),
     "Passing": ("C6EFCE", "006100"),
+    "NearPass": ("FFF3A0", "6B5300"),
 }
 
 PASSING_SCORE = 21
@@ -175,7 +177,7 @@ def status_formulas(cell: str = "N2") -> list[tuple[str, str]]:
 
 
 def score_key(value) -> str:
-    """21 is the passing score, so 21 and higher are colored. N/A is colored. Below 21 is not."""
+    """Above 23 is green. 21 through 23 is yellow. N/A is gray. Under 21 is plain."""
     if value is None:
         return "Blank"
     if isinstance(value, bool):
@@ -189,8 +191,10 @@ def score_key(value) -> str:
         number = float(value) if isinstance(value, (int, float)) else float(text)
     except ValueError:
         return "Other"
-    if number >= PASSING_SCORE:
+    if number > 23:
         return "Passing"
+    if number >= PASSING_SCORE:
+        return "NearPass"
     return "Below"
 
 
@@ -207,9 +211,23 @@ def score_display(value) -> str:
 
 
 def score_formulas(cell: str = "I2") -> list[tuple[str, str]]:
-    """N/A wins over the numeric rule. 21 and higher count as passing."""
+    """N/A first, then 21–23, then anything above 23."""
     text = f'TRIM({cell}&"")'
+    number = f"IFERROR(VALUE({cell}),-1)"
     return [
         ("N/A", f'OR(UPPER({text})="N/A",UPPER({text})="NA")'),
-        ("Passing", f"IFERROR(VALUE({cell}),-1)>={PASSING_SCORE}"),
+        ("NearPass", f"AND({number}>={PASSING_SCORE},{number}<=23)"),
+        ("Passing", f"{number}>23"),
     ]
+
+
+def linkedin_search_url(name, city) -> str:
+    """People search for this name and home city. Does not guess a single profile."""
+    parts = []
+    for value in (name, city):
+        text = "" if value is None else str(value).strip()
+        if text:
+            parts.append(text)
+    if not parts:
+        return ""
+    return "https://www.linkedin.com/search/results/people/?keywords=" + quote(" ".join(parts))

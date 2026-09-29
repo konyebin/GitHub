@@ -4,7 +4,16 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from rules import graduation_term, primary_skill, score_formulas, score_key, skill_formulas, skill_tags, status_key
+from rules import (
+    graduation_term,
+    linkedin_search_url,
+    primary_skill,
+    score_formulas,
+    score_key,
+    skill_formulas,
+    skill_tags,
+    status_key,
+)
 
 
 class RuleTests(unittest.TestCase):
@@ -46,11 +55,12 @@ class RuleTests(unittest.TestCase):
         self.assertEqual(graduation_term("Aug 2026"), "Aug 2026")
         self.assertEqual(graduation_term("August 2026"), "Aug 2026")
 
-    def test_passing_score_includes_21_and_colors_na(self):
-        self.assertEqual(score_key(21), "Passing")
-        self.assertEqual(score_key("21"), "Passing")
-        self.assertEqual(score_key(26), "Passing")
+    def test_score_bands(self):
+        self.assertEqual(score_key(24), "Passing")
         self.assertEqual(score_key("26"), "Passing")
+        self.assertEqual(score_key(23), "NearPass")
+        self.assertEqual(score_key("22"), "NearPass")
+        self.assertEqual(score_key(21), "NearPass")
         self.assertEqual(score_key(20), "Below")
         self.assertEqual(score_key("0"), "Below")
         self.assertEqual(score_key("N/A"), "N/A")
@@ -58,9 +68,16 @@ class RuleTests(unittest.TestCase):
         self.assertEqual(score_key(""), "Blank")
         self.assertEqual(score_key(None), "Blank")
 
+    def test_linkedin_search_uses_name_and_city(self):
+        url = linkedin_search_url("Ada Lovelace", "London")
+        self.assertTrue(url.startswith("https://www.linkedin.com/search/results/people/?keywords="))
+        self.assertIn("Ada%20Lovelace", url)
+        self.assertIn("London", url)
+        self.assertEqual(linkedin_search_url("", "  "), "")
+
     def test_score_formulas_check_na_before_passing(self):
         keys = [key for key, _formula in score_formulas("I2")]
-        self.assertEqual(keys, ["N/A", "Passing"])
+        self.assertEqual(keys, ["N/A", "NearPass", "Passing"])
 
     def test_sheet_formulas_follow_priority(self):
         keys = [key for key, _formula in skill_formulas("D2")]
