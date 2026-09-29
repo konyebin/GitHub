@@ -38,6 +38,17 @@
     section { margin: 18px 0; }
     h2 { font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; margin: 0 0 8px; color: var(--muted); }
     .legend, .counts, .filters { display: flex; flex-wrap: wrap; gap: 8px; }
+    .hint { margin: -4px 0 8px; color: var(--muted); font-size: 13px; }
+    .counts button {
+      margin: 0;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 650;
+      cursor: pointer;
+      border-radius: 999px;
+      padding: 4px 10px;
+    }
+    .counts button[aria-pressed="true"] { box-shadow: 0 0 0 2px #1c1915; }
     .swatch, .count, .tag, .status {
       border-radius: 999px;
       padding: 4px 10px;
@@ -128,6 +139,7 @@
     </section>
     <section>
       <h2>Counts</h2>
+      <p class="hint">Click a count to show those rows. Click it again, or All, to clear.</p>
       <div class="counts" id="counts"></div>
     </section>
     <section>
@@ -165,6 +177,7 @@
     let colors = {};
     let sortKey = null;
     let sortDir = "asc";
+    let scoreFilter = "";
 
     function chip(label, key) {
       const node = document.createElement("span");
@@ -204,33 +217,68 @@
       });
     }
 
-    function visible() {
+    function matches(row, options) {
       const query = document.getElementById("search").value.trim().toLowerCase();
-      const status = document.getElementById("status").value;
+      const status = options.ignoreStatus ? "" : document.getElementById("status").value;
       const skill = document.getElementById("skill").value;
       const term = document.getElementById("term").value;
-      return rows.filter((row) => {
-        if (query && !row.name.toLowerCase().includes(query)) return false;
-        if (status && row.statusKey !== status) return false;
-        if (skill && !row.skillTags.includes(skill)) return false;
-        if (term && row.graduationTerm !== term) return false;
-        return true;
-      });
+      const score = options.ignoreScore ? "" : scoreFilter;
+      if (query && !row.name.toLowerCase().includes(query)) return false;
+      if (status && row.statusKey !== status) return false;
+      if (skill && !row.skillTags.includes(skill)) return false;
+      if (term && row.graduationTerm !== term) return false;
+      if (score && row.scoreKey !== score) return false;
+      return true;
+    }
+
+    function visible() {
+      return rows.filter((row) => matches(row, {}));
+    }
+
+    function countPool() {
+      return rows.filter((row) => matches(row, { ignoreStatus: true, ignoreScore: true }));
+    }
+
+    function countButton(label, colorKey, pressed, onClick) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "swatch";
+      button.textContent = label;
+      button.setAttribute("aria-pressed", pressed ? "true" : "false");
+      paint(button, colorKey);
+      button.addEventListener("click", onClick);
+      return button;
     }
 
     function renderCounts(list) {
       const host = document.getElementById("counts");
+      const statusValue = document.getElementById("status").value;
       host.innerHTML = "";
-      host.append(chip(list.length + " shown", null));
+      host.append(countButton("All " + list.length, null, !statusValue && !scoreFilter, () => {
+        document.getElementById("status").value = "";
+        scoreFilter = "";
+        render();
+      }));
       STATUS_ORDER.forEach((key) => {
         const count = list.filter((row) => row.statusKey === key).length;
         if (!count) return;
-        host.append(chip(count + " " + key, key === "Blank" || key === "Other" ? null : key));
+        host.append(countButton(count + " " + key, key === "Blank" || key === "Other" ? null : key, statusValue === key, () => {
+          document.getElementById("status").value = statusValue === key ? "" : key;
+          render();
+        }));
       });
-      const passing = list.filter((row) => row.scoreKey === "Passing").length;
-      const scoreNa = list.filter((row) => row.scoreKey === "N/A").length;
-      if (passing) host.append(chip(passing + " score 21+", "Passing"));
-      if (scoreNa) host.append(chip(scoreNa + " score N/A", "N/A"));
+      [
+        ["Passing", "score 21+"],
+        ["N/A", "score N/A"],
+        ["Below", "score under 21"]
+      ].forEach(([key, label]) => {
+        const count = list.filter((row) => row.scoreKey === key).length;
+        if (!count) return;
+        host.append(countButton(count + " " + label, key === "Below" ? null : key, scoreFilter === key, () => {
+          scoreFilter = scoreFilter === key ? "" : key;
+          render();
+        }));
+      });
     }
 
     function noteCell(text) {
@@ -380,7 +428,7 @@
     function render() {
       const list = visible();
       if (sortKey) list.sort(compareRows);
-      renderCounts(list);
+      renderCounts(countPool());
       renderTable(list);
     }
 
