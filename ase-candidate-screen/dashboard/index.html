@@ -70,16 +70,38 @@
       text-transform: uppercase;
       color: #fffdf8;
       background: var(--header);
-      padding: 10px 12px;
+      padding: 0;
       position: sticky;
       top: 0;
     }
+    th button {
+      background: transparent;
+      border: 0;
+      margin: 0;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px 12px;
+      color: inherit;
+      font: inherit;
+      letter-spacing: inherit;
+      text-transform: inherit;
+      text-decoration: none;
+      text-align: left;
+      cursor: pointer;
+    }
+    th button:focus-visible { outline: 2px solid #fffdf8; outline-offset: -4px; }
+    th .mark { opacity: 0.45; font-size: 11px; }
+    th[aria-sort="ascending"] .mark,
+    th[aria-sort="descending"] .mark { opacity: 1; }
     td { vertical-align: top; padding: 12px; border-bottom: 1px solid var(--line); }
     tr:last-child td { border-bottom: 0; }
     .plain { background: #fffdf8; }
     .skill-text, .note-text { margin: 0; white-space: pre-wrap; }
     .tags { margin-top: 8px; }
-    button {
+    td button {
       margin-top: 8px;
       font: inherit;
       background: transparent;
@@ -124,8 +146,24 @@
   <script>
     const STATUS_ORDER = ["Confirmed", "Sent", "Not interested", "Blank", "Other"];
     const SKILL_ORDER = ["Former Intern", "Studying", "Certification", "Degree", "Experience", "N/A"];
+    const COLUMNS = [
+      { key: "name", label: "Full name" },
+      { key: "graduation", label: "Graduation date" },
+      { key: "city", label: "Home cities" },
+      { key: "skills", label: "Skills and technologies" },
+      { key: "notes", label: "Notes" },
+      { key: "status", label: "Status" }
+    ];
+    const MONTHS = {
+      jan: 1, january: 1, feb: 2, february: 2, mar: 3, march: 3,
+      apr: 4, april: 4, may: 5, jun: 6, june: 6, jul: 7, july: 7,
+      aug: 8, august: 8, sep: 9, sept: 9, september: 9, oct: 10, october: 10,
+      nov: 11, november: 11, dec: 12, december: 12
+    };
     let rows = [];
     let colors = {};
+    let sortKey = null;
+    let sortDir = "asc";
 
     function chip(label, key) {
       const node = document.createElement("span");
@@ -214,6 +252,41 @@
       return wrap;
     }
 
+    function textValue(row, key) {
+      if (key === "status") return row.status || "";
+      return row[key] || "";
+    }
+
+    function graduationRank(row) {
+      const term = row.graduationTerm || "";
+      const match = term.match(/^([A-Za-z]+)\s+(\d{4})$/);
+      if (!match || !MONTHS[match[1].toLowerCase()]) return null;
+      return Number(match[2]) * 12 + MONTHS[match[1].toLowerCase()];
+    }
+
+    function compareRows(a, b) {
+      const dir = sortDir === "asc" ? 1 : -1;
+      if (sortKey === "graduation") {
+        const ar = graduationRank(a);
+        const br = graduationRank(b);
+        if (ar == null || br == null) {
+          if (ar == null && br == null) return a.name.localeCompare(b.name);
+          return ar == null ? 1 : -1;
+        }
+        if (ar !== br) return (ar - br) * dir;
+        return a.name.localeCompare(b.name);
+      }
+      const av = textValue(a, sortKey).trim();
+      const bv = textValue(b, sortKey).trim();
+      if (!av || !bv) {
+        if (!av && !bv) return a.name.localeCompare(b.name);
+        return !av ? 1 : -1;
+      }
+      const compared = av.localeCompare(bv, undefined, { numeric: true, sensitivity: "base" });
+      if (compared !== 0) return compared * dir;
+      return a.name.localeCompare(b.name);
+    }
+
     function renderTable(list) {
       const card = document.getElementById("table-card");
       card.innerHTML = "";
@@ -226,9 +299,27 @@
       }
       const table = document.createElement("table");
       const head = document.createElement("tr");
-      ["Full name", "Graduation date", "Home cities", "Skills and technologies", "Notes", "Status"].forEach((label) => {
+      COLUMNS.forEach((column) => {
         const cell = document.createElement("th");
-        cell.textContent = label;
+        const active = sortKey === column.key;
+        cell.setAttribute("aria-sort", active ? (sortDir === "asc" ? "ascending" : "descending") : "none");
+        const button = document.createElement("button");
+        button.type = "button";
+        const label = document.createElement("span");
+        label.textContent = column.label;
+        const mark = document.createElement("span");
+        mark.className = "mark";
+        mark.textContent = active ? (sortDir === "asc" ? "↑" : "↓") : "↕";
+        button.append(label, mark);
+        button.addEventListener("click", () => {
+          if (sortKey === column.key) sortDir = sortDir === "asc" ? "desc" : "asc";
+          else {
+            sortKey = column.key;
+            sortDir = "asc";
+          }
+          render();
+        });
+        cell.append(button);
         head.append(cell);
       });
       table.append(head);
@@ -263,6 +354,7 @@
 
     function render() {
       const list = visible();
+      if (sortKey) list.sort(compareRows);
       renderCounts(list);
       renderTable(list);
     }
