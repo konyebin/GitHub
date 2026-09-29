@@ -89,7 +89,7 @@ def main() -> None:
     parser.add_argument(
         "--colored-output",
         type=Path,
-        default=ROOT / "output" / "ASE-preview-5-colored.xlsx",
+        default=ROOT / "output" / "ASE-colored.xlsx",
     )
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--names-file", type=Path)

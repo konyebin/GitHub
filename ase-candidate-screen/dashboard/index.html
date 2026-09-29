@@ -96,7 +96,7 @@
 <body>
   <header>
     <h1>ASE candidate screen</h1>
-    <p class="lede">Name, graduation date, home city, and notes stay uncolored. Skill and status colors match the spreadsheet legend.</p>
+    <p class="lede">Status colors match the spreadsheet legend. Name, graduation date, home city, skills, and notes stay plain.</p>
     <div class="banner" id="banner">Loading</div>
   </header>
   <main>
@@ -188,11 +188,6 @@
         if (!count) return;
         host.append(chip(count + " " + key, key === "Blank" || key === "Other" ? null : key));
       });
-      SKILL_ORDER.forEach((key) => {
-        const count = list.filter((row) => row.skillTags.includes(key)).length;
-        if (!count) return;
-        host.append(chip(count + " " + key, key));
-      });
     }
 
     function noteCell(text) {
@@ -249,17 +244,11 @@
         city.className = "plain";
         city.textContent = row.city;
         const skills = document.createElement("td");
-        paint(skills, row.primarySkill);
+        skills.className = "plain";
         const skillText = document.createElement("p");
         skillText.className = "skill-text";
         skillText.textContent = row.skills;
         skills.append(skillText);
-        if (row.skillTags.length) {
-          const tags = document.createElement("div");
-          tags.className = "tags";
-          row.skillTags.forEach((tag) => tags.append(chip(tag, tag)));
-          skills.append(tags);
-        }
         const notes = document.createElement("td");
         notes.className = "plain";
         notes.append(noteCell(row.notes));
@@ -284,14 +273,7 @@
         ["Confirmed availability", "Confirmed"],
         ["Instructions sent", "Sent"],
         ["Not interested", "Not interested"],
-        ["Blank status", null],
-        ["Former Intern", "Former Intern"],
-        ["Studying", "Studying"],
-        ["Certification", "Certification"],
-        ["Degree", "Degree"],
-        ["Experience", "Experience"],
-        ["N/A skills", "N/A"],
-        ["Other skills", null]
+        ["Blank status", null]
       ];
       items.forEach(([label, key]) => host.append(chip(label, key)));
     }
