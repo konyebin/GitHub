@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ASE candidate screen</title>
+  <style>
+    :root {
+      --ink: #1c1915;
+      --muted: #5c564c;
+      --line: #e4dcd0;
+      --paper: #f6f1e8;
+      --card: #fffdf8;
+      --header: #1c1915;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font: 15px/1.45 "Segoe UI", Helvetica, Arial, sans-serif;
+    }
+    header, main { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
+    header { padding: 28px 0 8px; }
+    h1 { font-size: 28px; line-height: 1.15; margin: 0 0 6px; letter-spacing: -0.02em; }
+    .lede { margin: 0; color: var(--muted); max-width: 68ch; }
+    .banner {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #1c1915;
+      color: #fffdf8;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    section { margin: 18px 0; }
+    h2 { font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; margin: 0 0 8px; color: var(--muted); }
+    .legend, .counts, .filters { display: flex; flex-wrap: wrap; gap: 8px; }
+    .swatch, .count, .tag, .status {
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 13px;
+      font-weight: 650;
+    }
+    .swatch small, .count small { font-weight: 500; }
+    .filters { align-items: end; }
+    label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+    input, select {
+      font: inherit;
+      color: var(--ink);
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 10px;
+      min-width: 180px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: auto;
+    }
+    table { width: 100%; border-collapse: collapse; min-width: 880px; }
+    th {
+      text-align: left;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #fffdf8;
+      background: var(--header);
+      padding: 10px 12px;
+      position: sticky;
+      top: 0;
+    }
+    td { vertical-align: top; padding: 12px; border-bottom: 1px solid var(--line); }
+    tr:last-child td { border-bottom: 0; }
+    .plain { background: #fffdf8; }
+    .skill-text, .note-text { margin: 0; white-space: pre-wrap; }
+    .tags { margin-top: 8px; }
+    button {
+      margin-top: 8px;
+      font: inherit;
+      background: transparent;
+      border: 0;
+      padding: 0;
+      color: #003a70;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .empty { padding: 24px; color: var(--muted); }
+    .error { padding: 16px; background: #ffc7ce; color: #9c0006; border-radius: 10px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>ASE candidate screen</h1>
+    <p class="lede">Name, graduation date, home city, and notes stay uncolored. Skill and status colors match the spreadsheet legend.</p>
+    <div class="banner" id="banner">Loading</div>
+  </header>
+  <main>
+    <section>
+      <h2>Legend</h2>
+      <div class="legend" id="legend"></div>
+    </section>
+    <section>
+      <h2>Counts</h2>
+      <div class="counts" id="counts"></div>
+    </section>
+    <section>
+      <h2>Filters</h2>
+      <div class="filters">
+        <label>Name <input id="search" type="search" placeholder="Search full name"></label>
+        <label>Status <select id="status"></select></label>
+        <label>Skill tag <select id="skill"></select></label>
+        <label>Graduation term <select id="term"></select></label>
+      </div>
+    </section>
+    <section>
+      <div class="card" id="table-card"></div>
+    </section>
+  </main>
+  <script>
+    const STATUS_ORDER = ["Confirmed", "Sent", "Not interested", "Blank", "Other"];
+    const SKILL_ORDER = ["Former Intern", "Studying", "Certification", "Degree", "Experience", "N/A"];
+    let rows = [];
+    let colors = {};
+
+    function chip(label, key) {
+      const node = document.createElement("span");
+      node.className = "swatch";
+      node.textContent = label;
+      paint(node, key);
+      return node;
+    }
+
+    function paint(node, key) {
+      const pair = colors[key];
+      if (!pair) {
+        node.style.background = "#fffdf8";
+        node.style.color = "#1c1915";
+        node.style.border = "1px solid #e4dcd0";
+        return;
+      }
+      node.style.background = "#" + pair[0];
+      node.style.color = "#" + pair[1];
+    }
+
+    function unique(values) {
+      return [...new Set(values)].sort((a, b) => a.localeCompare(b));
+    }
+
+    function fillSelect(select, values) {
+      select.innerHTML = "";
+      const all = document.createElement("option");
+      all.value = "";
+      all.textContent = "All";
+      select.append(all);
+      values.forEach((value) => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value;
+        select.append(option);
+      });
+    }
+
+    function visible() {
+      const query = document.getElementById("search").value.trim().toLowerCase();
+      const status = document.getElementById("status").value;
+      const skill = document.getElementById("skill").value;
+      const term = document.getElementById("term").value;
+      return rows.filter((row) => {
+        if (query && !row.name.toLowerCase().includes(query)) return false;
+        if (status && row.statusKey !== status) return false;
+        if (skill && !row.skillTags.includes(skill)) return false;
+        if (term && row.graduationTerm !== term) return false;
+        return true;
+      });
+    }
+
+    function renderCounts(list) {
+      const host = document.getElementById("counts");
+      host.innerHTML = "";
+      host.append(chip(list.length + " shown", null));
+      STATUS_ORDER.forEach((key) => {
+        const count = list.filter((row) => row.statusKey === key).length;
+        if (!count) return;
+        host.append(chip(count + " " + key, key === "Blank" || key === "Other" ? null : key));
+      });
+      SKILL_ORDER.forEach((key) => {
+        const count = list.filter((row) => row.skillTags.includes(key)).length;
+        if (!count) return;
+        host.append(chip(count + " " + key, key));
+      });
+    }
+
+    function noteCell(text) {
+      const wrap = document.createElement("div");
+      const paragraph = document.createElement("p");
+      paragraph.className = "note-text";
+      const full = text || "";
+      const limit = 180;
+      const truncated = full.length > limit;
+      paragraph.textContent = truncated ? full.slice(0, limit).trimEnd() + "…" : full;
+      wrap.append(paragraph);
+      if (truncated) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = "Show full note";
+        let open = false;
+        button.addEventListener("click", () => {
+          open = !open;
+          paragraph.textContent = open ? full : full.slice(0, limit).trimEnd() + "…";
+          button.textContent = open ? "Hide full note" : "Show full note";
+        });
+        wrap.append(button);
+      }
+      return wrap;
+    }
+
+    function renderTable(list) {
+      const card = document.getElementById("table-card");
+      card.innerHTML = "";
+      if (!list.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "No candidates match these filters.";
+        card.append(empty);
+        return;
+      }
+      const table = document.createElement("table");
+      const head = document.createElement("tr");
+      ["Full name", "Graduation date", "Home cities", "Skills and technologies", "Notes", "Status"].forEach((label) => {
+        const cell = document.createElement("th");
+        cell.textContent = label;
+        head.append(cell);
+      });
+      table.append(head);
+      list.forEach((row) => {
+        const tr = document.createElement("tr");
+        const name = document.createElement("td");
+        name.className = "plain";
+        name.textContent = row.name;
+        const grad = document.createElement("td");
+        grad.className = "plain";
+        grad.textContent = row.graduation;
+        const city = document.createElement("td");
+        city.className = "plain";
+        city.textContent = row.city;
+        const skills = document.createElement("td");
+        paint(skills, row.primarySkill);
+        const skillText = document.createElement("p");
+        skillText.className = "skill-text";
+        skillText.textContent = row.skills;
+        skills.append(skillText);
+        if (row.skillTags.length) {
+          const tags = document.createElement("div");
+          tags.className = "tags";
+          row.skillTags.forEach((tag) => tags.append(chip(tag, tag)));
+          skills.append(tags);
+        }
+        const notes = document.createElement("td");
+        notes.className = "plain";
+        notes.append(noteCell(row.notes));
+        const status = document.createElement("td");
+        paint(status, row.statusKey === "Blank" || row.statusKey === "Other" ? null : row.statusKey);
+        status.textContent = row.status || "—";
+        [name, grad, city, skills, notes, status].forEach((cell) => tr.append(cell));
+        table.append(tr);
+      });
+      card.append(table);
+    }
+
+    function render() {
+      const list = visible();
+      renderCounts(list);
+      renderTable(list);
+    }
+
+    function renderLegend() {
+      const host = document.getElementById("legend");
+      const items = [
+        ["Confirmed availability", "Confirmed"],
+        ["Instructions sent", "Sent"],
+        ["Not interested", "Not interested"],
+        ["Blank status", null],
+        ["Former Intern", "Former Intern"],
+        ["Studying", "Studying"],
+        ["Certification", "Certification"],
+        ["Degree", "Degree"],
+        ["Experience", "Experience"],
+        ["N/A skills", "N/A"],
+        ["Other skills", null]
+      ];
+      items.forEach(([label, key]) => host.append(chip(label, key)));
+    }
+
+    async function start() {
+      const response = await fetch("/api/candidates");
+      if (!response.ok) throw new Error("Dashboard data did not load");
+      const data = await response.json();
+      rows = data.candidates;
+      colors = data.colors;
+      document.getElementById("banner").textContent = data.preview
+        ? "Preview · " + data.shown + " of " + data.totalInFile
+        : data.shown + " candidates";
+      renderLegend();
+      fillSelect(document.getElementById("status"), STATUS_ORDER.filter((key) => rows.some((row) => row.statusKey === key)));
+      fillSelect(document.getElementById("skill"), SKILL_ORDER.filter((key) => rows.some((row) => row.skillTags.includes(key))));
+      fillSelect(document.getElementById("term"), unique(rows.map((row) => row.graduationTerm)));
+      ["search", "status", "skill", "term"].forEach((id) => {
+        document.getElementById(id).addEventListener("input", render);
+      });
+      render();
+    }
+
+    start().catch((error) => {
+      const main = document.querySelector("main");
+      const node = document.createElement("p");
+      node.className = "error";
+      node.textContent = error.message;
+      main.prepend(node);
+    });
+  </script>
+</body>
+</html>
