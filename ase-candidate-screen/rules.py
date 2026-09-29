@@ -15,7 +15,10 @@ COLORS = {
     "Confirmed": ("C6EFCE", "006100"),
     "Sent": ("FFE2B8", "7A4E00"),
     "Not interested": ("FFC7CE", "9C0006"),
+    "Passing": ("C6EFCE", "006100"),
 }
+
+PASSING_SCORE = 21
 
 SKILL_PRIORITY = (
     "Former Intern",
@@ -168,4 +171,45 @@ def status_formulas(cell: str = "N2") -> list[tuple[str, str]]:
         ("Confirmed", f'TRIM({cell})="{STATUS_CONFIRMED}"'),
         ("Sent", f'TRIM({cell})="{STATUS_SENT}"'),
         ("Not interested", f'TRIM({cell})="{STATUS_NOT_INTERESTED}"'),
+    ]
+
+
+def score_key(value) -> str:
+    """21 is the passing score, so 21 and higher are colored. N/A is colored. Below 21 is not."""
+    if value is None:
+        return "Blank"
+    if isinstance(value, bool):
+        return "Other"
+    text = str(value).strip()
+    if not text:
+        return "Blank"
+    if text.upper() in {"N/A", "NA"}:
+        return "N/A"
+    try:
+        number = float(value) if isinstance(value, (int, float)) else float(text)
+    except ValueError:
+        return "Other"
+    if number >= PASSING_SCORE:
+        return "Passing"
+    return "Below"
+
+
+def score_display(value) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, bool):
+        return str(value).strip()
+    if isinstance(value, float) and value.is_integer():
+        return str(int(value))
+    if isinstance(value, int):
+        return str(value)
+    return str(value).strip()
+
+
+def score_formulas(cell: str = "I2") -> list[tuple[str, str]]:
+    """N/A wins over the numeric rule. 21 and higher count as passing."""
+    text = f'TRIM({cell}&"")'
+    return [
+        ("N/A", f'OR(UPPER({text})="N/A",UPPER({text})="NA")'),
+        ("Passing", f"IFERROR(VALUE({cell}),-1)>={PASSING_SCORE}"),
     ]

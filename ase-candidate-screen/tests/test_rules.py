@@ -4,7 +4,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from rules import graduation_term, primary_skill, skill_formulas, skill_tags, status_key
+from rules import graduation_term, primary_skill, score_formulas, score_key, skill_formulas, skill_tags, status_key
 
 
 class RuleTests(unittest.TestCase):
@@ -45,6 +45,22 @@ class RuleTests(unittest.TestCase):
         self.assertEqual(graduation_term("Dec 2026"), "Dec 2026")
         self.assertEqual(graduation_term("Aug 2026"), "Aug 2026")
         self.assertEqual(graduation_term("August 2026"), "Aug 2026")
+
+    def test_passing_score_includes_21_and_colors_na(self):
+        self.assertEqual(score_key(21), "Passing")
+        self.assertEqual(score_key("21"), "Passing")
+        self.assertEqual(score_key(26), "Passing")
+        self.assertEqual(score_key("26"), "Passing")
+        self.assertEqual(score_key(20), "Below")
+        self.assertEqual(score_key("0"), "Below")
+        self.assertEqual(score_key("N/A"), "N/A")
+        self.assertEqual(score_key(" NA "), "N/A")
+        self.assertEqual(score_key(""), "Blank")
+        self.assertEqual(score_key(None), "Blank")
+
+    def test_score_formulas_check_na_before_passing(self):
+        keys = [key for key, _formula in score_formulas("I2")]
+        self.assertEqual(keys, ["N/A", "Passing"])
 
     def test_sheet_formulas_follow_priority(self):
         keys = [key for key, _formula in skill_formulas("D2")]

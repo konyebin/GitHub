@@ -20,6 +20,7 @@ from rules import (
     STATUS_CONFIRMED,
     STATUS_NOT_INTERESTED,
     STATUS_SENT,
+    score_formulas,
     status_formulas,
 )
 
@@ -30,6 +31,7 @@ STATUS_TEXT = {
 }
 
 NAME_COL = 2  # 1-based
+SCORE_COL = 9
 STATUS_COL = 14
 KEEP_COLS = 14
 
@@ -113,8 +115,9 @@ def write_legend(workbook) -> None:
     sheet["A1"] = "ASE color legend"
     sheet["A1"].font = Font(name="Calibri", bold=True, size=16, color="1C1915")
     sheet["A2"] = (
-        "Only Status is colored. Full name, graduation date, home cities, "
-        "skills and technologies, and notes stay uncolored."
+        "Status and score are colored. A score of 21 or higher is passing. "
+        "N/A scores are colored separately. Scores under 21, full name, graduation date, "
+        "home cities, skills and technologies, and notes stay uncolored."
     )
     sheet["A2"].alignment = Alignment(wrap_text=True, vertical="top")
     sheet.merge_cells("A2:D2")
@@ -132,6 +135,9 @@ def write_legend(workbook) -> None:
         ("Sent", "Status", "Instructions sent", f'Exact text, after trimming spaces: "{STATUS_TEXT["Sent"]}"'),
         ("Not interested", "Status", "Not interested", f'Exact text: "{STATUS_TEXT["Not interested"]}"'),
         (None, "Status", "Blank", "No fill"),
+        ("Passing", "Score", "21 or higher", "Numeric score is 21 or higher. 21 is the passing score."),
+        ("N/A", "Score", "N/A", "Cell is N/A or NA."),
+        (None, "Score", "Under 21", "No fill"),
     ]
     for offset, (color_key, column, label, rule) in enumerate(rows):
         excel_row = 5 + offset
@@ -211,12 +217,17 @@ def write_colored(source: Path, output: Path, names: list[str] | None) -> int:
             cell.border = THIN
         sheet.row_dimensions[row_index].height = 48
 
+    sheet.cell(1, SCORE_COL).comment = Comment(
+        "21 or higher and N/A are colored. Scores under 21 are not.",
+        "ASE screen",
+    )
     sheet.cell(1, STATUS_COL).comment = Comment(
         "Color comes from the Legend sheet.",
         "ASE screen",
     )
 
     last = max(len(chosen) + 1, 200)
+    _add_rules(sheet, score_formulas("I2"), "I", last)
     _add_rules(sheet, status_formulas("N2"), "N", last)
     sheet.page_setup.orientation = "landscape"
     sheet.page_setup.paperSize = sheet.PAPERSIZE_TABLOID

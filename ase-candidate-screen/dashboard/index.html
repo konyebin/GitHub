@@ -118,7 +118,7 @@
 <body>
   <header>
     <h1>ASE candidate screen</h1>
-    <p class="lede">Status colors match the spreadsheet legend. Name, graduation date, home city, skills, and notes stay plain.</p>
+    <p class="lede">Status and score colors match the spreadsheet legend. A score of 21 or higher is passing. N/A scores are marked separately. Scores under 21, name, graduation date, home city, skills, and notes stay plain.</p>
     <div class="banner" id="banner">Loading</div>
   </header>
   <main>
@@ -152,6 +152,7 @@
       { key: "city", label: "Home cities" },
       { key: "skills", label: "Skills and technologies" },
       { key: "notes", label: "Notes" },
+      { key: "score", label: "Score" },
       { key: "status", label: "Status" }
     ];
     const MONTHS = {
@@ -226,6 +227,10 @@
         if (!count) return;
         host.append(chip(count + " " + key, key === "Blank" || key === "Other" ? null : key));
       });
+      const passing = list.filter((row) => row.scoreKey === "Passing").length;
+      const scoreNa = list.filter((row) => row.scoreKey === "N/A").length;
+      if (passing) host.append(chip(passing + " score 21+", "Passing"));
+      if (scoreNa) host.append(chip(scoreNa + " score N/A", "N/A"));
     }
 
     function noteCell(text) {
@@ -257,6 +262,12 @@
       return row[key] || "";
     }
 
+    function scoreRank(row) {
+      if (row.scoreKey !== "Passing" && row.scoreKey !== "Below") return null;
+      const number = Number(row.score);
+      return Number.isFinite(number) ? number : null;
+    }
+
     function graduationRank(row) {
       const term = row.graduationTerm || "";
       const match = term.match(/^([A-Za-z]+)\s+(\d{4})$/);
@@ -269,6 +280,16 @@
       if (sortKey === "graduation") {
         const ar = graduationRank(a);
         const br = graduationRank(b);
+        if (ar == null || br == null) {
+          if (ar == null && br == null) return a.name.localeCompare(b.name);
+          return ar == null ? 1 : -1;
+        }
+        if (ar !== br) return (ar - br) * dir;
+        return a.name.localeCompare(b.name);
+      }
+      if (sortKey === "score") {
+        const ar = scoreRank(a);
+        const br = scoreRank(b);
         if (ar == null || br == null) {
           if (ar == null && br == null) return a.name.localeCompare(b.name);
           return ar == null ? 1 : -1;
@@ -343,10 +364,14 @@
         const notes = document.createElement("td");
         notes.className = "plain";
         notes.append(noteCell(row.notes));
+        const score = document.createElement("td");
+        if (row.scoreKey === "Passing" || row.scoreKey === "N/A") paint(score, row.scoreKey);
+        else score.className = "plain";
+        score.textContent = row.score || "—";
         const status = document.createElement("td");
         paint(status, row.statusKey === "Blank" || row.statusKey === "Other" ? null : row.statusKey);
         status.textContent = row.status || "—";
-        [name, grad, city, skills, notes, status].forEach((cell) => tr.append(cell));
+        [name, grad, city, skills, notes, score, status].forEach((cell) => tr.append(cell));
         table.append(tr);
       });
       card.append(table);
@@ -365,7 +390,10 @@
         ["Confirmed availability", "Confirmed"],
         ["Instructions sent", "Sent"],
         ["Not interested", "Not interested"],
-        ["Blank status", null]
+        ["Blank status", null],
+        ["Score 21 or higher", "Passing"],
+        ["Score N/A", "N/A"],
+        ["Score under 21", null]
       ];
       items.forEach(([label, key]) => host.append(chip(label, key)));
     }

@@ -9,7 +9,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from color_workbook import load_rows, read_names, select_rows, write_colored
-from rules import COLORS, graduation_term, primary_skill, skill_tags, status_key
+from rules import COLORS, graduation_term, primary_skill, score_display, score_key, skill_tags, status_key
 
 ROOT = Path(__file__).resolve().parent
 DASHBOARD = ROOT / "dashboard" / "index.html"
@@ -19,6 +19,7 @@ NAME_INDEX = 1
 GRAD_INDEX = 2
 SKILL_INDEX = 3
 CITY_INDEX = 4
+SCORE_INDEX = 8
 NOTES_INDEX = 11
 STATUS_INDEX = 13
 
@@ -27,6 +28,7 @@ def candidate_payload(row: tuple) -> dict:
     skills = row[SKILL_INDEX]
     status = row[STATUS_INDEX]
     graduation = row[GRAD_INDEX]
+    score = row[SCORE_INDEX]
     return {
         "name": "" if row[NAME_INDEX] is None else str(row[NAME_INDEX]).strip(),
         "graduation": "" if graduation is None else str(graduation).strip(),
@@ -36,6 +38,8 @@ def candidate_payload(row: tuple) -> dict:
         "skillTags": skill_tags(skills),
         "primarySkill": primary_skill(skills),
         "notes": "" if row[NOTES_INDEX] is None else str(row[NOTES_INDEX]).strip(),
+        "score": score_display(score),
+        "scoreKey": score_key(score),
         "status": "" if status is None else str(status).strip(),
         "statusKey": status_key(status),
     }
