@@ -1,0 +1,62 @@
+:root {
+  color-scheme: light;
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  background: #f4f0e6;
+  color: #1c1915;
+}
+
+body {
+  margin: 0;
+}
+
+main {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 4rem;
+}
+
+h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 0 0 0.35rem;
+}
+
+.lede,
+.quiz-count {
+  color: #5c564c;
+}
+
+.lede {
+  margin: 0 0 1.5rem;
+}
+
+#topics {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.topic-card {
+  background: #fffdf8;
+  border: 1px solid #ddd4c4;
+  border-radius: 0.6rem;
+  padding: 1rem 1.1rem 0.85rem;
+}
+
+.topic-card h2 {
+  font-size: 1.15rem;
+  margin: 0;
+}
+
+.quiz-count {
+  margin: 0.2rem 0 0.6rem;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.85rem;
+}
+
+.topic-card ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}

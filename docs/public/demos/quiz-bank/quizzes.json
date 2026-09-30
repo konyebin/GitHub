@@ -1,0 +1,70 @@
+[
+  {
+    "id": "ospf-areas",
+    "title": "OSPF routing areas",
+    "description": "OSPF routing protocol router area prefix neighbor.",
+    "questions": [
+      {
+        "prompt": "Which routing protocol uses a backbone area?",
+        "choices": ["OSPF", "RIP", "Static"],
+        "answerIndex": 0
+      },
+      {
+        "prompt": "What is the OSPF backbone area number?",
+        "choices": ["0", "1", "51"],
+        "answerIndex": 0
+      }
+    ]
+  },
+  {
+    "id": "bgp-peers",
+    "title": "BGP routing peers",
+    "description": "BGP routing protocol router prefix neighbor sessions.",
+    "questions": [
+      {
+        "prompt": "What does a routing protocol peer advertise?",
+        "choices": ["Prefixes", "Passwords", "VLANs"],
+        "answerIndex": 0
+      },
+      {
+        "prompt": "Which protocol forms a neighbor session between routers?",
+        "choices": ["BGP", "NTP", "SMTP"],
+        "answerIndex": 0
+      }
+    ]
+  },
+  {
+    "id": "python-lists",
+    "title": "Python lists",
+    "description": "Python list methods.",
+    "questions": [
+      {
+        "prompt": "Which method adds to a Python list?",
+        "choices": ["append", "commit", "compile"],
+        "answerIndex": 0
+      },
+      {
+        "prompt": "What does a Python list store?",
+        "choices": ["Ordered items", "Only numbers", "Only keys"],
+        "answerIndex": 0
+      }
+    ]
+  },
+  {
+    "id": "tudor-monarchs",
+    "title": "Tudor monarchs",
+    "description": "Tudor kings and queens of England.",
+    "questions": [
+      {
+        "prompt": "Who was the first Tudor monarch?",
+        "choices": ["Henry VII", "Henry VIII", "Elizabeth I"],
+        "answerIndex": 0
+      },
+      {
+        "prompt": "Which Tudor queen ruled after Mary I?",
+        "choices": ["Elizabeth I", "Anne", "Victoria"],
+        "answerIndex": 0
+      }
+    ]
+  }
+]

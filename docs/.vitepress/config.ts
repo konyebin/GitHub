@@ -51,6 +51,7 @@ export default defineConfig({
           { text: "GenAI-Bootcamp", link: "/projects/genai-bootcamp" },
           { text: "AI Receptionist deck", link: "/projects/ai-receptionist-deck" },
           { text: "CTFMonopoly", link: "/projects/ctfmonopoly" },
+          { text: "Quiz bank", link: "/projects/quiz-bank" },
           { text: "Autonomous-Ai-drone-scripts", link: "/projects/autonomous-ai-drone-scripts" },
         ],
       },
