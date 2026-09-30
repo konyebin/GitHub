@@ -6,160 +6,206 @@
   <title>ASE candidate screen</title>
   <style>
     :root {
-      --ink: #1c1915;
-      --muted: #5c564c;
-      --line: #e4dcd0;
-      --paper: #f6f1e8;
-      --card: #fffdf8;
-      --header: #1c1915;
+      --cisco-navy: #0d274d;
+      --cisco-blue: #049fd9;
+      --cisco-deep: #004baf;
+      --cisco-ink: #0d274d;
+      --cisco-muted: #58585b;
+      --cisco-line: #c6c7ca;
+      --cisco-canvas: #e8ebf1;
+      --cisco-card: #ffffff;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      background: var(--paper);
-      color: var(--ink);
-      font: 15px/1.45 "Segoe UI", Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      background: var(--cisco-canvas);
+      color: var(--cisco-ink);
+      font: 14px/1.45 "Helvetica Neue", Helvetica, Arial, sans-serif;
     }
-    header, main { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
-    header { padding: 28px 0 8px; }
-    h1 { font-size: 28px; line-height: 1.15; margin: 0 0 6px; letter-spacing: -0.02em; }
-    .lede { margin: 0; color: var(--muted); max-width: 68ch; }
-    .banner {
-      display: inline-block;
-      margin-top: 12px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: #1c1915;
-      color: #fffdf8;
-      font-size: 12px;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
+    .sidebar {
+      width: 228px;
+      flex: none;
+      margin: 16px 0 16px 16px;
+      padding: 22px 14px;
+      background: var(--cisco-deep);
+      color: #fff;
+      border-radius: 0 28px 28px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
     }
-    section { margin: 18px 0; }
-    h2 { font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; margin: 0 0 8px; color: var(--muted); }
-    .legend, .counts, .filters { display: flex; flex-wrap: wrap; gap: 8px; }
-    .hint { margin: -4px 0 8px; color: var(--muted); font-size: 13px; }
-    .counts button {
-      margin: 0;
+    .brand { font-size: 20px; font-weight: 700; letter-spacing: -0.03em; padding: 0 10px; }
+    .brand span { display: block; font-size: 12px; font-weight: 500; opacity: 0.8; letter-spacing: 0; }
+    nav { display: flex; flex-direction: column; gap: 6px; }
+    nav button {
+      text-align: left;
+      border: 0;
+      background: transparent;
+      color: #fff;
       font: inherit;
+      font-weight: 600;
+      padding: 12px 14px;
+      border-radius: 14px;
+      cursor: pointer;
+    }
+    nav button[aria-current="page"] { background: #fff; color: var(--cisco-deep); }
+    .workspace { flex: 1; min-width: 0; padding: 22px 22px 28px; }
+    .top { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
+    h1 { margin: 0; font-size: 28px; letter-spacing: -0.03em; }
+    .sub { margin: 4px 0 0; color: var(--cisco-muted); }
+    .actions { display: flex; gap: 8px; align-items: center; }
+    .actions button, .panel button.done {
+      border: 0;
+      background: var(--cisco-deep);
+      color: #fff;
+      font: inherit;
+      font-weight: 650;
+      border-radius: 10px;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+    .actions button.ghost { background: #fff; color: var(--cisco-deep); border: 1px solid var(--cisco-line); }
+    .saved { color: var(--cisco-muted); font-size: 12px; }
+    .counts, .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .counts button, .swatch {
+      border-radius: 999px;
+      padding: 6px 12px;
       font-size: 13px;
       font-weight: 650;
       cursor: pointer;
-      border-radius: 999px;
-      padding: 4px 10px;
-    }
-    .counts button[aria-pressed="true"] { box-shadow: 0 0 0 2px #1c1915; }
-    .swatch, .count, .tag, .status {
-      border-radius: 999px;
-      padding: 4px 10px;
-      font-size: 13px;
+      border: 0;
+      font: inherit;
       font-weight: 650;
     }
-    .swatch small, .count small { font-weight: 500; }
-    .filters { align-items: end; }
-    label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
-    input, select {
+    .counts button[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--cisco-navy); }
+    .filters label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--cisco-muted); }
+    input, select, textarea {
       font: inherit;
-      color: var(--ink);
-      background: var(--card);
-      border: 1px solid var(--line);
+      color: var(--cisco-ink);
+      background: #fff;
+      border: 1px solid var(--cisco-line);
       border-radius: 8px;
       padding: 8px 10px;
-      min-width: 180px;
     }
-    .card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      overflow: auto;
-    }
-    table { width: 100%; border-collapse: collapse; min-width: 880px; }
-    th {
-      text-align: left;
-      font-size: 12px;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: #fffdf8;
-      background: var(--header);
-      padding: 0;
-      position: sticky;
-      top: 0;
-    }
-    th button {
+    .board {
+      margin-top: 16px;
       background: transparent;
+      overflow: auto;
+      max-height: calc(100vh - 250px);
+    }
+    table { width: 100%; border-collapse: separate; border-spacing: 0 8px; min-width: 980px; }
+    th { text-align: left; font-size: 12px; color: var(--cisco-muted); font-weight: 650; padding: 0 8px; }
+    th .th-wrap { display: flex; align-items: center; gap: 4px; }
+    th button.sort, th button.band {
       border: 0;
-      margin: 0;
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      padding: 10px 12px;
+      background: transparent;
       color: inherit;
       font: inherit;
-      letter-spacing: inherit;
-      text-transform: inherit;
-      text-decoration: none;
-      text-align: left;
+      font-weight: 650;
       cursor: pointer;
-    }
-    th button:focus-visible { outline: 2px solid #fffdf8; outline-offset: -4px; }
-    th .mark { opacity: 0.45; font-size: 11px; }
-    th[aria-sort="ascending"] .mark,
-    th[aria-sort="descending"] .mark { opacity: 1; }
-    td { vertical-align: top; padding: 12px; border-bottom: 1px solid var(--line); }
-    td a { color: #003a70; font-weight: 650; }
-    tr:last-child td { border-bottom: 0; }
-    .plain { background: #fffdf8; }
-    .skill-text, .note-text { margin: 0; white-space: pre-wrap; }
-    .tags { margin-top: 8px; }
-    td button {
-      margin-top: 8px;
-      font: inherit;
-      background: transparent;
-      border: 0;
       padding: 0;
-      color: #003a70;
-      cursor: pointer;
-      text-decoration: underline;
     }
-    .empty { padding: 24px; color: var(--muted); }
-    .error { padding: 16px; background: #ffc7ce; color: #9c0006; border-radius: 10px; }
+    th button.band { width: 22px; height: 22px; border-radius: 6px; background: #fff; color: var(--cisco-deep); }
+    td {
+      background: #fff;
+      padding: 12px;
+      vertical-align: top;
+      border-top: 1px solid #f2f3f5;
+      border-bottom: 1px solid #f2f3f5;
+    }
+    td:first-child { border-radius: 12px 0 0 12px; border-left: 1px solid #f2f3f5; }
+    td:last-child { border-radius: 0 12px 12px 0; border-right: 1px solid #f2f3f5; }
+    tr.selected td { box-shadow: inset 0 0 0 1px var(--cisco-blue); }
+    td a { color: var(--cisco-deep); font-weight: 700; }
+    .group { text-align: center; color: var(--cisco-navy); letter-spacing: 0.04em; text-transform: uppercase; }
+    .note-text, .skill-text { margin: 0; white-space: pre-wrap; }
+    td button.note {
+      margin-top: 6px;
+      border: 0;
+      background: transparent;
+      color: var(--cisco-deep);
+      cursor: pointer;
+      padding: 0;
+      text-decoration: underline;
+      font: inherit;
+    }
+    td textarea { width: 100%; min-width: 160px; min-height: 64px; }
+    td input.score-input { width: 72px; }
+    .empty { padding: 24px; color: var(--cisco-muted); }
+    .footer { margin-top: 8px; color: var(--cisco-muted); font-size: 12px; }
+    .panel {
+      position: fixed;
+      z-index: 5;
+      width: 320px;
+      background: #fff;
+      border: 1px solid var(--cisco-line);
+      border-radius: 14px;
+      box-shadow: 0 16px 40px rgba(13, 39, 77, 0.16);
+      padding: 12px;
+    }
+    .panel h2 { margin: 0 0 8px; font-size: 14px; }
+    .panel label { display: block; font-size: 12px; color: var(--cisco-muted); margin-top: 8px; }
+    .band-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+    .hint { margin: 8px 0 0; color: var(--cisco-muted); font-size: 13px; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>ASE candidate screen</h1>
-    <p class="lede">Status and score colors match the spreadsheet legend. Scores above 23 are green, and 21 through 23 are yellow. N/A scores are marked separately. Scores under 21, graduation date, home city, skills, and notes stay plain. Each name opens a LinkedIn search for that name and home city.</p>
-    <div class="banner" id="banner">Loading</div>
-  </header>
-  <main>
-    <section>
-      <h2>Legend</h2>
-      <div class="legend" id="legend"></div>
-    </section>
-    <section>
-      <h2>Counts</h2>
-      <p class="hint">Click a count to show those rows. Click it again, or All, to clear.</p>
-      <div class="counts" id="counts"></div>
-    </section>
-    <section>
-      <h2>Filters</h2>
-      <div class="filters">
-        <label>Name <input id="search" type="search" placeholder="Search full name"></label>
-        <label>Status <select id="status"></select></label>
-        <label>Skill tag <select id="skill"></select></label>
-        <label>Graduation term <select id="term"></select></label>
+  <aside class="sidebar">
+    <div class="brand">ASE<span>Candidate screen</span></div>
+    <nav>
+      <button type="button" id="nav-pre" aria-current="page">Pre-assessment</button>
+      <button type="button" id="nav-post">Post interview</button>
+    </nav>
+  </aside>
+  <div class="workspace">
+    <div class="top">
+      <div>
+        <h1 id="title">Pre-assessment</h1>
+        <p class="sub" id="subtitle"></p>
       </div>
-    </section>
-    <section>
-      <div class="card" id="table-card"></div>
-    </section>
-  </main>
+      <div class="actions">
+        <span class="saved" id="saved"></span>
+        <button type="button" id="save-view">Save view</button>
+        <button type="button" class="ghost" id="reset-view">Reset view</button>
+      </div>
+    </div>
+    <div class="counts" id="counts"></div>
+    <div class="filters">
+      <label>Name <input id="search" type="search" placeholder="Search full name"></label>
+      <label>Status <select id="status"></select></label>
+      <label>Skill tag <select id="skill"></select></label>
+      <label>Graduation term <select id="term"></select></label>
+    </div>
+    <p class="hint" id="view-hint"></p>
+    <div class="board" id="table-card"></div>
+    <div class="footer" id="footer"></div>
+  </div>
+  <div class="panel" id="band-panel" hidden>
+    <h2 id="band-title">Color bands</h2>
+    <label>Colors in this column
+      <select id="band-count">
+        <option value="2">2 colors</option>
+        <option value="3">3 colors</option>
+        <option value="4">4 colors</option>
+      </select>
+    </label>
+    <div id="band-rules"></div>
+    <button type="button" class="done" id="band-close">Done</button>
+  </div>
   <script>
+    const STORAGE_KEY = "ase-candidate-screen-state";
     const STATUS_ORDER = ["Confirmed", "Sent", "Not interested", "Blank", "Other"];
     const SKILL_ORDER = ["Former Intern", "Studying", "Certification", "Degree", "Experience", "N/A"];
-    const COLUMNS = [
+    const PALETTE = [
+      { id: "Passing", label: "Green", fill: "C6EFCE", font: "006100" },
+      { id: "NearPass", label: "Yellow", fill: "FFF3A0", font: "6B5300" },
+      { id: "Sent", label: "Amber", fill: "FFE2B8", font: "7A4E00" },
+      { id: "Not interested", label: "Red", fill: "FFC7CE", font: "9C0006" },
+      { id: "N/A", label: "Gray", fill: "E7E5E4", font: "44403C" }
+    ];
+    const PRE_COLUMNS = [
       { key: "name", label: "Full name" },
       { key: "graduation", label: "Graduation date" },
       { key: "city", label: "Home cities" },
@@ -168,36 +214,133 @@
       { key: "score", label: "Score" },
       { key: "status", label: "Status" }
     ];
+    const POST_SCORE = [
+      { key: "rolePlayScore", label: "Assessed role play" },
+      { key: "presentationScore", label: "Presentation" },
+      { key: "interviewScore", label: "Interview" }
+    ];
+    const POST_FEEDBACK = [
+      { key: "rolePlayFeedback", label: "Assessed role play" },
+      { key: "presentationFeedback", label: "Presentation" },
+      { key: "interviewFeedback", label: "Interview" }
+    ];
     const MONTHS = {
       jan: 1, january: 1, feb: 2, february: 2, mar: 3, march: 3,
       apr: 4, april: 4, may: 5, jun: 6, june: 6, jul: 7, july: 7,
       aug: 8, august: 8, sep: 9, sept: 9, september: 9, oct: 10, october: 10,
       nov: 11, november: 11, dec: 12, december: 12
     };
+    const MODES = [
+      ["gt", "Above"],
+      ["gte", "At least"],
+      ["eq", "Equals"],
+      ["contains", "Contains"]
+    ];
+
     let rows = [];
     let colors = {};
+    let view = "pre";
     let sortKey = null;
     let sortDir = "asc";
     let scoreFilter = "";
+    let selectedId = "";
+    let postData = {};
+    let colorConfig = {};
+    let openBandKey = "";
 
-    function chip(label, key) {
-      const node = document.createElement("span");
-      node.className = "swatch";
-      node.textContent = label;
-      paint(node, key);
-      return node;
+    function blankRules() {
+      return [
+        { color: "Passing", mode: "contains", value: "" },
+        { color: "NearPass", mode: "contains", value: "" },
+        { color: "Sent", mode: "contains", value: "" },
+        { color: "Not interested", mode: "contains", value: "" }
+      ];
+    }
+
+    function defaultConfig() {
+      const text = () => ({ bands: 2, rules: blankRules() });
+      const score = () => ({
+        bands: 3,
+        rules: [
+          { color: "Passing", mode: "gt", value: "23" },
+          { color: "NearPass", mode: "gte", value: "21" },
+          { color: "N/A", mode: "eq", value: "N/A" },
+          { color: "Sent", mode: "contains", value: "" }
+        ]
+      });
+      const config = {};
+      PRE_COLUMNS.forEach((column) => { config[column.key] = text(); });
+      config.score = score();
+      config.status = {
+        bands: 3,
+        rules: [
+          { color: "Passing", mode: "eq", value: "Sent Assessment Center Instructions and Candidate Confirmed Availability" },
+          { color: "Sent", mode: "eq", value: "Sent Assessment Center Instructions" },
+          { color: "Not interested", mode: "eq", value: "Not interested in the role" },
+          { color: "N/A", mode: "eq", value: "" }
+        ]
+      };
+      POST_SCORE.forEach((column) => { config[column.key] = score(); });
+      POST_FEEDBACK.forEach((column) => { config[column.key] = text(); });
+      return config;
+    }
+
+    function paletteById(id) {
+      return PALETTE.find((item) => item.id === id) || null;
+    }
+
+    function ruleMatches(value, rule) {
+      const text = String(value ?? "").trim();
+      const threshold = String(rule.value ?? "").trim();
+      if (!threshold) return false;
+      const number = Number(text);
+      const cut = Number(threshold);
+      const numeric = text !== "" && Number.isFinite(number) && Number.isFinite(cut);
+      if (rule.mode === "gt") return numeric && number > cut;
+      if (rule.mode === "gte") return numeric && number >= cut;
+      if (rule.mode === "eq") return text.toLowerCase() === threshold.toLowerCase();
+      if (rule.mode === "contains") return text.toLowerCase().includes(threshold.toLowerCase());
+      return false;
+    }
+
+    function bandStyle(value, key) {
+      const config = colorConfig[key];
+      if (!config) return null;
+      const rules = config.rules.slice(0, Number(config.bands) || 2);
+      for (const rule of rules) {
+        if (ruleMatches(value, rule)) return paletteById(rule.color);
+      }
+      return null;
     }
 
     function paint(node, key) {
-      const pair = colors[key];
+      const pair = key && colors[key];
       if (!pair) {
-        node.style.background = "#fffdf8";
-        node.style.color = "#1c1915";
-        node.style.border = "1px solid #e4dcd0";
+        node.style.background = "#fff";
+        node.style.color = "var(--cisco-ink)";
         return;
       }
       node.style.background = "#" + pair[0];
       node.style.color = "#" + pair[1];
+    }
+
+    function paintCell(node, style) {
+      if (!style) {
+        node.style.background = "";
+        node.style.color = "";
+        return;
+      }
+      node.style.background = "#" + style.fill;
+      node.style.color = "#" + style.font;
+    }
+
+    function cellValue(row, key) {
+      const edited = postData[row.id] || {};
+      if (Object.prototype.hasOwnProperty.call(edited, key) && edited[key] !== undefined && POST_SCORE.concat(POST_FEEDBACK).some((column) => column.key === key)) {
+        return edited[key];
+      }
+      if (key === "status") return row.status || "";
+      return row[key] || "";
     }
 
     function unique(values) {
@@ -205,6 +348,7 @@
     }
 
     function fillSelect(select, values) {
+      const current = select.value;
       select.innerHTML = "";
       const all = document.createElement("option");
       all.value = "";
@@ -216,6 +360,7 @@
         option.textContent = value;
         select.append(option);
       });
+      if ([...select.options].some((option) => option.value === current)) select.value = current;
     }
 
     function matches(row, options) {
@@ -243,7 +388,6 @@
     function countButton(label, colorKey, pressed, onClick) {
       const button = document.createElement("button");
       button.type = "button";
-      button.className = "swatch";
       button.textContent = label;
       button.setAttribute("aria-pressed", pressed ? "true" : "false");
       paint(button, colorKey);
@@ -260,6 +404,7 @@
         scoreFilter = "";
         render();
       }));
+      if (view !== "pre") return;
       STATUS_ORDER.forEach((key) => {
         const count = list.filter((row) => row.statusKey === key).length;
         if (!count) return;
@@ -268,12 +413,7 @@
           render();
         }));
       });
-      [
-        ["Passing", "score above 23"],
-        ["NearPass", "score 21–23"],
-        ["N/A", "score N/A"],
-        ["Below", "score under 21"]
-      ].forEach(([key, label]) => {
+      [["Passing", "score above 23"], ["NearPass", "score 21–23"], ["N/A", "score N/A"], ["Below", "score under 21"]].forEach(([key, label]) => {
         const count = list.filter((row) => row.scoreKey === key).length;
         if (!count) return;
         host.append(countButton(count + " " + label, key === "Below" ? null : key, scoreFilter === key, () => {
@@ -289,15 +429,16 @@
       paragraph.className = "note-text";
       const full = text || "";
       const limit = 180;
-      const truncated = full.length > limit;
-      paragraph.textContent = truncated ? full.slice(0, limit).trimEnd() + "…" : full;
+      paragraph.textContent = full.length > limit ? full.slice(0, limit).trimEnd() + "…" : full;
       wrap.append(paragraph);
-      if (truncated) {
+      if (full.length > limit) {
         const button = document.createElement("button");
         button.type = "button";
+        button.className = "note";
         button.textContent = "Show full note";
         let open = false;
-        button.addEventListener("click", () => {
+        button.addEventListener("click", (event) => {
+          event.stopPropagation();
           open = !open;
           paragraph.textContent = open ? full : full.slice(0, limit).trimEnd() + "…";
           button.textContent = open ? "Hide full note" : "Show full note";
@@ -305,17 +446,6 @@
         wrap.append(button);
       }
       return wrap;
-    }
-
-    function textValue(row, key) {
-      if (key === "status") return row.status || "";
-      return row[key] || "";
-    }
-
-    function scoreRank(row) {
-      if (row.scoreKey !== "Passing" && row.scoreKey !== "NearPass" && row.scoreKey !== "Below") return null;
-      const number = Number(row.score);
-      return Number.isFinite(number) ? number : null;
     }
 
     function graduationRank(row) {
@@ -330,32 +460,41 @@
       if (sortKey === "graduation") {
         const ar = graduationRank(a);
         const br = graduationRank(b);
-        if (ar == null || br == null) {
-          if (ar == null && br == null) return a.name.localeCompare(b.name);
-          return ar == null ? 1 : -1;
-        }
+        if (ar == null || br == null) return ar == null && br == null ? a.name.localeCompare(b.name) : (ar == null ? 1 : -1);
         if (ar !== br) return (ar - br) * dir;
         return a.name.localeCompare(b.name);
       }
-      if (sortKey === "score") {
-        const ar = scoreRank(a);
-        const br = scoreRank(b);
-        if (ar == null || br == null) {
-          if (ar == null && br == null) return a.name.localeCompare(b.name);
-          return ar == null ? 1 : -1;
-        }
-        if (ar !== br) return (ar - br) * dir;
-        return a.name.localeCompare(b.name);
-      }
-      const av = textValue(a, sortKey).trim();
-      const bv = textValue(b, sortKey).trim();
-      if (!av || !bv) {
-        if (!av && !bv) return a.name.localeCompare(b.name);
-        return !av ? 1 : -1;
-      }
+      const av = String(cellValue(a, sortKey) || "").trim();
+      const bv = String(cellValue(b, sortKey) || "").trim();
+      if (!av || !bv) return !av && !bv ? a.name.localeCompare(b.name) : (!av ? 1 : -1);
       const compared = av.localeCompare(bv, undefined, { numeric: true, sensitivity: "base" });
-      if (compared !== 0) return compared * dir;
-      return a.name.localeCompare(b.name);
+      return compared === 0 ? a.name.localeCompare(b.name) : compared * dir;
+    }
+
+    function headerButton(column) {
+      const wrap = document.createElement("div");
+      wrap.className = "th-wrap";
+      const sort = document.createElement("button");
+      sort.type = "button";
+      sort.className = "sort";
+      const active = sortKey === column.key;
+      sort.textContent = column.label + " " + (active ? (sortDir === "asc" ? "↑" : "↓") : "↕");
+      sort.addEventListener("click", () => {
+        if (sortKey === column.key) sortDir = sortDir === "asc" ? "desc" : "asc";
+        else { sortKey = column.key; sortDir = "asc"; }
+        render();
+      });
+      const band = document.createElement("button");
+      band.type = "button";
+      band.className = "band";
+      band.textContent = "▾";
+      band.setAttribute("aria-label", "Color bands for " + column.label);
+      band.addEventListener("click", (event) => {
+        event.stopPropagation();
+        openBandPanel(column.key, column.label, band);
+      });
+      wrap.append(sort, band);
+      return wrap;
     }
 
     function renderTable(list) {
@@ -369,120 +508,257 @@
         return;
       }
       const table = document.createElement("table");
-      const head = document.createElement("tr");
-      COLUMNS.forEach((column) => {
-        const cell = document.createElement("th");
-        const active = sortKey === column.key;
-        cell.setAttribute("aria-sort", active ? (sortDir === "asc" ? "ascending" : "descending") : "none");
-        const button = document.createElement("button");
-        button.type = "button";
-        const label = document.createElement("span");
-        label.textContent = column.label;
-        const mark = document.createElement("span");
-        mark.className = "mark";
-        mark.textContent = active ? (sortDir === "asc" ? "↑" : "↓") : "↕";
-        button.append(label, mark);
-        button.addEventListener("click", () => {
-          if (sortKey === column.key) sortDir = sortDir === "asc" ? "desc" : "asc";
-          else {
-            sortKey = column.key;
-            sortDir = "asc";
-          }
-          render();
+      if (view === "pre") {
+        const head = document.createElement("tr");
+        PRE_COLUMNS.forEach((column) => {
+          const cell = document.createElement("th");
+          cell.append(headerButton(column));
+          head.append(cell);
         });
-        cell.append(button);
-        head.append(cell);
-      });
-      table.append(head);
+        table.append(head);
+      } else {
+        const group = document.createElement("tr");
+        const nameHead = document.createElement("th");
+        nameHead.append(headerButton({ key: "name", label: "Full name" }));
+        const scoreHead = document.createElement("th");
+        scoreHead.colSpan = 3;
+        scoreHead.className = "group";
+        scoreHead.textContent = "Score";
+        const feedbackHead = document.createElement("th");
+        feedbackHead.colSpan = 3;
+        feedbackHead.className = "group";
+        feedbackHead.textContent = "Feedback";
+        group.append(nameHead, scoreHead, feedbackHead);
+        const sub = document.createElement("tr");
+        POST_SCORE.concat(POST_FEEDBACK).forEach((column) => {
+          const cell = document.createElement("th");
+          cell.append(headerButton(column));
+          sub.append(cell);
+        });
+        table.append(group, sub);
+      }
       list.forEach((row) => {
         const tr = document.createElement("tr");
-        const name = document.createElement("td");
-        name.className = "plain";
-        if (row.linkedin) {
-          const link = document.createElement("a");
-          link.href = row.linkedin;
-          link.target = "_blank";
-          link.rel = "noopener noreferrer";
-          link.textContent = row.name;
-          name.append(link);
+        if (row.id === selectedId) tr.className = "selected";
+        tr.addEventListener("click", () => {
+          selectedId = row.id;
+          render();
+        });
+        if (view === "pre") {
+          PRE_COLUMNS.forEach((column) => tr.append(preCell(row, column.key)));
         } else {
-          name.textContent = row.name;
+          tr.append(preCell(row, "name"));
+          POST_SCORE.forEach((column) => tr.append(editCell(row, column.key, "input")));
+          POST_FEEDBACK.forEach((column) => tr.append(editCell(row, column.key, "textarea")));
         }
-        const grad = document.createElement("td");
-        grad.className = "plain";
-        grad.textContent = row.graduation;
-        const city = document.createElement("td");
-        city.className = "plain";
-        city.textContent = row.city;
-        const skills = document.createElement("td");
-        skills.className = "plain";
-        const skillText = document.createElement("p");
-        skillText.className = "skill-text";
-        skillText.textContent = row.skills;
-        skills.append(skillText);
-        const notes = document.createElement("td");
-        notes.className = "plain";
-        notes.append(noteCell(row.notes));
-        const score = document.createElement("td");
-        if (row.scoreKey === "Passing" || row.scoreKey === "NearPass" || row.scoreKey === "N/A") paint(score, row.scoreKey);
-        else score.className = "plain";
-        score.textContent = row.score || "—";
-        const status = document.createElement("td");
-        paint(status, row.statusKey === "Blank" || row.statusKey === "Other" ? null : row.statusKey);
-        status.textContent = row.status || "—";
-        [name, grad, city, skills, notes, score, status].forEach((cell) => tr.append(cell));
         table.append(tr);
       });
       card.append(table);
     }
 
-    function render() {
-      const list = visible();
-      if (sortKey) list.sort(compareRows);
-      renderCounts(countPool());
-      renderTable(list);
+    function preCell(row, key) {
+      const cell = document.createElement("td");
+      const value = cellValue(row, key);
+      paintCell(cell, bandStyle(value, key));
+      if (key === "name" && row.linkedin) {
+        const link = document.createElement("a");
+        link.href = row.linkedin;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = row.name;
+        link.addEventListener("click", (event) => event.stopPropagation());
+        cell.append(link);
+      } else if (key === "notes") {
+        cell.append(noteCell(value));
+      } else if (key === "skills") {
+        const paragraph = document.createElement("p");
+        paragraph.className = "skill-text";
+        paragraph.textContent = value;
+        cell.append(paragraph);
+      } else {
+        cell.textContent = value || "—";
+      }
+      return cell;
     }
 
-    function renderLegend() {
-      const host = document.getElementById("legend");
-      const items = [
-        ["Confirmed availability", "Confirmed"],
-        ["Instructions sent", "Sent"],
-        ["Not interested", "Not interested"],
-        ["Blank status", null],
-        ["Score above 23", "Passing"],
-        ["Score 21 to 23", "NearPass"],
-        ["Score N/A", "N/A"],
-        ["Score under 21", null]
-      ];
-      items.forEach(([label, key]) => host.append(chip(label, key)));
+    function editCell(row, key, kind) {
+      const cell = document.createElement("td");
+      const field = document.createElement(kind);
+      if (kind === "input") field.className = "score-input";
+      field.value = cellValue(row, key);
+      paintCell(cell, bandStyle(field.value, key));
+      field.addEventListener("click", (event) => event.stopPropagation());
+      field.addEventListener("input", () => {
+        postData[row.id] = postData[row.id] || {};
+        postData[row.id][key] = field.value;
+        paintCell(cell, bandStyle(field.value, key));
+      });
+      cell.append(field);
+      return cell;
     }
+
+    function openBandPanel(key, label, anchor) {
+      openBandKey = key;
+      const panel = document.getElementById("band-panel");
+      const rect = anchor.getBoundingClientRect();
+      panel.hidden = false;
+      panel.style.top = Math.min(rect.bottom + 6, window.innerHeight - 360) + "px";
+      panel.style.left = Math.min(rect.left, window.innerWidth - 340) + "px";
+      document.getElementById("band-title").textContent = label + " colors";
+      const config = colorConfig[key];
+      const count = document.getElementById("band-count");
+      count.value = String(config.bands);
+      count.onchange = () => {
+        config.bands = Number(count.value);
+        render();
+        const button = [...document.querySelectorAll("th button.band")].find((item) => item.getAttribute("aria-label") === "Color bands for " + label);
+        if (button) openBandPanel(key, label, button);
+      };
+      drawBandRules();
+    }
+
+    function drawBandRules() {
+      const host = document.getElementById("band-rules");
+      const config = colorConfig[openBandKey];
+      host.innerHTML = "";
+      config.rules.slice(0, config.bands).forEach((rule, index) => {
+        const row = document.createElement("div");
+        row.className = "band-row";
+        const color = document.createElement("select");
+        PALETTE.forEach((item) => {
+          const option = document.createElement("option");
+          option.value = item.id;
+          option.textContent = item.label;
+          color.append(option);
+        });
+        color.value = rule.color;
+        const mode = document.createElement("select");
+        MODES.forEach(([value, text]) => {
+          const option = document.createElement("option");
+          option.value = value;
+          option.textContent = text;
+          mode.append(option);
+        });
+        mode.value = rule.mode;
+        const value = document.createElement("input");
+        value.value = rule.value;
+        value.placeholder = "Threshold";
+        value.style.gridColumn = "1 / -1";
+        const apply = () => {
+          rule.color = color.value;
+          rule.mode = mode.value;
+          rule.value = value.value;
+          render();
+        };
+        color.addEventListener("change", apply);
+        mode.addEventListener("change", apply);
+        value.addEventListener("change", apply);
+        row.append(color, mode, value);
+        host.append(row);
+      });
+    }
+
+    function render() {
+      document.getElementById("nav-pre").setAttribute("aria-current", view === "pre" ? "page" : "false");
+      document.getElementById("nav-post").setAttribute("aria-current", view === "post" ? "page" : "false");
+      document.getElementById("title").textContent = view === "pre" ? "Pre-assessment" : "Post interview";
+      document.getElementById("view-hint").textContent = view === "post"
+        ? "Role play, presentation, and interview scores and feedback are entered here. Save view keeps them with the filters and sort."
+        : "Each column has a color control. Choose 2, 3, or 4 bands and set a threshold for each. The first match wins.";
+      const list = visible();
+      if (sortKey) list.sort(compareRows);
+      document.getElementById("subtitle").textContent = list.length + " candidates";
+      renderCounts(countPool());
+      renderTable(list);
+      document.getElementById("footer").textContent = list.length
+        ? "Showing 1–" + list.length + " of " + rows.length
+        : "Showing 0 of " + rows.length;
+    }
+
+    function snapshot() {
+      return {
+        view, sortKey, sortDir, scoreFilter, selectedId, postData, colorConfig,
+        search: document.getElementById("search").value,
+        status: document.getElementById("status").value,
+        skill: document.getElementById("skill").value,
+        term: document.getElementById("term").value
+      };
+    }
+
+    function applySnapshot(saved) {
+      if (!saved) return;
+      view = saved.view === "post" ? "post" : "pre";
+      sortKey = saved.sortKey || null;
+      sortDir = saved.sortDir === "desc" ? "desc" : "asc";
+      scoreFilter = saved.scoreFilter || "";
+      selectedId = saved.selectedId || "";
+      postData = saved.postData || {};
+      const defaults = defaultConfig();
+      colorConfig = defaults;
+      if (saved.colorConfig) {
+        Object.keys(defaults).forEach((key) => {
+          const incoming = saved.colorConfig[key];
+          if (!incoming || !Array.isArray(incoming.rules)) return;
+          colorConfig[key] = {
+            bands: [2, 3, 4].includes(Number(incoming.bands)) ? Number(incoming.bands) : defaults[key].bands,
+            rules: defaults[key].rules.map((rule, index) => ({ ...rule, ...(incoming.rules[index] || {}) }))
+          };
+        });
+      }
+      document.getElementById("search").value = saved.search || "";
+      document.getElementById("status").value = saved.status || "";
+      document.getElementById("skill").value = saved.skill || "";
+      document.getElementById("term").value = saved.term || "";
+    }
+
+    document.getElementById("nav-pre").addEventListener("click", () => { view = "pre"; openBandKey = ""; document.getElementById("band-panel").hidden = true; render(); });
+    document.getElementById("nav-post").addEventListener("click", () => { view = "post"; openBandKey = ""; document.getElementById("band-panel").hidden = true; render(); });
+    document.getElementById("band-close").addEventListener("click", () => { document.getElementById("band-panel").hidden = true; openBandKey = ""; });
+    document.getElementById("save-view").addEventListener("click", () => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot()));
+      document.getElementById("saved").textContent = "View saved on this browser";
+    });
+    document.getElementById("reset-view").addEventListener("click", () => {
+      localStorage.removeItem(STORAGE_KEY);
+      colorConfig = defaultConfig();
+      postData = {};
+      view = "pre";
+      sortKey = null;
+      sortDir = "asc";
+      scoreFilter = "";
+      selectedId = "";
+      document.getElementById("search").value = "";
+      document.getElementById("status").value = "";
+      document.getElementById("skill").value = "";
+      document.getElementById("term").value = "";
+      document.getElementById("saved").textContent = "View reset";
+      document.getElementById("band-panel").hidden = true;
+      render();
+    });
 
     async function start() {
       const response = await fetch("/api/candidates");
       if (!response.ok) throw new Error("Dashboard data did not load");
       const data = await response.json();
-      rows = data.candidates;
+      rows = data.candidates.map((row) => ({ ...row, id: row.id || row.name }));
       colors = data.colors;
-      document.getElementById("banner").textContent = data.preview
-        ? "Preview · " + data.shown + " of " + data.totalInFile
-        : data.shown + " candidates";
-      renderLegend();
+      colorConfig = defaultConfig();
       fillSelect(document.getElementById("status"), STATUS_ORDER.filter((key) => rows.some((row) => row.statusKey === key)));
       fillSelect(document.getElementById("skill"), SKILL_ORDER.filter((key) => rows.some((row) => row.skillTags.includes(key))));
       fillSelect(document.getElementById("term"), unique(rows.map((row) => row.graduationTerm)));
       ["search", "status", "skill", "term"].forEach((id) => {
         document.getElementById(id).addEventListener("input", render);
       });
+      try { applySnapshot(JSON.parse(localStorage.getItem(STORAGE_KEY) || "null")); } catch (error) { colorConfig = defaultConfig(); }
+      document.getElementById("subtitle").textContent = rows.length + " candidates";
       render();
     }
 
     start().catch((error) => {
-      const main = document.querySelector("main");
       const node = document.createElement("p");
-      node.className = "error";
+      node.className = "empty";
       node.textContent = error.message;
-      main.prepend(node);
+      document.querySelector(".workspace").prepend(node);
     });
   </script>
 </body>

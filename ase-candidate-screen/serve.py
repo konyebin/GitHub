@@ -39,6 +39,7 @@ def candidate_payload(row: tuple) -> dict:
     graduation = row[GRAD_INDEX]
     score = row[SCORE_INDEX]
     return {
+        "id": "" if row[0] is None else str(row[0]).strip(),
         "name": "" if row[NAME_INDEX] is None else str(row[NAME_INDEX]).strip(),
         "linkedin": linkedin_search_url(row[NAME_INDEX], row[CITY_INDEX]),
         "graduation": "" if graduation is None else str(graduation).strip(),
