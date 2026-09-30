@@ -221,13 +221,9 @@ def score_formulas(cell: str = "I2") -> list[tuple[str, str]]:
     ]
 
 
-def linkedin_search_url(name, city) -> str:
-    """People search for this name and home city. Does not guess a single profile."""
-    parts = []
-    for value in (name, city):
-        text = "" if value is None else str(value).strip()
-        if text:
-            parts.append(text)
-    if not parts:
+def linkedin_search_url(name, _city=None) -> str:
+    """People search for this name only. Does not guess a single profile."""
+    text = "" if name is None else str(name).strip()
+    if not text:
         return ""
-    return "https://www.linkedin.com/search/results/people/?keywords=" + quote(" ".join(parts))
+    return "https://www.linkedin.com/search/results/people/?keywords=" + quote(text)

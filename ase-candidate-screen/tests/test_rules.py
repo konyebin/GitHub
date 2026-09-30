@@ -68,12 +68,12 @@ class RuleTests(unittest.TestCase):
         self.assertEqual(score_key(""), "Blank")
         self.assertEqual(score_key(None), "Blank")
 
-    def test_linkedin_search_uses_name_and_city(self):
+    def test_linkedin_search_uses_name_only(self):
         url = linkedin_search_url("Ada Lovelace", "London")
         self.assertTrue(url.startswith("https://www.linkedin.com/search/results/people/?keywords="))
         self.assertIn("Ada%20Lovelace", url)
-        self.assertIn("London", url)
-        self.assertEqual(linkedin_search_url("", "  "), "")
+        self.assertNotIn("London", url)
+        self.assertEqual(linkedin_search_url("  "), "")
 
     def test_score_formulas_check_na_before_passing(self):
         keys = [key for key, _formula in score_formulas("I2")]
