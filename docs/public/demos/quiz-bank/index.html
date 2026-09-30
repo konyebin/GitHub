@@ -12,6 +12,19 @@
     <p class="lede">Topics are created from the quizzes each time this page loads.</p>
     <ul id="topics"></ul>
     <section id="player" hidden></section>
+    <form id="add-quiz">
+      <h2>Add a quiz</h2>
+      <label>Title <input name="title" autocomplete="off"></label>
+      <label>Description <input name="description" autocomplete="off"></label>
+      <div id="question-fields"></div>
+      <button type="button" id="add-question">Add question</button>
+      <label>GitHub token <input name="token" type="password" autocomplete="off"></label>
+      <div id="form-status"></div>
+      <div class="form-actions">
+        <button type="button" id="preview">Preview</button>
+        <button type="button" id="publish">Publish to GitHub Pages</button>
+      </div>
+    </form>
   </main>
   <script type="module" src="./app.js"></script>
 </body>

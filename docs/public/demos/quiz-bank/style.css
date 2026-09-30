@@ -105,3 +105,56 @@ button {
 .score {
   font-size: 1.25rem;
 }
+
+#add-quiz {
+  margin-top: 2rem;
+  display: grid;
+  gap: 0.7rem;
+}
+
+#add-quiz label,
+.choice-row {
+  display: grid;
+  gap: 0.25rem;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.85rem;
+}
+
+input[type="text"],
+input[type="password"],
+input:not([type]) {
+  font: inherit;
+  font-size: 1rem;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid #c8bfae;
+  border-radius: 0.4rem;
+  background: #fff;
+}
+
+fieldset {
+  border: 1px solid #ddd4c4;
+  border-radius: 0.5rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.choice-row {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+#form-status {
+  color: #5c564c;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.9rem;
+}
+
+#form-status ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
