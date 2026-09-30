@@ -142,6 +142,18 @@
       "routingTasks": ["Browser Monopoly-style game"]
     },
     {
+      "id": "ice-breaker",
+      "name": "Ice breaker",
+      "tagline": "Five seats. The round only includes whoever is actually on the call.",
+      "description": "Shared-screen ice breaker for a team of five. Uncheck anyone who missed the call — spotlight, pairs, and the speaking order skip them, and someone can join or drop mid-round.",
+      "categories": ["games"],
+      "path": "/projects/ice-breaker",
+      "repoPath": "docs/public/demos/ice-breaker/",
+      "demo": { "type": "iframe", "src": "/demos/ice-breaker/index.html", "height": "680px" },
+      "runCommand": "open https://konyebin.github.io/GitHub/demos/ice-breaker/index.html",
+      "routingTasks": ["Team ice breaker when not everyone is on the call"]
+    },
+    {
       "id": "autonomous-ai-drone-scripts",
       "name": "Autonomous-Ai-drone-scripts",
       "tagline": "Jetson Nano autonomous drone and person-following stack.",
@@ -168,6 +180,7 @@
     { "task": "Experimental Webex OCR bot", "projectId": "test" },
     { "task": "GenAI bootcamp labs", "projectId": "genai-bootcamp" },
     { "task": "Browser Monopoly-style game", "projectId": "ctfmonopoly" },
+    { "task": "Team ice breaker when not everyone is on the call", "projectId": "ice-breaker" },
     { "task": "Autonomous drone AI (Jetson)", "projectId": "autonomous-ai-drone-scripts" }
   ]
 }
