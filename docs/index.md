@@ -25,7 +25,7 @@ hero:
 
 ## Try before you run.
 
-<p style="color: var(--scale-text-muted); margin: -1rem 0 1.5rem; font-size: 0.95rem;">All 11 projects are in the left panel — use <strong>All projects</strong> to browse by name, or <strong>Find by task</strong> if you know what you want to do. Sample data only — no OAuth or API calls.</p>
+<p style="color: var(--scale-text-muted); margin: -1rem 0 1.5rem; font-size: 0.95rem;">Every project is in the left panel — use <strong>All projects</strong> to browse by name, or <strong>Find by task</strong> if you know what you want to do. Sample data only — no OAuth or API calls.</p>
 
 <ClientOnly>
   <ProjectPlayground />

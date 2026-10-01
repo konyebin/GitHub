@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Ice breaker for a team of five. Rounds only include the people who are actually on the call." />
+    <title>Team ice breaker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,650&family=Outfit:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="top">
+        <p class="eyebrow">Five seats · whoever showed up</p>
+        <h1>Ice breaker</h1>
+      </header>
+
+      <section id="screen-roster" aria-labelledby="roster-title">
+        <h2 id="roster-title">Who's on the call?</h2>
+        <p class="hint">
+          Uncheck anyone who isn't here. Spotlight, pairs, and the speaking order use only the people you leave checked. Someone can join or drop after you start.
+        </p>
+        <div id="roster" class="roster"></div>
+        <p id="roster-summary" class="summary" aria-live="polite"></p>
+        <div class="actions">
+          <button id="start" class="primary" type="button">Start round</button>
+          <button id="start-over" class="ghost" type="button" hidden>Start over</button>
+        </div>
+      </section>
+
+      <section id="screen-play" hidden aria-labelledby="play-title">
+        <h2 id="play-title" class="sr-only">Current round</h2>
+        <div class="play-bar">
+          <button id="back" class="ghost" type="button">Edit names</button>
+          <p id="attendance" class="summary"></p>
+        </div>
+        <div id="chips" class="chips" role="group" aria-label="On the call"></div>
+        <div class="modes" role="tablist" aria-label="Format">
+          <button type="button" role="tab" id="tab-spotlight" data-mode="spotlight" aria-selected="true">Spotlight</button>
+          <button type="button" role="tab" id="tab-pairs" data-mode="pairs" aria-selected="false">Pairs</button>
+          <button type="button" role="tab" id="tab-one-word" data-mode="one-word" aria-selected="false">One word</button>
+        </div>
+        <p id="mode-help" class="hint"></p>
+        <div class="layout">
+          <div id="stage" class="stage" aria-live="polite"></div>
+          <ol id="order" class="order"></ol>
+        </div>
+        <p id="pass-note" class="note" aria-live="polite"></p>
+        <div id="actions" class="actions"></div>
+      </section>
+
+      <footer>
+        <p>Names stay in this browser. Nothing is sent anywhere.</p>
+      </footer>
+    </main>
+    <noscript>
+      <p class="noscript">This page needs JavaScript. It still runs entirely in your browser.</p>
+    </noscript>
+    <script src="logic.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
