@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Competency Board</title>
+    <meta name="color-scheme" content="light dark" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo" aria-hidden="true"><i></i><i></i><i></i></span>
+        <div class="brand-text">
+          <input id="board-title" class="board-title" aria-label="Board title" maxlength="120" spellcheck="false" />
+          <span id="board-stats" class="board-stats"></span>
+        </div>
+      </div>
+      <div class="toolbar">
+        <label class="search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 3a7.5 7.5 0 0 1 5.9 12.1l4.3 4.3-1.4 1.4-4.3-4.3A7.5 7.5 0 1 1 10.5 3Zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z"/></svg>
+          <input id="search" type="search" placeholder="Filter items" title="Filter items (press / to focus)" aria-label="Filter items" />
+        </label>
+        <button class="btn icon-only" id="undo" title="Undo (Ctrl/Cmd+Z)" aria-label="Undo">
+          <svg viewBox="0 0 24 24"><path d="M12 5a8 8 0 0 1 7.6 5.5l-1.9.6A6 6 0 0 0 12 7c-2 0-3.8 1-4.9 2.5L10 12H3V5l2.7 2.7A8 8 0 0 1 12 5Z"/></svg>
+        </button>
+        <button class="btn icon-only" id="redo" title="Redo (Ctrl/Cmd+Shift+Z)" aria-label="Redo">
+          <svg viewBox="0 0 24 24"><path d="M12 5a8 8 0 0 0-7.6 5.5l1.9.6A6 6 0 0 1 12 7c2 0 3.8 1 4.9 2.5L14 12h7V5l-2.7 2.7A8 8 0 0 0 12 5Z"/></svg>
+        </button>
+        <button class="btn" id="templates-btn" aria-haspopup="menu">Templates</button>
+        <button class="btn" id="export-btn" aria-haspopup="menu">Export</button>
+        <button class="btn" id="import-btn">Import</button>
+        <input id="import-file" type="file" accept="application/json,.json" hidden />
+        <button class="btn icon-only" id="theme" title="Toggle light / dark" aria-label="Toggle theme">
+          <svg viewBox="0 0 24 24"><path d="M21 14.5A9 9 0 0 1 9.5 3a9 9 0 1 0 11.5 11.5Z"/></svg>
+        </button>
+        <button class="btn icon-only" id="help" title="Keyboard shortcuts (?)" aria-label="Help">?</button>
+      </div>
+    </header>
+
+    <main id="board" class="board" role="list" aria-label="Columns"></main>
+
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+    <dialog id="item-dialog">
+      <form id="item-form" method="dialog">
+        <h2>Edit item</h2>
+        <label>Title<input name="title" required maxlength="200" autocomplete="off" /></label>
+        <label>Notes<textarea name="note" rows="4" maxlength="2000" placeholder="Why does this matter? What does good look like?"></textarea></label>
+        <div class="row">
+          <label>Tag<input name="tag" list="tag-list" maxlength="40" autocomplete="off" placeholder="e.g. Security" /></label>
+          <label>Column<select name="column"></select></label>
+        </div>
+        <datalist id="tag-list"></datalist>
+        <div class="dialog-actions">
+          <button type="button" class="btn danger" id="item-delete">Delete</button>
+          <span class="spacer"></span>
+          <button type="button" class="btn" data-close>Cancel</button>
+          <button type="submit" class="btn primary">Save</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="column-dialog">
+      <form id="column-form" method="dialog">
+        <h2>Column details</h2>
+        <label>Title<input name="title" required maxlength="80" autocomplete="off" /></label>
+        <label>Description<input name="description" maxlength="240" autocomplete="off" placeholder="Optional hint shown under the title" /></label>
+        <fieldset>
+          <legend>Color</legend>
+          <div id="swatches" class="swatches"></div>
+        </fieldset>
+        <div class="dialog-actions">
+          <span class="spacer"></span>
+          <button type="button" class="btn" data-close>Cancel</button>
+          <button type="submit" class="btn primary">Save</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="help-dialog">
+      <h2>How it works</h2>
+      <ul class="help-list">
+        <li><b>Add columns</b> with the tile at the far right. Rename by clicking a column title; use the <kbd>&hellip;</kbd> menu for color, description, duplicate, move and delete.</li>
+        <li><b>Add items</b> at the bottom of any column. <kbd>Enter</kbd> adds, <kbd>Shift</kbd>+<kbd>Enter</kbd> starts a new line. Pasting a multi-line list (bullets and numbers are stripped) adds one item per line.</li>
+        <li><b>Drag</b> cards between columns or to reorder; drag a column by its header to reorder columns. On touch screens, use the grip handle.</li>
+        <li><b>Edit</b> an item by double-clicking it or pressing <kbd>Enter</kbd> / <kbd>F2</kbd> when focused. Add notes, a tag, or move it to another column.</li>
+        <li><b>Keyboard:</b> <kbd>Alt</kbd>+<kbd>Arrows</kbd> move the focused card; <kbd>Delete</kbd> removes it; <kbd>/</kbd> filters; <kbd>Ctrl/Cmd</kbd>+<kbd>Z</kbd> undoes.</li>
+        <li><b>Saved automatically</b> in this browser. Use Export for JSON backups or Markdown to paste into a doc, and Import to restore.</li>
+      </ul>
+      <div class="dialog-actions"><span class="spacer"></span><button type="button" class="btn primary" data-close>Got it</button></div>
+    </dialog>
+
+    <script src="core.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
