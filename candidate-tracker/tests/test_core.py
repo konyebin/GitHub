@@ -17,8 +17,8 @@ def test_template_has_only_example_row():
 
 
 def test_demo_parse_and_scores():
-    df = parse_workbook(SAMPLES / "demo_candidates.xlsx").df
-    assert len(df) == 14
+    df = parse_workbook(SAMPLES / "FY27Q3_AMER_ASE_Scores_TEST_DATA.xlsx").df
+    assert len(df) == 20
     assert (df["Interview"] <= 16).all()
     assert not df.iloc[-1]["Complete"]
     assert df["Complete"].iloc[:-1].all()
@@ -36,7 +36,7 @@ def test_duplicates_case_insensitive():
 
 
 def test_export_colours_and_sheets(tmp_path):
-    df = parse_workbook(SAMPLES / "demo_candidates.xlsx").df
+    df = parse_workbook(SAMPLES / "FY27Q3_AMER_ASE_Scores_TEST_DATA.xlsx").df
     df["Status"] = [HIRE, STANDBY, NO_HIRE] + [UNASSIGNED] * (len(df) - 3)
     df["Employee #"] = ["E100", "E100", ""] + [""] * (len(df) - 3)
     df["Re-evaluate On"] = None

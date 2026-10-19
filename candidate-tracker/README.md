@@ -43,7 +43,7 @@ Rows named `Example ...` are hidden unless you switch them on.
 ## Privacy
 
 Candidate data stays on your machine. `tracker_state.json` and `*_tracked.xlsx` are git-ignored.
-`samples/demo_candidates.xlsx` contains fictional names only (`python tests/make_demo.py` regenerates it).
+`samples/FY27Q3_AMER_ASE_Scores_TEST_DATA.xlsx` contains fictional names only (`python tests/make_demo.py` regenerates it).
 
 ## Tests
 
