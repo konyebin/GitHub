@@ -35,6 +35,7 @@ from tracker_core import (
 )
 
 APP_DIR = Path(__file__).resolve().parent
+DEFAULT_DATA_DIR = Path.home() / "Library" / "CloudStorage" / "OneDrive-Cisco" / "CSAP LEarning"
 STATE_FILE = APP_DIR / "tracker_state.json"
 SECTION_LABELS = list(SECTIONS.values())
 
@@ -126,6 +127,7 @@ def persist() -> None:
         "decisions": st.session_state.decisions,
         "audit": st.session_state.audit,
         "reviewer": st.session_state.get("reviewer", ""),
+        "data_dir": st.session_state.get("data_dir", ""),
         "hire_th": st.session_state.get("hire_th", DEFAULT_HIRE_THRESHOLD),
         "standby_th": st.session_state.get("standby_th", DEFAULT_STANDBY_THRESHOLD),
     }
@@ -141,6 +143,10 @@ def init_state() -> None:
     st.session_state.decisions = saved.get("decisions", {})
     st.session_state.audit = saved.get("audit", [])
     st.session_state.reviewer = saved.get("reviewer", "")
+    st.session_state.data_dir = (
+        os.environ.get("TRACKER_DATA_DIR") or saved.get("data_dir") or str(DEFAULT_DATA_DIR)
+    )
+    st.session_state.loaded = None
     st.session_state.hire_th = saved.get("hire_th", DEFAULT_HIRE_THRESHOLD)
     st.session_state.standby_th = saved.get("standby_th", DEFAULT_STANDBY_THRESHOLD)
     st.session_state.rev = 0
@@ -483,6 +489,61 @@ def tab_insights(df: pd.DataFrame) -> None:
 
 # ----------------------------------------------------------------- main ---
 
+def list_workbooks(folder: str) -> list[Path]:
+    path = Path(folder).expanduser()
+    if not path.is_dir():
+        return []
+    files = [f for f in path.glob("*.xlsx") if not f.name.startswith("~$") and f.is_file()]
+    return sorted(files, key=lambda f: f.stat().st_mtime, reverse=True)
+
+
+def load_from_disk(path: Path) -> None:
+    try:
+        st.session_state.loaded = {"name": path.name, "bytes": path.read_bytes(), "origin": str(path)}
+    except OSError as exc:
+        st.error(f"Could not open {path.name}: {exc}")
+        return
+    st.session_state.digest = None
+    st.rerun()
+
+
+def save_data_dir() -> None:
+    st.session_state.data_dir = st.session_state.data_dir_widget.strip()
+    persist()
+
+
+def folder_picker() -> None:
+    st.markdown("#### Open a workbook from your folder")
+    c1, c2 = st.columns([5, 1])
+    c1.text_input(
+        "Folder", value=st.session_state.data_dir, key="data_dir_widget", on_change=save_data_dir,
+        label_visibility="collapsed",
+        help="Any folder on this Mac. Defaults to your OneDrive CSAP Learning folder.",
+    )
+    c2.button("Refresh", width="stretch")
+    folder = Path(st.session_state.data_dir).expanduser()
+    if not folder.is_dir():
+        st.warning(
+            f"Folder not found: `{folder}`. Check the path above, make sure OneDrive is synced, "
+            "or upload a file from the sidebar."
+        )
+        return
+    files = list_workbooks(st.session_state.data_dir)
+    if not files:
+        st.info("No .xlsx files in that folder yet.")
+        return
+    st.caption(f"{len(files)} workbook(s) found, newest first.")
+    for f in files[:40]:
+        info = f.stat()
+        likely = "ase" in f.name.lower() and "score" in f.name.lower()
+        with st.container(border=True):
+            a, b, c = st.columns([6, 3, 1.4], vertical_alignment="center")
+            a.markdown(f"**{html.escape(f.name)}**" + ("  \n:blue[matches ASE scores]" if likely else ""))
+            b.caption(f"{datetime.fromtimestamp(info.st_mtime):%b %d, %Y %H:%M} &middot; {info.st_size / 1024:.0f} KB")
+            if c.button("Open", key=f"open_{f.name}", type="primary" if likely else "secondary", width="stretch"):
+                load_from_disk(f)
+
+
 init_state()
 
 with st.sidebar:
@@ -500,11 +561,16 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-if upload is None:
-    st.info("Upload the **FY27Q3_AMER_ASE_Scores** workbook in the sidebar to begin.")
+if upload is not None:
+    raw, workbook_name = upload.getvalue(), upload.name
+    st.session_state.loaded = None
+elif st.session_state.loaded:
+    raw, workbook_name = st.session_state.loaded["bytes"], st.session_state.loaded["name"]
+else:
+    folder_picker()
+    st.caption("Or upload a workbook from the sidebar.")
     st.stop()
 
-raw = upload.getvalue()
 digest = hashlib.sha1(raw).hexdigest() + str(include_examples)
 if st.session_state.get("digest") != digest:
     try:
@@ -524,12 +590,18 @@ if base.empty:
 
 df = merged_frame(base)
 suffix = "_tracked"
-stem = Path(upload.name).stem
+stem = Path(workbook_name).stem
 stem = stem[: -len(suffix)] if stem.endswith(suffix) else stem
 output_path = APP_DIR / f"{stem}{suffix}.xlsx"
 
 with st.sidebar:
     st.markdown("### Actions")
+    if st.session_state.loaded:
+        st.caption(f"Open: {workbook_name}")
+        if st.button("Choose another workbook", width="stretch"):
+            st.session_state.loaded = None
+            st.session_state.digest = None
+            st.rerun()
     unassigned_ready = df[(df["Status"] == UNASSIGNED) & df["Suggested"].isin([HIRE, STANDBY, NO_HIRE])]
     if st.button(f"Apply suggestions to {len(unassigned_ready)} unassigned", disabled=unassigned_ready.empty, width="stretch"):
         for name, suggestion in zip(unassigned_ready["Candidate"], unassigned_ready["Suggested"]):

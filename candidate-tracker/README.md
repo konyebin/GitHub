@@ -13,7 +13,10 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-Upload the scores workbook in the sidebar. Candidates start **Unassigned**.
+On the first screen the app lists the `.xlsx` files in your OneDrive folder
+(`~/Library/CloudStorage/OneDrive-Cisco/CSAP LEarning` by default, newest first). Click **Open** on the one you want.
+You can type a different folder in the box (it is remembered), set `TRACKER_DATA_DIR`, or upload a file from the sidebar.
+Use **Choose another workbook** in the sidebar to switch. Candidates without a status in the workbook start **Unassigned**.
 
 ## Tabs
 
