@@ -80,6 +80,9 @@ CSS = f"""
   }}
   div[data-testid="stTabs"] button[role="tab"] {{ font-size: 1.02rem; padding: 10px 18px; }}
   div[data-testid="stVerticalBlockBorderWrapper"] {{ border-radius: 12px; }}
+  [class*="st-key-card_hire_"] {{ background: {UI_COLORS[HIRE]}26; border-color: {UI_COLORS[HIRE]}80 !important; }}
+  [class*="st-key-card_standby_"] {{ background: {UI_COLORS[STANDBY]}26; border-color: {UI_COLORS[STANDBY]}80 !important; }}
+  [class*="st-key-card_nohire_"] {{ background: {UI_COLORS[NO_HIRE]}26; border-color: {UI_COLORS[NO_HIRE]}80 !important; }}
   .stButton > button, .stDownloadButton > button {{ border-radius: 10px; }}
   div[data-testid="stVerticalBlockBorderWrapper"] .stButton > button {{
     padding: .15rem .1rem; font-size: .74rem; min-height: 2rem; white-space: nowrap;
@@ -202,13 +205,15 @@ def kpi(label: str, value: int, color: str) -> str:
     return f'<div class="kpi" style="--c:{color}"><div class="n">{value}</div><div class="l">{label}</div></div>'
 
 
+TINT_ALPHA = {HIRE: "40", STANDBY: "40", NO_HIRE: "40", UNASSIGNED: "12"}
+
+
 def row_style(row: pd.Series) -> list[str]:
+    """Tint the whole row by status: green for Hire, yellow for Standby, red for No Hire."""
     color = UI_COLORS[row["Status"]]
-    alpha = "30" if row["Status"] != UNASSIGNED else "14"
-    css = f"background-color: {color}{alpha};"
-    if row["Status"] != UNASSIGNED:
-        css += f" color: {color};"
-    return [css] * len(row)
+    base = f"background-color: {color}{TINT_ALPHA[row['Status']]}; color: #F2F6FC;"
+    status_cell = base + f" color: {color}; font-weight: 700;"
+    return [status_cell if col == "Status" else base for col in row.index]
 
 
 def apply_filters(df: pd.DataFrame) -> pd.DataFrame:
@@ -293,7 +298,8 @@ def card(row: pd.Series, status: str) -> None:
     if status == STANDBY and row["Re-evaluate On"]:
         badges += f'<span class="pill" style="--c:{UI_COLORS[STANDBY]}">re-eval {row["Re-evaluate On"]:%b %d}</span>'
     meta = html.escape(row["Country"]) if row["Country"] else "&nbsp;"
-    with st.container(border=True):
+    slug = status.lower().replace(" ", "")
+    with st.container(border=True, key=f"card_{slug}_{row['Candidate']}"):
         st.markdown(
             f'<div style="--c:{color}">'
             f'<div class="card-name">{html.escape(row["Candidate"])}</div>'
