@@ -3,7 +3,7 @@ from pathlib import Path
 import openpyxl
 import pandas as pd
 
-from tracker_core import HIRE, NO_HIRE, STANDBY, UNASSIGNED, build_workbook, duplicate_numbers, parse_workbook, suggest
+from tracker_core import HIRE, NO_HIRE, STANDBY, UNASSIGNED, build_workbook, duplicate_numbers, normalise_status, parse_workbook, suggest
 
 SAMPLES = Path(__file__).resolve().parent.parent / "samples"
 
@@ -53,3 +53,36 @@ def test_export_colours_and_sheets(tmp_path):
     emp = wb["Employee Numbers"]
     flags = [emp.cell(r, 4).value for r in range(2, emp.max_row + 1)]
     assert flags.count("DUPLICATE") == 2
+
+
+def test_source_status_is_imported():
+    df = parse_workbook(SAMPLES / "FY27Q3_AMER_ASE_Scores_TEST_DATA.xlsx").df
+    counts = df["Source Status"].value_counts().to_dict()
+    assert counts.get(HIRE, 0) > 0 and counts.get(STANDBY, 0) > 0 and counts.get(NO_HIRE, 0) > 0
+    assert counts.get(UNASSIGNED, 0) == 3
+
+
+def test_normalise_status_variants():
+    assert normalise_status("Hire") == HIRE
+    assert normalise_status(" no hire ") == NO_HIRE
+    assert normalise_status("No-Hire") == NO_HIRE
+    assert normalise_status("Stand by") == STANDBY
+    assert normalise_status("STANDBY") == STANDBY
+    assert normalise_status(None) == UNASSIGNED
+
+
+def test_status_from_cell_fill(tmp_path):
+    from openpyxl.styles import PatternFill
+
+    src = SAMPLES / "FY27Q3_AMER_ASE_Scores_TEST_DATA.xlsx"
+    wb = openpyxl.load_workbook(src)
+    ws = wb.active
+    for r in range(11, 31):
+        ws.cell(r, 27).value = None
+    for r, color in ((11, "C6EFCE"), (12, "FFEB9C"), (13, "FFC7CE"), (14, "92D050"), (15, "FF0000")):
+        ws.cell(r, 27).fill = PatternFill("solid", start_color=color, end_color=color)
+    path = tmp_path / "filled.xlsx"
+    wb.save(path)
+    df = parse_workbook(path).df
+    assert list(df["Source Status"].iloc[:5]) == [HIRE, STANDBY, NO_HIRE, HIRE, NO_HIRE]
+    assert (df["Source Status"].iloc[5:] == UNASSIGNED).all()

@@ -148,10 +148,18 @@ def decision(name: str) -> dict[str, str]:
     return st.session_state.decisions.get(name, {})
 
 
+def source_status(name: str) -> str:
+    return st.session_state.source_status.get(name, UNASSIGNED)
+
+
+def current_status(name: str) -> str:
+    return decision(name).get("status", source_status(name))
+
+
 def set_field(name: str, field: str, value: str, label: str, commit: bool = True) -> bool:
     """Update one decision field, write an audit entry and report whether it changed."""
     record = st.session_state.decisions.setdefault(name, {})
-    default = UNASSIGNED if field == "status" else ""
+    default = source_status(name) if field == "status" else ""
     old = record.get(field, default)
     if old == value:
         return False
@@ -174,7 +182,7 @@ def set_field(name: str, field: str, value: str, label: str, commit: bool = True
 
 def merged_frame(base: pd.DataFrame) -> pd.DataFrame:
     df = base.copy()
-    df["Status"] = [decision(n).get("status", UNASSIGNED) for n in df["Candidate"]]
+    df["Status"] = [current_status(n) for n in df["Candidate"]]
     df["Employee #"] = [decision(n).get("emp_no", "") for n in df["Candidate"]]
     df["Re-evaluate On"] = [
         date.fromisoformat(d) if (d := decision(n).get("reeval", "")) else None
@@ -237,7 +245,7 @@ def tab_all(df: pd.DataFrame) -> None:
         )
     columns = [
         "Candidate", "Country", "Interview", "Role Play", "Presentation", "Total",
-        "Overall %", "Suggested", "Status", "Re-evaluate On", "Decision Notes",
+        "Overall %", "Status", "Re-evaluate On", "Decision Notes",
     ]
     view = view[columns].reset_index(drop=True)
     if view.empty:
@@ -251,7 +259,7 @@ def tab_all(df: pd.DataFrame) -> None:
         width="stretch",
         height=min(640, 60 + 36 * len(view)),
         key=f"all_editor_{st.session_state.rev}",
-        disabled=["Candidate", "Country", "Interview", "Role Play", "Presentation", "Total", "Overall %", "Suggested"],
+        disabled=["Candidate", "Country", "Interview", "Role Play", "Presentation", "Total", "Overall %"],
         column_config={
             "Interview": st.column_config.NumberColumn("Interview /16", format="%.1f"),
             "Role Play": st.column_config.NumberColumn("Role Play /16", format="%.1f"),
@@ -280,7 +288,7 @@ def card(row: pd.Series, status: str) -> None:
     badges = ""
     if row["Employee #"] and status == HIRE:
         badges += f'<span class="pill" style="--c:{CISCO_BLUE}">#{html.escape(row["Employee #"])}</span>'
-    if row["Suggested"] not in ("Incomplete", status):
+    if status == UNASSIGNED and row["Suggested"] != "Incomplete":
         badges += f'<span class="pill" style="--c:{UI_COLORS[row["Suggested"]]}">suggests {row["Suggested"]}</span>'
     if status == STANDBY and row["Re-evaluate On"]:
         badges += f'<span class="pill" style="--c:{UI_COLORS[STANDBY]}">re-eval {row["Re-evaluate On"]:%b %d}</span>'
@@ -499,6 +507,7 @@ if st.session_state.get("digest") != digest:
         st.error(f"Could not read that workbook: {exc}")
         st.stop()
     st.session_state.base = parsed.df
+    st.session_state.source_status = dict(zip(parsed.df["Candidate"], parsed.df["Source Status"]))
     st.session_state.skipped = parsed.skipped_examples
     st.session_state.digest = digest
 
@@ -537,7 +546,7 @@ with st.sidebar:
     if st.session_state.skipped and not include_examples:
         st.caption(f"{st.session_state.skipped} example row(s) hidden.")
     with st.expander("Reset all decisions"):
-        st.caption("Clears every status, employee number, note and the audit log.")
+        st.caption("Clears your changes (statuses go back to what the workbook says), employee numbers, notes and the audit log.")
         if st.button("Reset everything", width="stretch"):
             st.session_state.decisions = {}
             st.session_state.audit = []

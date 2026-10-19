@@ -60,5 +60,20 @@ for offset, (country, salutation, name) in enumerate(people):
     if level == 4:
         ws.cell(r, 28, random.choice(buddies))
 
+    pct = None
+    if name != "Sage Warren":
+        total = sum(ws.cell(r, c).value for c in (*range(4, 8), *range(11, 15), *range(18, 22)))
+        pct = total / 48
+    if offset % 6 == 5:
+        pass  # left blank: candidate not decided yet
+    elif pct is None:
+        ws.cell(r, 27, "Standby")
+    elif pct >= 0.85:
+        ws.cell(r, 27, "Hire")
+    elif pct >= 0.70:
+        ws.cell(r, 27, "Standby")
+    else:
+        ws.cell(r, 27, "No Hire")
+
 wb.save(OUT)
 print("written", OUT)

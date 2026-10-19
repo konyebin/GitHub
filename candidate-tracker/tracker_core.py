@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import colorsys
 import io
 import re
 from dataclasses import dataclass
@@ -11,6 +12,7 @@ from typing import Any
 import openpyxl
 import pandas as pd
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+from openpyxl.styles.colors import COLOR_INDEX
 from openpyxl.utils import get_column_letter
 
 HIRE, STANDBY, NO_HIRE, UNASSIGNED = "Hire", "Standby", "No Hire", "Unassigned"
@@ -67,6 +69,47 @@ def _num(value: Any) -> float | None:
 
 def _text(value: Any) -> str:
     return "" if value is None else str(value).strip()
+
+
+def normalise_status(value: Any) -> str:
+    """Map free-text status cells ('Hire', 'no hire', 'Stand by', ...) to a tracker status."""
+    text = re.sub(r"[^a-z]", "", _text(value).lower())
+    if not text:
+        return UNASSIGNED
+    if "standby" in text or text in {"hold", "waitlist", "waitlisted"}:
+        return STANDBY
+    if "nohire" in text or text in {"reject", "rejected", "decline", "declined", "no"}:
+        return NO_HIRE
+    if "hire" in text or text in {"yes", "offer", "selected"}:
+        return HIRE
+    return UNASSIGNED
+
+
+def _fill_status(cell) -> str:
+    """Infer a status from a solid green / yellow / red cell fill, if there is one."""
+    fill = cell.fill
+    if fill is None or fill.fill_type != "solid":
+        return UNASSIGNED
+    color = fill.fgColor
+    rgb = None
+    if color.type == "rgb" and isinstance(color.rgb, str):
+        rgb = color.rgb[-6:]
+    elif color.type == "indexed" and isinstance(color.indexed, int) and color.indexed < len(COLOR_INDEX):
+        rgb = COLOR_INDEX[color.indexed][-6:]
+    if not rgb or not re.fullmatch(r"[0-9A-Fa-f]{6}", rgb):
+        return UNASSIGNED
+    r, g, b = (int(rgb[i : i + 2], 16) / 255 for i in (0, 2, 4))
+    hue, sat, val = colorsys.rgb_to_hsv(r, g, b)
+    if sat < 0.12 or val < 0.35:
+        return UNASSIGNED
+    degrees = hue * 360
+    if degrees <= 20 or degrees >= 340:
+        return NO_HIRE
+    if 20 < degrees < 75:
+        return STANDBY
+    if 75 <= degrees <= 170:
+        return HIRE
+    return UNASSIGNED
 
 
 def _find_header_row(ws) -> int:
@@ -132,6 +175,14 @@ def parse_workbook(source: Any, include_examples: bool = False) -> ParseResult:
     salutation_col = col("salutation")
     buddy_col = col("buddy")
     sections = _section_columns(headers)
+    status_col = next(
+        (
+            i
+            for i, h in enumerate(lowered)
+            if re.sub(r"\s+", " ", h).startswith("hire") and "standby" in h
+        ),
+        None,
+    )
     notes_col = None
     if buddy_col is not None:
         for idx in range(buddy_col + 1, width):
@@ -174,6 +225,14 @@ def parse_workbook(source: Any, include_examples: bool = False) -> ParseResult:
         record["Total"] = round(total, 2)
         record["Overall %"] = round(total / TOTAL_MAX, 4)
         record["Complete"] = scored == len(sections)
+        source_status = UNASSIGNED
+        if status_col is not None:
+            source_status = normalise_status(values[status_col])
+            if source_status == UNASSIGNED:
+                source_status = _fill_status(ws.cell(r, status_col + 1))
+        if source_status == UNASSIGNED:
+            source_status = _fill_status(ws.cell(r, name_col + 1))
+        record["Source Status"] = source_status
         record["Buddy"] = _text(values[buddy_col]) if buddy_col is not None else ""
         record["Source Notes"] = _text(values[notes_col]) if notes_col is not None else ""
         rows.append(record)
@@ -261,7 +320,7 @@ def build_workbook(
     ws.title = "All Candidates"
     cols = [
         "Candidate", "Country", "Interview", "Role Play", "Presentation", "Total /48",
-        "Overall %", "Suggested", "Status", "Employee #", "Re-evaluate On", "Buddy", "Notes",
+        "Overall %", "Status", "Employee #", "Re-evaluate On", "Buddy", "Notes",
     ]
     _header(ws, 1, cols)
     for r, row in enumerate(candidates.to_dict("records"), start=2):
@@ -270,18 +329,17 @@ def build_workbook(
         values = [
             row["Candidate"], row["Country"], row["Interview"], row["Role Play"],
             row["Presentation"], row["Total"], row["Overall %"],
-            suggest(row["Overall %"], row["Complete"], hire_th, standby_th),
             status, _text(row["Employee #"]), _as_date_text(row["Re-evaluate On"]),
             row["Buddy"], notes,
         ]
         for c, value in enumerate(values, start=1):
             cell = ws.cell(r, c, None if (isinstance(value, float) and pd.isna(value)) else value)
-            _style_status_cell(cell, status, bold=(c in (1, 9)))
+            _style_status_cell(cell, status, bold=(c in (1, 8)))
             if c == 7:
                 cell.number_format = "0.0%"
             elif c in (3, 4, 5, 6):
                 cell.number_format = "0.0"
-            if c in (3, 4, 5, 6, 7, 9):
+            if c in (3, 4, 5, 6, 7, 8):
                 cell.alignment = Alignment(horizontal="center")
     ws.freeze_panes = "B2"
     ws.auto_filter.ref = f"A1:{get_column_letter(len(cols))}{max(ws.max_row, 2)}"
