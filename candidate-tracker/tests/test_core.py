@@ -3,7 +3,7 @@ from pathlib import Path
 import openpyxl
 import pandas as pd
 
-from tracker_core import HIRE, NO_HIRE, STANDBY, UNASSIGNED, build_workbook, duplicate_numbers, normalise_status, parse_workbook, suggest
+from tracker_core import add_signals, HIRE, NO_HIRE, STANDBY, UNASSIGNED, build_workbook, duplicate_numbers, normalise_status, parse_workbook, suggest
 
 SAMPLES = Path(__file__).resolve().parent.parent / "samples"
 
@@ -45,7 +45,7 @@ def test_export_colours_and_sheets(tmp_path):
     path = tmp_path / "out.xlsx"
     path.write_bytes(data)
     wb = openpyxl.load_workbook(path)
-    assert wb.sheetnames == ["All Candidates", "By Status", "Employee Numbers", "Audit Log", "Summary"]
+    assert wb.sheetnames == ["All Candidates", "By Status", "Needs Review", "Employee Numbers", "Audit Log", "Summary"]
     ws = wb["All Candidates"]
     assert ws["A2"].fill.start_color.rgb.endswith("C6EFCE")
     assert ws["A3"].fill.start_color.rgb.endswith("FFEB9C")
@@ -86,3 +86,36 @@ def test_status_from_cell_fill(tmp_path):
     df = parse_workbook(path).df
     assert list(df["Source Status"].iloc[:5]) == [HIRE, STANDBY, NO_HIRE, HIRE, NO_HIRE]
     assert (df["Source Status"].iloc[5:] == UNASSIGNED).all()
+
+
+def test_score_band_boundaries():
+    assert suggest(0.85, True, 0.85, 0.70) == HIRE
+    assert suggest(0.8499, True, 0.85, 0.70) == STANDBY
+    assert suggest(0.70, True, 0.85, 0.70) == STANDBY
+    assert suggest(0.6999, True, 0.85, 0.70) == NO_HIRE
+
+
+def test_anomalies():
+    from tracker_core import detect_anomaly
+
+    assert detect_anomaly(HIRE, 0.60, True, 0.85, 0.70)[0] == "high"
+    assert detect_anomaly(HIRE, 0.78, True, 0.85, 0.70)[0] == "review"
+    assert detect_anomaly(HIRE, 0.90, True, 0.85, 0.70)[0] == ""
+    assert detect_anomaly(NO_HIRE, 0.92, True, 0.85, 0.70)[0] == "high"
+    assert detect_anomaly(NO_HIRE, 0.75, True, 0.85, 0.70)[0] == "review"
+    assert detect_anomaly(NO_HIRE, 0.40, True, 0.85, 0.70)[0] == ""
+    assert detect_anomaly(STANDBY, 0.78, True, 0.85, 0.70)[0] == ""
+    assert detect_anomaly(STANDBY, 0.95, True, 0.85, 0.70)[0] == "review"
+    assert detect_anomaly(UNASSIGNED, 0.10, True, 0.85, 0.70)[0] == ""
+    assert detect_anomaly(HIRE, 0.90, False, 0.85, 0.70)[0] == "review"
+    assert "note added" in detect_anomaly(HIRE, 0.60, True, 0.85, 0.70, noted=True)[1]
+
+
+def test_add_signals_columns():
+    df = parse_workbook(SAMPLES / "FY27Q3_AMER_ASE_Scores_TEST_DATA.xlsx").df
+    df["Status"] = HIRE
+    df["Decision Notes"] = ""
+    out = add_signals(df, 0.85, 0.70)
+    assert set(out["Score Band"]) <= {"Hire", "Maybe", "No Hire", "Incomplete"}
+    low = out[(out["Overall %"] < 0.70) & out["Complete"]]
+    assert (low["Flag Level"] == "high").all() and low["Flag"].str.startswith("HIGH").all()

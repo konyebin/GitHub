@@ -251,6 +251,68 @@ def suggest(pct: float, complete: bool, hire_th: float, standby_th: float) -> st
     return NO_HIRE
 
 
+BAND_LABEL = {HIRE: "Hire", STANDBY: "Maybe", NO_HIRE: "No Hire", "Incomplete": "Incomplete"}
+FLAG_HIGH, FLAG_REVIEW = "high", "review"
+ALERT_COLOR = "#FF9F43"
+
+
+def score_band(pct: float, complete: bool, hire_th: float, standby_th: float) -> str:
+    """Display label for where a score falls: Hire, Maybe, No Hire or Incomplete."""
+    return BAND_LABEL[suggest(pct, complete, hire_th, standby_th)]
+
+
+def detect_anomaly(
+    status: str, pct: float, complete: bool, hire_th: float, standby_th: float, noted: bool = False
+) -> tuple[str, str]:
+    """Compare a manual decision with what the score alone would suggest.
+
+    Returns (level, message); level is '' when nothing looks off.
+    """
+    if status == UNASSIGNED:
+        return "", ""
+    suggestion = suggest(pct, complete, hire_th, standby_th)
+    level, message = "", ""
+    if status == HIRE:
+        if suggestion == NO_HIRE:
+            level, message = FLAG_HIGH, f"Hired at {pct:.0%}, below the {standby_th:.0%} floor"
+        elif suggestion == STANDBY:
+            level, message = FLAG_REVIEW, f"Hired at {pct:.0%}, below the {hire_th:.0%} hire line"
+    elif status == NO_HIRE:
+        if suggestion == HIRE:
+            level, message = FLAG_HIGH, f"No Hire despite {pct:.0%}, above the {hire_th:.0%} hire line"
+        elif suggestion == STANDBY:
+            level, message = FLAG_REVIEW, f"No Hire at {pct:.0%}, which is in the maybe range"
+    elif status == STANDBY:
+        if suggestion == HIRE:
+            level, message = FLAG_REVIEW, f"Standby despite {pct:.0%}, above the {hire_th:.0%} hire line"
+        elif suggestion == NO_HIRE:
+            level, message = FLAG_REVIEW, f"Standby at {pct:.0%}, below the {standby_th:.0%} floor"
+    if not level and status in (HIRE, NO_HIRE) and not complete:
+        level, message = FLAG_REVIEW, "Decision made with incomplete scores"
+    if level and noted:
+        message += " (note added)"
+    return level, message
+
+
+def add_signals(df: pd.DataFrame, hire_th: float, standby_th: float) -> pd.DataFrame:
+    """Add Suggested, Score Band, Flag Level and Flag columns to a candidate frame."""
+    out = df.copy()
+    notes = out["Decision Notes"] if "Decision Notes" in out else pd.Series([""] * len(out), index=out.index)
+    out["Suggested"] = [
+        suggest(p, c, hire_th, standby_th) for p, c in zip(out["Overall %"], out["Complete"])
+    ]
+    out["Score Band"] = [BAND_LABEL[x] for x in out["Suggested"]]
+    results = [
+        detect_anomaly(st_, p, c, hire_th, standby_th, bool(_text(n)))
+        for st_, p, c, n in zip(out["Status"], out["Overall %"], out["Complete"], notes)
+    ]
+    out["Flag Level"] = [r[0] for r in results]
+    out["Flag"] = [
+        (("HIGH: " if r[0] == FLAG_HIGH else "REVIEW: ") + r[1]) if r[0] else "" for r in results
+    ]
+    return out
+
+
 def normalise_emp(value: Any) -> str:
     return _text(value)
 
@@ -314,13 +376,14 @@ def build_workbook(
     ``candidates`` needs the parsed score columns plus Status, Employee #,
     Re-evaluate On and Decision Notes.
     """
+    candidates = add_signals(candidates, hire_th, standby_th)
     wb = openpyxl.Workbook()
 
     ws = wb.active
     ws.title = "All Candidates"
     cols = [
         "Candidate", "Country", "Interview", "Role Play", "Presentation", "Total /48",
-        "Overall %", "Status", "Employee #", "Re-evaluate On", "Buddy", "Notes",
+        "Overall %", "Status", "Score Band", "Flag", "Employee #", "Re-evaluate On", "Buddy", "Notes",
     ]
     _header(ws, 1, cols)
     for r, row in enumerate(candidates.to_dict("records"), start=2):
@@ -329,7 +392,7 @@ def build_workbook(
         values = [
             row["Candidate"], row["Country"], row["Interview"], row["Role Play"],
             row["Presentation"], row["Total"], row["Overall %"],
-            status, _text(row["Employee #"]), _as_date_text(row["Re-evaluate On"]),
+            status, row["Score Band"], row["Flag"], _text(row["Employee #"]), _as_date_text(row["Re-evaluate On"]),
             row["Buddy"], notes,
         ]
         for c, value in enumerate(values, start=1):
@@ -339,8 +402,14 @@ def build_workbook(
                 cell.number_format = "0.0%"
             elif c in (3, 4, 5, 6):
                 cell.number_format = "0.0"
-            if c in (3, 4, 5, 6, 7, 8):
+            if c in (3, 4, 5, 6, 7, 8, 9):
                 cell.alignment = Alignment(horizontal="center")
+            if c == 10 and value:
+                cell.font = Font(bold=True, color="C55A11" if row["Flag Level"] == FLAG_REVIEW else "C00000")
+                cell.border = Border(
+                    left=Side(style="medium", color="FF9F43"), right=Side(style="medium", color="FF9F43"),
+                    top=Side(style="medium", color="FF9F43"), bottom=Side(style="medium", color="FF9F43"),
+                )
     ws.freeze_panes = "B2"
     ws.auto_filter.ref = f"A1:{get_column_letter(len(cols))}{max(ws.max_row, 2)}"
     _autowidth(ws)
@@ -363,6 +432,26 @@ def build_workbook(
             _style_status_cell(cell, status)
         board.column_dimensions[get_column_letter(c)].width = 38
     board.row_dimensions[1].height = 28
+
+    flagged = candidates[candidates["Flag"] != ""].sort_values(
+        ["Flag Level", "Overall %"], ascending=[True, False]
+    )
+    review = wb.create_sheet("Needs Review")
+    _header(review, 1, ["Level", "Candidate", "Status", "Overall %", "Score Band", "Issue", "Notes"])
+    for r, row in enumerate(flagged.to_dict("records"), start=2):
+        values = [
+            "High" if row["Flag Level"] == FLAG_HIGH else "Review", row["Candidate"], row["Status"],
+            row["Overall %"], row["Score Band"], row["Flag"].split(": ", 1)[-1], _text(row["Decision Notes"]),
+        ]
+        for c, value in enumerate(values, start=1):
+            cell = review.cell(r, c, value)
+            _style_status_cell(cell, row["Status"], bold=(c in (1, 2)))
+            if c == 4:
+                cell.number_format = "0.0%"
+    if flagged.empty:
+        review.cell(2, 1, "No mismatches between decisions and scores.")
+    review.freeze_panes = "A2"
+    _autowidth(review)
 
     emp = wb.create_sheet("Employee Numbers")
     _header(emp, 1, ["Candidate", "Status", "Employee #", "Flag"])

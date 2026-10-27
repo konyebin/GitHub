@@ -36,12 +36,31 @@ Use **Choose another workbook** in the sidebar to switch. Candidates without a s
 * Every change is also autosaved to `tracker_state.json` next to `app.py`, so a browser refresh or re-upload keeps
   your decisions (matched by candidate name).
 
-## Scoring
+## Scoring, score bands and review flags
 
 Scores are recomputed from the competency columns (4 items per section, max 4 each): Interview, Role Play and
-Presentation are each out of 16, total out of 48. The suggested status uses sidebar thresholds, defaulting to
-85% for Hire and 70% for Standby (from the legend in the source sheet). Suggestions are advisory only.
-Rows named `Example ...` are hidden unless you switch them on.
+Presentation are each out of 16, total out of 48.
+
+Every candidate gets a **score band** from the overall percentage (sliders in the sidebar):
+
+* Hire: 85% and up
+* Maybe: 70% to just under 85% (maps to Standby for "Apply suggestions")
+* No Hire: below 70%
+
+A decision that disagrees with its band is flagged **Needs review**:
+
+| Decision | Score band | Flag |
+|----------|------------|------|
+| Hire | No Hire range | High |
+| Hire | Maybe range | Review |
+| No Hire | Hire range | High |
+| No Hire | Maybe range | Review |
+| Standby | Hire or No Hire range | Review |
+| Hire or No Hire | Incomplete scores | Review |
+
+Flags show in the All Candidates table, on Board cards (orange outline), in the banner above the tabs, in the
+Insights tab (including a score-vs-decision chart), and on the "Needs Review" sheet of the saved workbook. Adding a
+note to the candidate marks the flag as "(note added)". Rows named `Example ...` are hidden unless you switch them on.
 
 ## Privacy
 

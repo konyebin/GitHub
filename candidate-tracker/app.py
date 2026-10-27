@@ -24,14 +24,16 @@ from tracker_core import (
     DEFAULT_STANDBY_THRESHOLD,
     HIRE,
     NO_HIRE,
+    ALERT_COLOR,
+    FLAG_HIGH,
     SECTIONS,
     STANDBY,
     UI_COLORS,
     UNASSIGNED,
+    add_signals,
     build_workbook,
     duplicate_numbers,
     parse_workbook,
-    suggest,
 )
 
 APP_DIR = Path(__file__).resolve().parent
@@ -81,6 +83,7 @@ CSS = f"""
   }}
   div[data-testid="stTabs"] button[role="tab"] {{ font-size: 1.02rem; padding: 10px 18px; }}
   div[data-testid="stVerticalBlockBorderWrapper"] {{ border-radius: 12px; }}
+  [class*="st-key-card_"][class*="_flagged_"] {{ box-shadow: 0 0 0 2px {ALERT_COLOR}; }}
   [class*="st-key-card_hire_"] {{ background: {UI_COLORS[HIRE]}26; border-color: {UI_COLORS[HIRE]}80 !important; }}
   [class*="st-key-card_standby_"] {{ background: {UI_COLORS[STANDBY]}26; border-color: {UI_COLORS[STANDBY]}80 !important; }}
   [class*="st-key-card_nohire_"] {{ background: {UI_COLORS[NO_HIRE]}26; border-color: {UI_COLORS[NO_HIRE]}80 !important; }}
@@ -198,11 +201,7 @@ def merged_frame(base: pd.DataFrame) -> pd.DataFrame:
         for n in df["Candidate"]
     ]
     df["Decision Notes"] = [decision(n).get("notes", "") for n in df["Candidate"]]
-    df["Suggested"] = [
-        suggest(p, c, st.session_state.hire_th, st.session_state.standby_th)
-        for p, c in zip(df["Overall %"], df["Complete"])
-    ]
-    return df
+    return add_signals(df, st.session_state.hire_th, st.session_state.standby_th)
 
 
 # -------------------------------------------------------------- widgets ---
@@ -219,7 +218,13 @@ def row_style(row: pd.Series) -> list[str]:
     color = UI_COLORS[row["Status"]]
     base = f"background-color: {color}{TINT_ALPHA[row['Status']]}; color: #F2F6FC;"
     status_cell = base + f" color: {color}; font-weight: 700;"
-    return [status_cell if col == "Status" else base for col in row.index]
+    flag_cell = base
+    if row.get("Flag"):
+        flag_cell = f"background-color: {ALERT_COLOR}33; color: {ALERT_COLOR}; font-weight: 700;"
+    return [
+        status_cell if col == "Status" else flag_cell if col == "Flag" else base
+        for col in row.index
+    ]
 
 
 def apply_filters(df: pd.DataFrame) -> pd.DataFrame:
@@ -237,15 +242,21 @@ def apply_filters(df: pd.DataFrame) -> pd.DataFrame:
 def tab_all(df: pd.DataFrame) -> None:
     st.caption(
         "Rows are coloured by status: green is Hire, yellow is Standby, red is No Hire. "
+        "'Score says' shows what the percentage alone suggests, and 'Needs review' calls out decisions that disagree with it. "
         "Change a status, re-evaluation date or note straight in the table."
     )
-    c1, c2 = st.columns([3, 1])
+    c1, c2, c3 = st.columns([3, 1, 1])
     with c1:
         picked = st.multiselect("Show statuses", ALL_STATUSES, default=ALL_STATUSES, key="all_filter")
     with c2:
         sort = st.selectbox("Sort by", ["Score (high to low)", "Name (A-Z)", "Status"], key="all_sort")
+    with c3:
+        st.write("")
+        flagged_only = st.toggle("Needs review only", key="flagged_only")
     view = apply_filters(df)
     view = view[view["Status"].isin(picked)]
+    if flagged_only:
+        view = view[view["Flag"] != ""]
     if sort.startswith("Score"):
         view = view.sort_values("Overall %", ascending=False)
     elif sort.startswith("Name"):
@@ -256,7 +267,7 @@ def tab_all(df: pd.DataFrame) -> None:
         )
     columns = [
         "Candidate", "Country", "Interview", "Role Play", "Presentation", "Total",
-        "Overall %", "Status", "Re-evaluate On", "Decision Notes",
+        "Overall %", "Score Band", "Status", "Flag", "Re-evaluate On", "Decision Notes",
     ]
     view = view[columns].reset_index(drop=True)
     if view.empty:
@@ -270,14 +281,16 @@ def tab_all(df: pd.DataFrame) -> None:
         width="stretch",
         height=min(640, 60 + 36 * len(view)),
         key=f"all_editor_{st.session_state.rev}",
-        disabled=["Candidate", "Country", "Interview", "Role Play", "Presentation", "Total", "Overall %"],
+        disabled=["Candidate", "Country", "Interview", "Role Play", "Presentation", "Total", "Overall %", "Score Band", "Flag"],
         column_config={
             "Interview": st.column_config.NumberColumn("Interview /16", format="%.1f"),
             "Role Play": st.column_config.NumberColumn("Role Play /16", format="%.1f"),
             "Presentation": st.column_config.NumberColumn("Presentation /16", format="%.1f"),
             "Total": st.column_config.NumberColumn("Total /48", format="%.1f"),
             "Overall %": st.column_config.ProgressColumn("Overall", min_value=0.0, max_value=1.0, format="percent"),
+            "Score Band": st.column_config.TextColumn("Score says", help="Where the score falls: Hire, Maybe or No Hire"),
             "Status": st.column_config.SelectboxColumn("Status", options=ALL_STATUSES, required=True),
+            "Flag": st.column_config.TextColumn("Needs review", width="large", help="Status and score disagree"),
             "Re-evaluate On": st.column_config.DateColumn("Re-evaluate on", format="YYYY-MM-DD"),
             "Decision Notes": st.column_config.TextColumn("Notes", width="large"),
         },
@@ -300,12 +313,14 @@ def card(row: pd.Series, status: str) -> None:
     if row["Employee #"] and status == HIRE:
         badges += f'<span class="pill" style="--c:{CISCO_BLUE}">#{html.escape(row["Employee #"])}</span>'
     if status == UNASSIGNED and row["Suggested"] != "Incomplete":
-        badges += f'<span class="pill" style="--c:{UI_COLORS[row["Suggested"]]}">suggests {row["Suggested"]}</span>'
+        badges += f'<span class="pill" style="--c:{UI_COLORS[row["Suggested"]]}">score says {row["Score Band"]}</span>'
+    if row["Flag"]:
+        badges += f'<span class="pill" style="--c:{ALERT_COLOR}">{html.escape(row["Flag"])}</span>'
     if status == STANDBY and row["Re-evaluate On"]:
         badges += f'<span class="pill" style="--c:{UI_COLORS[STANDBY]}">re-eval {row["Re-evaluate On"]:%b %d}</span>'
     meta = html.escape(row["Country"]) if row["Country"] else "&nbsp;"
     slug = status.lower().replace(" ", "")
-    with st.container(border=True, key=f"card_{slug}_{row['Candidate']}"):
+    with st.container(border=True, key=f"card_{slug}_{'flagged' if row['Flag'] else 'ok'}_{row['Candidate']}"):
         st.markdown(
             f'<div style="--c:{color}">'
             f'<div class="card-name">{html.escape(row["Candidate"])}</div>'
@@ -421,6 +436,7 @@ def plotly_dark(fig: go.Figure, height: int = 320) -> go.Figure:
 
 
 def tab_insights(df: pd.DataFrame) -> None:
+    flagged_all = df[df["Flag"] != ""]
     c1, c2 = st.columns(2)
     counts = df["Status"].value_counts()
     donut = go.Figure(
@@ -479,12 +495,63 @@ def tab_insights(df: pd.DataFrame) -> None:
                 column_config={"Overall %": st.column_config.ProgressColumn("Overall", min_value=0.0, max_value=1.0, format="percent")},
             )
 
+    st.markdown("**Score vs decision**")
+    order = [HIRE, STANDBY, NO_HIRE, UNASSIGNED]
+    strip = go.Figure()
+    jitter = pd.Series(range(len(df)), index=df.index).map(lambda i: ((i * 37) % 11 - 5) / 22)
+    for status in order:
+        subset = df[(df["Status"] == status) & (df["Flag"] == "")]
+        strip.add_trace(go.Scatter(
+            x=subset["Overall %"] * 100, y=subset["Status"].map({s_: i for i, s_ in enumerate(order)}) + jitter[subset.index],
+            mode="markers", name=status, text=subset["Candidate"],
+            marker=dict(color=UI_COLORS[status], size=11, line=dict(color="#0A1220", width=1)),
+            hovertemplate="%{text}<br>%{x:.1f}%<extra>" + status + "</extra>",
+        ))
+    odd = df[df["Flag"] != ""]
+    if len(odd):
+        strip.add_trace(go.Scatter(
+            x=odd["Overall %"] * 100, y=odd["Status"].map({s_: i for i, s_ in enumerate(order)}) + jitter[odd.index],
+            mode="markers", name="Needs review", text=odd["Candidate"] + ": " + odd["Flag"],
+            marker=dict(color=[UI_COLORS[x] for x in odd["Status"]], size=14, symbol="diamond",
+                        line=dict(color=ALERT_COLOR, width=3)),
+            hovertemplate="%{text}<extra></extra>",
+        ))
+    strip.add_vline(x=st.session_state.hire_th * 100, line_dash="dash", line_color=UI_COLORS[HIRE])
+    strip.add_vline(x=st.session_state.standby_th * 100, line_dash="dash", line_color=UI_COLORS[STANDBY])
+    strip.update_layout(
+        xaxis_title="Overall %",
+        yaxis=dict(tickvals=list(range(len(order))), ticktext=order, range=[-0.7, len(order) - 0.3]),
+    )
+    st.plotly_chart(plotly_dark(strip, 340), width="stretch")
+
+    st.markdown("**Decisions that disagree with the score**")
+    if flagged_all.empty:
+        st.caption("Nothing to review. Every decision sits in the score band you would expect.")
+    else:
+        review_table(flagged_all)
+
     st.markdown("**Audit log**")
     audit = pd.DataFrame(st.session_state.audit[::-1], columns=["when", "by", "candidate", "field", "old", "new"])
     if audit.empty:
         st.caption("Changes you make will be listed here with a timestamp and your reviewer name.")
     else:
         st.dataframe(audit, hide_index=True, width="stretch")
+
+
+def review_table(frame: pd.DataFrame) -> None:
+    show = frame.assign(Issue=frame["Flag"].str.replace(r"^[A-Z]+: ", "", regex=True))
+    show = show.assign(Level=show["Flag Level"].map({FLAG_HIGH: "High"}).fillna("Review"))
+    show = show.sort_values(["Level", "Overall %"], ascending=[True, False])
+    st.dataframe(
+        show[["Level", "Candidate", "Status", "Overall %", "Score Band", "Issue", "Decision Notes"]].reset_index(drop=True),
+        hide_index=True,
+        width="stretch",
+        column_config={
+            "Overall %": st.column_config.ProgressColumn("Overall", min_value=0.0, max_value=1.0, format="percent"),
+            "Score Band": "Score says",
+            "Decision Notes": "Notes",
+        },
+    )
 
 
 # ----------------------------------------------------------------- main ---
@@ -551,9 +618,16 @@ with st.sidebar:
     upload = st.file_uploader("Upload the ASE scores workbook", type=["xlsx"], label_visibility="collapsed")
     include_examples = st.toggle("Include 'Example' rows", value=False)
     st.text_input("Reviewer name", key="reviewer", on_change=persist, help="Stamped on every change in the audit log.")
-    st.markdown("### Suggestion thresholds")
-    st.slider("Suggest Hire at or above", 0.5, 1.0, key="hire_th", step=0.01, format="%.2f", on_change=persist)
-    st.slider("Suggest Standby at or above", 0.3, 1.0, key="standby_th", step=0.01, format="%.2f", on_change=persist)
+    st.markdown("### Score bands")
+    st.slider("Hire at or above", 0.5, 1.0, key="hire_th", step=0.01, format="%.2f", on_change=persist)
+    st.slider("Maybe at or above", 0.3, 1.0, key="standby_th", step=0.01, format="%.2f", on_change=persist)
+    if st.session_state.standby_th > st.session_state.hire_th:
+        st.warning("The Maybe line should not be above the Hire line.")
+    st.caption(
+        f"Hire: {st.session_state.hire_th:.0%} and up. Maybe: {st.session_state.standby_th:.0%} to just under "
+        f"{st.session_state.hire_th:.0%}. No Hire: below {st.session_state.standby_th:.0%}. "
+        "Decisions that disagree with these bands are flagged."
+    )
 
 st.markdown(
     '<div class="hero"><h1>ASE Candidate <span>Tracker</span></h1>'
@@ -633,12 +707,31 @@ with st.sidebar:
             st.rerun()
 
 counts = df["Status"].value_counts()
-kpi_cols = st.columns(5)
-kpi_data = [("Candidates", len(df), CISCO_BLUE)] + [(s, int(counts.get(s, 0)), UI_COLORS[s]) for s in [HIRE, STANDBY, NO_HIRE, UNASSIGNED]]
+flagged_df = df[df["Flag"] != ""]
+kpi_cols = st.columns(6)
+kpi_data = (
+    [("Candidates", len(df), CISCO_BLUE)]
+    + [(s, int(counts.get(s, 0)), UI_COLORS[s]) for s in [HIRE, STANDBY, NO_HIRE, UNASSIGNED]]
+    + [("Needs review", len(flagged_df), ALERT_COLOR)]
+)
 for col, (label, value, color) in zip(kpi_cols, kpi_data):
     col.markdown(kpi(label, value, color), unsafe_allow_html=True)
 decided = len(df) - int(counts.get(UNASSIGNED, 0))
 st.progress(decided / len(df), text=f"{decided} of {len(df)} candidates decided")
+
+banner = st.container()
+with banner:
+    if not flagged_df.empty:
+        high = int((flagged_df["Flag Level"] == FLAG_HIGH).sum())
+        with st.expander(
+            f"{len(flagged_df)} decision(s) disagree with the score ({high} high priority). Click to review.",
+            expanded=False,
+        ):
+            st.caption(
+                "High means a Hire below the Maybe line, or a No Hire above the Hire line. Review means a smaller gap, "
+                "such as a Hire in the Maybe range. Add a note on the All Candidates tab to record why."
+            )
+            review_table(flagged_df)
 
 st.text_input("Search by name, country or employee number", key="search", placeholder="Start typing...")
 
