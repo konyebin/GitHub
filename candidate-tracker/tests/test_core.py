@@ -119,3 +119,9 @@ def test_add_signals_columns():
     assert set(out["Score Band"]) <= {"Hire", "Maybe", "No Hire", "Incomplete"}
     low = out[(out["Overall %"] < 0.70) & out["Complete"]]
     assert (low["Flag Level"] == "high").all() and low["Flag"].str.startswith("HIGH").all()
+
+
+def test_template_without_candidates_returns_typed_empty_frame():
+    res = parse_workbook(SAMPLES / "FY27Q3_AMER_ASE_Scores_template.xlsx")
+    assert res.df.empty
+    assert "Candidate" in res.df.columns and "Source Status" in res.df.columns

@@ -653,13 +653,23 @@ if st.session_state.get("digest") != digest:
         st.error(f"Could not read that workbook: {exc}")
         st.stop()
     st.session_state.base = parsed.df
-    st.session_state.source_status = dict(zip(parsed.df["Candidate"], parsed.df["Source Status"]))
+    st.session_state.source_status = (
+        dict(zip(parsed.df["Candidate"], parsed.df["Source Status"])) if not parsed.df.empty else {}
+    )
     st.session_state.skipped = parsed.skipped_examples
     st.session_state.digest = digest
 
 base: pd.DataFrame = st.session_state.base
 if base.empty:
-    st.warning("No candidates found yet. Fill in candidate names in the workbook and upload it again.")
+    hidden = st.session_state.get("skipped", 0)
+    st.warning(
+        "No candidates found in this workbook. Candidate names go in the 'Candidate Name' column below the header row."
+        + (f" {hidden} row(s) named 'Example' are hidden; switch on 'Include Example rows' in the sidebar to see them." if hidden else "")
+    )
+    if st.session_state.loaded and st.button("Choose another workbook"):
+        st.session_state.loaded = None
+        st.session_state.digest = None
+        st.rerun()
     st.stop()
 
 df = merged_frame(base)

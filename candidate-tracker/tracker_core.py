@@ -49,6 +49,13 @@ DEFAULT_HIRE_THRESHOLD = 0.85
 DEFAULT_STANDBY_THRESHOLD = 0.70
 
 
+PARSED_COLUMNS = (
+    ["Candidate", "Country", "Salutation"]
+    + [f"{label}{suffix}" for label in SECTIONS.values() for suffix in ("", " Rec", " C1", " C2", " C3", " C4")]
+    + ["Total", "Overall %", "Complete", "Source Status", "Buddy", "Source Notes"]
+)
+
+
 @dataclass
 class ParseResult:
     df: pd.DataFrame
@@ -237,7 +244,7 @@ def parse_workbook(source: Any, include_examples: bool = False) -> ParseResult:
         record["Source Notes"] = _text(values[notes_col]) if notes_col is not None else ""
         rows.append(record)
 
-    df = pd.DataFrame(rows)
+    df = pd.DataFrame(rows, columns=None if rows else PARSED_COLUMNS)
     return ParseResult(df=df, skipped_examples=skipped)
 
 
