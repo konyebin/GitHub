@@ -26,6 +26,20 @@ Shared context for the hiring data themes and trends project. A separate Cursor 
 - Because schools and locations remain, check them as proxies for protected traits and consider excluding them from resume theme features.
 - Tag tokens like `[NAME]` should be stripped or ignored in text models so they don't become themes.
 
+## Observed data layout (synthetic TEST_DATA copies from branch `cursor/candidate-tracker-ui-076c`)
+
+- `FY27Q3_AMER_ASE_Scores_TEST_DATA.xlsx`, one sheet (`TEMPLATE`), header on row 9, one row per candidate (about 20 rows). Columns: Country, Salutation, Candidate Name, then three exercises, then totals and decision.
+  - Interview, Role Play and Presentation each have 4 competencies scored 1-4 (max 16 per exercise), a per-exercise recommendation (Yes / Standby / No) and a comment. Total is out of 48.
+  - Competency sets differ by exercise. "Executive Presence & Communication" appears in all three; "Coachability" in Role Play and Presentation.
+  - Totals and Overall % are formulas. Final decision column is Hire / Standby / No Hire and is sometimes blank. A sheet header describes score bands at 85%, 70%, 65% and 50%, which the analysis will not use as cutoffs.
+  - `Buddy` is filled only for some hires, so it leaks the outcome. Exclude it from any predictive step.
+  - There is no interviewer or assessor column. Interviewer-level analysis needs one from the real data.
+  - Comments look like a short pick-list of phrases in the test data; real notes may be free text.
+  - `Salutation` (Mr./Ms./Mx.) and `Country` are sensitive fields (gender and national-origin proxies). Never use as features; hold for post-hoc adverse-impact checks only.
+- `ASE_Candidate_Screen_Review_TEST_DATA.xlsx` (screening stage) has not been received yet.
+- Resumes: one `.docx` per candidate, about one page (header with name, city, phone, email; summary; experience; education; certifications; skills). 11 resumes versus about 20 score rows, so some candidates have no resume.
+- Join risk: the redactor turns every name into `[NAME]`, so the `Candidate Name` column and resume filenames stop being unique. IDs must be assigned to the score rows and resumes BEFORE redaction, and the redactor's `candidateN` numbering must not be assumed to match.
+
 ## Analysis plan
 
 See the plan in the chat (themes, trends, interviewer-level patterns, dashboard). Summary: rank-based comparisons (no fixed thresholds), within-instrument percentiles, funnel analysis including rejected candidates, bottom-up resume and notes themes, interviewer deviation from other signals, robustness checks, optional adverse-impact audit if an audit key exists. Outcomes (screened, interviewed, assessment center, hired) are past human decisions, not job performance.
