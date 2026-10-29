@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hiring themes and trends</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#1b2430;--muted:#5d6b7c;--line:#dde2e8;--accent:#0b5cad;--robust:#1f7a4d;--suggestive:#b7791f;--weak:#8a94a3;--warn:#fff4e0}
+*{box-sizing:border-box}body{margin:0;font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:#14213d;color:#fff;padding:14px 24px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+header h1{font-size:18px;margin:0;font-weight:600}.mode{font-size:12px;padding:3px 10px;border-radius:12px;background:#ffd166;color:#14213d;font-weight:600}
+.mode.share{background:#8fd9a8}
+nav{display:flex;gap:4px;padding:0 24px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;overflow-x:auto}
+nav button{border:0;background:none;padding:12px 14px;font:inherit;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+nav button.on{color:var(--accent);border-color:var(--accent);font-weight:600}
+main{max-width:1180px;margin:0 auto;padding:20px 24px 60px}
+.banner{background:var(--warn);border:1px solid #f1d49b;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:16px}
+.card h2{margin:0 0 4px;font-size:16px}.card .sub{color:var(--muted);font-size:12px;margin-bottom:10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(520px,1fr));gap:16px}
+.finding{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--line)}.finding:first-child{border-top:0}
+.badge{flex:none;height:20px;font-size:11px;font-weight:700;color:#fff;border-radius:10px;padding:0 9px;line-height:20px;text-transform:uppercase}
+.badge.robust{background:var(--robust)}.badge.suggestive{background:var(--suggestive)}.badge.weak{background:var(--weak)}
+.finding .ev{color:var(--muted);font-size:12px;margin-top:2px}
+.tag{font-size:11px;color:var(--muted);margin-left:6px}
+table{border-collapse:collapse;width:100%;font-size:12px}th,td{border-bottom:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
+th{background:#f0f3f7;position:sticky;top:0}.tbl{max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:6px}
+details>summary{cursor:pointer;color:var(--accent);margin:6px 0}
+ul.cav{margin:6px 0 0 18px;padding:0;color:var(--muted)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:4px 0}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}
+svg text{font:11px system-ui,sans-serif;fill:#3b4757}
+.small{font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header><h1>Hiring themes and trends</h1><span id="mode" class="mode"></span><span class="small" style="color:#cfd8e6" id="gen"></span></header>
+<nav id="nav"></nav>
+<main id="main"></main>
+<script id="payload" type="application/json">__PAYLOAD__</script>
+<script>
+const P = JSON.parse(document.getElementById('payload').textContent);
+const SECTIONS = [["overview","Overview"],["funnel","Funnel"],["structure","Score structure"],["resume_themes","Resume themes"],["notes_themes","Notes themes"],["interviewers","Interviewer trends"],["about","How to read this"]];
+const COLORS = ["#0b5cad","#e07a1f","#2a9d8f","#9b5de5","#d62839","#6c757d","#8ab17d","#264653"];
+const el = (t, a={}, ...k) => { const e=document.createElement(t); for (const [x,y] of Object.entries(a)) { if (x==='class') e.className=y; else if (x==='html') e.innerHTML=y; else e.setAttribute(x,y); } k.flat().forEach(c=>e.append(c&&c.nodeType?c:document.createTextNode(c??''))); return e; };
+const NS = 'http://www.w3.org/2000/svg';
+const sv = (t, a={}, ...k) => { const e=document.createElementNS(NS,t); for (const [x,y] of Object.entries(a)) e.setAttribute(x,y); k.flat().forEach(c=>e.append(c&&c.nodeType?c:document.createTextNode(c))); return e; };
+const fmt = v => v===null||v===undefined ? 'suppressed' : (typeof v==='number' ? (Math.abs(v)>=100? Math.round(v).toString() : (Math.round(v*1000)/1000).toString()) : String(v));
+const num = v => typeof v==='number' && isFinite(v);
+const nice = (lo,hi) => { if(lo===hi){hi=lo+1} const span=hi-lo, step=Math.pow(10,Math.floor(Math.log10(span/5))); const m=[1,2,5,10].find(x=>span/(step*x)<=6)*step; const a=Math.floor(lo/m)*m, b=Math.ceil(hi/m)*m; const t=[]; for(let v=a; v<=b+m/1000; v+=m) t.push(+v.toPrecision(10)); return [a,b,t]; };
+
+function legend(names){ return el('div',{class:'legend'}, names.map((n,i)=>el('span',{},el('i',{style:'background:'+COLORS[i%COLORS.length]}),n))); }
+function wrap(c, body){
+  const d = el('div',{class:'card'}, el('h2',{},c.title), c.subtitle?el('div',{class:'sub'},c.subtitle):'' , body);
+  return d;
+}
+function barChart(c, horizontal){
+  const {labels, series} = c.data, W=720, ml = horizontal? 190 : 50, mb = horizontal? 30 : 70, mt=10, mr=20;
+  const rowH = horizontal ? Math.max(18, 12+series.length*10) : 0, H = horizontal ? mt+mb+labels.length*rowH : 300;
+  const vals = series.flatMap(s=>s.values.filter(num)); let lo=Math.min(0,...vals), hi=Math.max(0,...vals); if(!vals.length){lo=0;hi=1}
+  const [a,b,ticks]=nice(lo,hi); const svg=sv('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%'});
+  const pw=W-ml-mr, ph=H-mt-mb;
+  if(horizontal){
+    const x=v=>ml+(v-a)/(b-a)*pw; ticks.forEach(t=>{svg.append(sv('line',{x1:x(t),x2:x(t),y1:mt,y2:H-mb,stroke:'#e6eaef'}),sv('text',{x:x(t),y:H-mb+14,'text-anchor':'middle'},fmt(t)))});
+    svg.append(sv('line',{x1:x(0),x2:x(0),y1:mt,y2:H-mb,stroke:'#9aa5b4'}));
+    labels.forEach((l,i)=>{ const y0=mt+i*rowH, bh=(rowH-6)/series.length; svg.append(sv('text',{x:ml-6,y:y0+rowH/2+3,'text-anchor':'end'},String(l).slice(0,34)));
+      series.forEach((s,j)=>{ const v=s.values[i]; if(!num(v)) { svg.append(sv('text',{x:x(0)+4,y:y0+3+bh*(j+.7),fill:'#999'},'suppressed')); return; }
+        const lo2=s.lower&&s.lower[i], hi2=s.upper&&s.upper[i];
+        svg.append(sv('rect',{x:Math.min(x(0),x(v)),y:y0+3+bh*j,width:Math.abs(x(v)-x(0)),height:bh-1,fill:COLORS[j%COLORS.length]},sv('title',{},`${l}: ${fmt(v)}`)));
+        if(num(lo2)&&num(hi2)) svg.append(sv('line',{x1:x(lo2),x2:x(hi2),y1:y0+3+bh*(j+.5),y2:y0+3+bh*(j+.5),stroke:'#222'}));
+      });});
+  } else {
+    const y=v=>mt+ph-(v-a)/(b-a)*ph, gw=pw/labels.length;
+    ticks.forEach(t=>{svg.append(sv('line',{x1:ml,x2:W-mr,y1:y(t),y2:y(t),stroke:'#e6eaef'}),sv('text',{x:ml-6,y:y(t)+3,'text-anchor':'end'},fmt(t)))});
+    labels.forEach((l,i)=>{ const bw=(gw*.8)/series.length; series.forEach((s,j)=>{ const v=s.values[i]; const x0=ml+i*gw+gw*.1+bw*j;
+      if(num(v)) svg.append(sv('rect',{x:x0,y:Math.min(y(0),y(v)),width:bw-1,height:Math.abs(y(v)-y(0)),fill:COLORS[j%COLORS.length]},sv('title',{},`${l}: ${fmt(v)}`)));
+      }); const t=sv('text',{x:ml+i*gw+gw/2,y:H-mb+14,'text-anchor':'end',transform:`rotate(-30 ${ml+i*gw+gw/2} ${H-mb+14})`},String(l).slice(0,26)); svg.append(t); });
+  }
+  const body=[svg]; if(series.length>1) body.unshift(legend(series.map(s=>s.name)));
+  if(c.y_label||c.x_label) body.push(el('div',{class:'small'},[c.x_label,c.y_label].filter(Boolean).join(' / ')));
+  return wrap(c, body);
+}
+function lineChart(c){
+  const {labels,series}=c.data, W=720,H=300,ml=50,mr=20,mt=10,mb=40; const vals=series.flatMap(s=>s.values.filter(num)); const [a,b,ticks]=nice(Math.min(...vals,0>Math.min(...vals)?Math.min(...vals):Math.min(...vals)),Math.max(...vals));
+  const svg=sv('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%'}); const x=i=>ml+(labels.length>1?i/(labels.length-1):.5)*(W-ml-mr), y=v=>mt+(H-mt-mb)-(v-a)/(b-a)*(H-mt-mb);
+  ticks.forEach(t=>svg.append(sv('line',{x1:ml,x2:W-mr,y1:y(t),y2:y(t),stroke:'#e6eaef'}),sv('text',{x:ml-6,y:y(t)+3,'text-anchor':'end'},fmt(t))));
+  labels.forEach((l,i)=>{ if(labels.length<=14||i%Math.ceil(labels.length/14)===0) svg.append(sv('text',{x:x(i),y:H-mb+14,'text-anchor':'middle'},String(l).slice(0,10)))});
+  series.forEach((s,j)=>{ const pts=s.values.map((v,i)=>num(v)?`${x(i)},${y(v)}`:null).filter(Boolean); svg.append(sv('polyline',{points:pts.join(' '),fill:'none',stroke:COLORS[j%COLORS.length],'stroke-width':2}));});
+  return wrap(c,[series.length>1?legend(series.map(s=>s.name)):'',svg,el('div',{class:'small'},[c.x_label,c.y_label].filter(Boolean).join(' / '))]);
+}
+function scatterChart(c){
+  const pts=c.data.points.filter(p=>num(p.x)&&num(p.y)); const W=720,H=360,ml=50,mr=20,mt=10,mb=40;
+  const [ax,bx,tx]=nice(Math.min(...pts.map(p=>p.x)),Math.max(...pts.map(p=>p.x))), [ay,by,ty]=nice(Math.min(...pts.map(p=>p.y)),Math.max(...pts.map(p=>p.y)));
+  const x=v=>ml+(v-ax)/(bx-ax)*(W-ml-mr), y=v=>H-mb-(v-ay)/(by-ay)*(H-mt-mb); const svg=sv('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%'});
+  tx.forEach(t=>svg.append(sv('line',{x1:x(t),x2:x(t),y1:mt,y2:H-mb,stroke:'#eef1f5'}),sv('text',{x:x(t),y:H-mb+14,'text-anchor':'middle'},fmt(t))));
+  ty.forEach(t=>svg.append(sv('line',{x1:ml,x2:W-mr,y1:y(t),y2:y(t),stroke:'#eef1f5'}),sv('text',{x:ml-6,y:y(t)+3,'text-anchor':'end'},fmt(t))));
+  const groups=[...new Set(pts.map(p=>p.group||''))];
+  pts.forEach(p=>svg.append(sv('circle',{cx:x(p.x),cy:y(p.y),r:3.5,fill:COLORS[groups.indexOf(p.group||'')%COLORS.length],'fill-opacity':.65},sv('title',{},`${p.label?p.label+': ':''}${fmt(p.x)}, ${fmt(p.y)}${p.group?' ('+p.group+')':''}`))));
+  svg.append(sv('text',{x:W/2,y:H-4,'text-anchor':'middle'},c.x_label||''),sv('text',{x:12,y:H/2,'text-anchor':'middle',transform:`rotate(-90 12 ${H/2})`},c.y_label||''));
+  return wrap(c,[groups.length>1?legend(groups):'',svg]);
+}
+function heatmap(c){
+  const {row_labels:R,col_labels:C,values:V}=c.data, cs=Math.max(22,Math.min(44,Math.floor(640/C.length))), ml=190,mt=120, W=ml+C.length*cs+20, H=mt+R.length*cs+10;
+  const lo=c.data.min??-1, hi=c.data.max??1, mid=(lo+hi)/2, svg=sv('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%'});
+  const col=v=>{ if(!num(v)) return '#eee'; const t=(v-mid)/((hi-lo)/2); const a=Math.min(1,Math.abs(t)); return t>=0?`rgba(11,92,173,${.08+a*.85})`:`rgba(214,40,57,${.08+a*.85})`; };
+  C.forEach((l,j)=>svg.append(sv('text',{x:ml+j*cs+cs/2,y:mt-6,'text-anchor':'start',transform:`rotate(-60 ${ml+j*cs+cs/2} ${mt-6})`},String(l).slice(0,30))));
+  R.forEach((l,i)=>{ svg.append(sv('text',{x:ml-6,y:mt+i*cs+cs/2+3,'text-anchor':'end'},String(l).slice(0,32)));
+    C.forEach((_,j)=>{ const v=V[i][j]; svg.append(sv('rect',{x:ml+j*cs,y:mt+i*cs,width:cs-1,height:cs-1,fill:col(v)},sv('title',{},`${l} / ${C[j]}: ${fmt(v)}`)));
+      if(num(v)&&cs>=28) svg.append(sv('text',{x:ml+j*cs+cs/2,y:mt+i*cs+cs/2+3,'text-anchor':'middle',style:'font-size:9px'},(Math.round(v*100)/100).toString())); }); });
+  return wrap(c,[svg]);
+}
+function boxplot(c){
+  const gs=c.data.groups, W=720, rowH=26, ml=190, mt=10, mb=30, H=mt+mb+gs.length*rowH; const all=gs.flatMap(g=>[g.min,g.max]).filter(num);
+  const [a,b,ticks]=nice(Math.min(...all),Math.max(...all)); const x=v=>ml+(v-a)/(b-a)*(W-ml-20); const svg=sv('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%'});
+  ticks.forEach(t=>svg.append(sv('line',{x1:x(t),x2:x(t),y1:mt,y2:H-mb,stroke:'#eef1f5'}),sv('text',{x:x(t),y:H-mb+14,'text-anchor':'middle'},fmt(t))));
+  gs.forEach((g,i)=>{ const y=mt+i*rowH+rowH/2; svg.append(sv('text',{x:ml-6,y:y+3,'text-anchor':'end'},`${String(g.name).slice(0,30)} (n=${g.n??'?'})`));
+    if(!num(g.median)){ svg.append(sv('text',{x:ml+4,y:y+3,fill:'#999'},'suppressed')); return; }
+    svg.append(sv('line',{x1:x(g.min),x2:x(g.max),y1:y,y2:y,stroke:'#8a94a3'}),sv('rect',{x:x(g.q1),y:y-7,width:Math.max(1,x(g.q3)-x(g.q1)),height:14,fill:COLORS[i%COLORS.length],'fill-opacity':.55,stroke:COLORS[i%COLORS.length]}),sv('line',{x1:x(g.median),x2:x(g.median),y1:y-7,y2:y+7,stroke:'#111','stroke-width':2})); });
+  return wrap(c,[svg,el('div',{class:'small'},[c.x_label,c.y_label].filter(Boolean).join(' / '))]);
+}
+function table(c){
+  const {columns,rows}=c.data; const t=el('table',{},el('thead',{},el('tr',{},columns.map(h=>el('th',{},h)))),el('tbody',{},rows.map(r=>el('tr',{},r.map(v=>el('td',{},fmt(v)))))));
+  const box=el('div',{class:'tbl'},t);
+  const card=wrap(c, rows.length>12 ? el('details',{},el('summary',{},`Show table (${rows.length} rows)`),box) : box);
+  return card;
+}
+function chart(c){ return ({bar:x=>barChart(x,false),hbar:x=>barChart(x,true),line:lineChart,scatter:scatterChart,heatmap:heatmap,boxplot:boxplot,table:table})[c.type](c); }
+function findings(list){ return list.map(f=>el('div',{class:'finding'},el('span',{class:'badge '+f.strength},f.strength),el('div',{},el('div',{},f.text),el('div',{class:'ev'},f.evidence)))); }
+function caveats(list){ return el('details',{},el('summary',{},'Limits of this analysis'),el('ul',{class:'cav'},list.map(x=>el('li',{},x)))); }
+
+function render(id){
+  const m=document.getElementById('main'); m.replaceChildren();
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.id===id));
+  if(id==='overview'){
+    m.append(el('div',{class:'banner'},'Outcomes in this data (who advanced, who was hired) are past human decisions, not job performance. Patterns show what the process rewarded. Use them to prompt review, not as standalone reasons to reject anyone. Check with HR or counsel before any use in selection decisions.'));
+    const counts={robust:0,suggestive:0,weak:0}; Object.values(P.sections).forEach(s=>s.findings.forEach(f=>counts[f.strength]++));
+    m.append(el('div',{class:'card'},el('h2',{},'Headline findings'),el('div',{class:'sub'},`${counts.robust} robust, ${counts.suggestive} suggestive, ${counts.weak} weak across ${Object.keys(P.sections).length} sections. Robust means it held across more than one method and resampling. The top four robust findings per section are shown here; open each section for the rest.`),
+      Object.entries(P.sections).flatMap(([k,s])=>s.findings.filter(f=>f.strength==='robust').slice(0,4).map(f=>el('div',{class:'finding'},el('span',{class:'badge robust'},'robust'),el('div',{},el('div',{},f.text),el('div',{class:'ev'},SECTIONS.find(x=>x[0]===k)[1]+' | '+f.evidence)))))));
+    return;
+  }
+  if(id==='about'){
+    m.append(el('div',{class:'card'},el('h2',{},'How to read this'),
+      el('p',{},'Nothing here uses a pass mark. Scores are turned into within-group percentile ranks, and relationships are measured with rank correlations and permutation tests, so no hand-picked cutoff decides who counts as good.'),
+      el('p',{},'Strength labels: robust (held across methods and resampling), suggestive (one method or wide uncertainty), weak (could be noise, usually a small sample).'),
+      el('p',{},'Later-stage scores exist only for people who passed earlier gates, so comparisons there are range-restricted. Missing scores are never filled in.'),
+      el('p',{},'Fields that can stand in for protected traits (graduation date, home city, school, skills tags) are checked for bias and are not used as selection signals. Country, salutation and any buddy field are excluded entirely.'),
+      el('p',{},P.mode==='shareable'?'This copy is aggregate-only: groups under 5 are hidden and no candidate IDs appear.':'This copy is local: it includes candidate IDs. Do not share or host it.')));
+    return;
+  }
+  const s=P.sections[id]; if(!s){ m.append(el('div',{class:'card'},'No results for this section yet.')); return; }
+  m.append(el('div',{class:'card'},el('h2',{},s.title),findings(s.findings),caveats(s.caveats)));
+  const g=el('div',{class:'grid'}); s.charts.filter(c=>c.type!=='table').forEach(c=>g.append(chart(c))); m.append(g);
+  s.charts.filter(c=>c.type==='table').forEach(c=>m.append(chart(c)));
+}
+document.getElementById('mode').textContent = P.mode==='shareable' ? 'Shareable: aggregates only' : 'Local: candidate-level';
+document.getElementById('mode').classList.toggle('share',P.mode==='shareable');
+document.getElementById('gen').textContent = 'Built '+P.built;
+const nav=document.getElementById('nav'); SECTIONS.forEach(([id,label])=>nav.append(el('button',{'data-id':id,onclick:`location.hash='${id}'`},label)));
+render((location.hash||'#overview').slice(1));
+window.addEventListener('hashchange',()=>render(location.hash.slice(1)));
+</script>
+</body>
+</html>
