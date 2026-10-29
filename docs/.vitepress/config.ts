@@ -46,6 +46,7 @@ export default defineConfig({
           { text: "Lookback", link: "/projects/lookback" },
           { text: "my-orchestrator", link: "/projects/my-orchestrator" },
           { text: "check-back-intelligence", link: "/projects/check-back-intelligence" },
+          { text: "Hiring analysis (demo)", link: "/projects/hiring-analysis" },
           { text: "test", link: "/projects/test" },
           { text: "device-mcp-server", link: "/projects/device-mcp-server" },
           { text: "GenAI-Bootcamp", link: "/projects/genai-bootcamp" },
