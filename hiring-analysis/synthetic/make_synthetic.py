@@ -7,13 +7,14 @@ Nothing here is real. Output goes to hiring-analysis/data/synthetic/ (git-ignore
   _truth.json                  the effects planted below, so we can check the pipeline recovers them
 
 Planted effects (the analysis should find these without being told):
-  1. Reviewer R2 scores the Interview exercise about one point per competency higher than the others.
-  2. Reviewer R3 writes subjective language ("polished", "great fit", "executive presence") far more often for
+  1. Assessor 4 scores the Interview exercise about one point per competency higher than the others.
+  2. Assessor 5 writes subjective language ("polished", "great fit", "executive presence") far more often for
      the "career_changer" and "intern" resume paths than for "help_desk", independent of score.
   3. Interview and Role Play ranks agree strongly; Presentation partly diverges (it reflects a separate skill).
   4. Screening Pass/Fail and Status track the TI score, but a few candidates are advanced or stopped against it.
   5. The final Decision follows total score loosely and disagrees for a handful of candidates.
-  6. "Buddy" is filled only for hires (outcome leak) and must be excluded from predictors.
+  6. Layout mirrors the real scores workbook (TEMPLATE sheet, header on row 9, an "Example 1" row, no Buddy column).
+     Blanks in the test files were filled with generated values, so nothing is left empty.
 
 Run: python hiring-analysis/synthetic/make_synthetic.py [--n 60] [--seed 7]
 Requires: openpyxl, python-docx
@@ -81,7 +82,7 @@ def score4(latent: float, rng: random.Random, bias: float = 0.0) -> int:
 
 
 def long_note(stage: str, avg: float, cand: dict, reviewer: str, rng: random.Random) -> tuple[str, bool]:
-    subj_rate = 0.65 if reviewer == "R3" and cand["path"] in ("career_changer", "intern") else 0.15
+    subj_rate = 0.65 if reviewer == "Assessor 5" and cand["path"] in ("career_changer", "intern") else 0.15
     subjective = rng.random() < subj_rate
     parts = [f"{stage} summary."]
     strong = avg >= 3.0
@@ -142,16 +143,16 @@ def main() -> None:
         advance = passed if rng.random() > 0.1 else (not passed)
         status = ("Sent Assessment Center Instructions and Candidate Confirmed Availability" if advance and rng.random() < 0.7
                   else "Sent Assessment Center Instructions" if advance else
-                  "Not interested in the role" if rng.random() < 0.3 else None)
+                  "Not interested in the role" if (passed and rng.random() < 0.5) else "Did not advance after TI")
         c["advance"] = bool(advance and had_ti)
         ti_note, _ = long_note("Technical interview", ti / 8, c, recruiter, rng)
         screen_rows.append([f"candidate{c['n']}", "[NAME]", c["grad"], rng.choice(
             ["Former Intern", "Holds CCNA", "Studying for AWS", "Bachelor Computer Science", "Experience: help desk", "N/A"]),
             c["city"], recruiter, "Sep 2026" if had_ti else "N/A", "Yes" if had_ti else "N/A",
-            ti if had_ti else "N/A", None, ("Pass" if passed else "Fail") if had_ti else "N/A",
+            ti if had_ti else "N/A", rng.choice(["No flags", "Strong English", "Relocation question", "Needs follow-up on networking basics", "Referred by a current employee"]) if had_ti else "N/A", ("Pass" if passed else "Fail") if had_ti else "N/A",
             ti_note if had_ti else "N/A", ("Yes" if advance else "No") if had_ti else "N/A", status])
 
-    assessors = ["Assessor 1", "Assessor 2", "Assessor 3", "R2", "R3"]
+    assessors = ["Assessor 1", "Assessor 2", "Assessor 3", "Assessor 4", "Assessor 5"]
     for c in [x for x in cands if x["advance"]]:
         rows = {}
         total = 0
@@ -159,7 +160,7 @@ def main() -> None:
                                      ("Role Play", ROLEPLAY_COMP, c["skill"] * 0.4 + c["presence"] * 0.6),
                                      ("Presentation", PRESENT_COMP, c["skill"] * 0.8 + rng.gauss(0, 0.8))):
             reviewer = rng.choice(assessors)
-            bias = 1.0 if (stage == "Interview" and reviewer == "R2") else 0.0
+            bias = 1.0 if (stage == "Interview" and reviewer == "Assessor 4") else 0.0
             sc = [score4(latent, rng, bias) for _ in comps]
             note, subj = long_note(stage, sum(sc) / 4, c, reviewer, rng)
             truth["subjective_notes"][f"candidate{c['n']}|{stage}"] = {"reviewer": reviewer, "subjective": subj}
@@ -167,12 +168,13 @@ def main() -> None:
             total += sum(sc)
         noisy = total + rng.gauss(0, 3)
         decision = "Hire" if noisy >= 36 else "Standby" if noisy >= 28 else "No Hire"
-        buddy = "P. Morales" if decision == "Hire" and rng.random() < 0.7 else None
         row = [rng.choice(["USA", "CAN", "MEX", "BRA", "COL"]), rng.choice(["Mr.", "Ms.", "Mx."]), f"candidate{c['n']}"]
         for stage in ("Interview", "Role Play", "Presentation"):
             sc, reviewer, note, rec = rows[stage]
-            row += sc + [sum(sc), rec, note, reviewer]
-        row += [total, round(total / 48, 3), decision, buddy]
+            row += sc + [sum(sc), rec, note]
+        overall = f"{decision} overall. " + " ".join(rows[st][2].split(". ")[1] + "." for st in rows)
+        row += [total, round(total / 48, 3), decision, overall]
+        row += [rows[st][1] for st in ("Interview", "Role Play", "Presentation")]
         ac_rows.append(row)
 
     wb = openpyxl.Workbook()
@@ -188,15 +190,29 @@ def main() -> None:
 
     wb = openpyxl.Workbook()
     ws = wb.active
-    ws.title = "Scores"
-    head = ["Country", "Salutation", "Candidate"]
-    for stage, comps in (("Interview", INTERVIEW_COMP), ("Role Play", ROLEPLAY_COMP), ("Presentation", PRESENT_COMP)):
-        head += [f"{stage}: {c}" for c in comps] + [f"TOTAL - {stage}", f"Recommendation - {stage}",
-                                                     f"Comments - {stage}", f"Assessor - {stage}"]
-    head += ["Total Score", "Overall %", "Decision", "Buddy"]
-    ws.append(head)
-    for r in ac_rows:
-        ws.append(r)
+    ws.title = "TEMPLATE"
+    ws["A1"] = "Notes:"
+    ws["B1"] = "Interview; max points is 16. Assessors will score candidates based on the competencies."
+    ws["B2"] = "Role Play; max points is 16. Assessors will score candidates based on the competencies."
+    ws["B3"] = "Presentation; max points is 16. Assessors will score candidates based on the competencies."
+    ws["A5"] = "Total Score = sum of Interview + Role Play + Presentation (max total score is 48)"
+    ws["A6"] = "Overall % = sum of Total Score divided by 48"
+    ws["A7"] = "MS Form"
+    head = ["Country", "Salutation ", "Candidate Name"]
+    for comps, tail in ((INTERVIEW_COMP, "TOTAL - Interview"), (ROLEPLAY_COMP, "TOTAL -  Role Play (weighted to 16)"),
+                        (PRESENT_COMP, "TOTAL - Presentation")):
+        head += [f"{i}. {c}" for i, c in enumerate(comps, 1)] + [tail, "Recommendation", "Comments/Notes"]
+    head += ["Total Score", "Overall %", "Hire \nNo Hire\nStandby", "Comments/Notes",
+             "Assessor - Interview", "Assessor - Role Play", "Assessor - Presentation"]
+    for col, h in enumerate(head, 1):
+        ws.cell(row=9, column=col, value=h)
+    example = ["", "", "Example 1"] + [4, 4, 4, 4, 16, "Yes", "", 4, 4, 4, 4, 16, "Yes", "", 4, 4, 4, 4, 16, "Yes", "",
+                                      48, 1.0, "Hire", "", "", "", ""]
+    for col, v in enumerate(example, 1):
+        ws.cell(row=10, column=col, value=v)
+    for r, row in enumerate(ac_rows, 11):
+        for col, v in enumerate(row, 1):
+            ws.cell(row=r, column=col, value=v)
     wb.save(OUT / "assessment_center.xlsx")
 
     (OUT / "_truth.json").write_text(json.dumps(truth, indent=2))

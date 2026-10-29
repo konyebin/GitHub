@@ -32,7 +32,7 @@ Shared context for the hiring data themes and trends project. A separate Cursor 
   - Interview, Role Play and Presentation each have 4 competencies scored 1-4 (max 16 per exercise), a per-exercise recommendation (Yes / Standby / No) and a comment. Total is out of 48.
   - Competency sets differ by exercise. "Executive Presence & Communication" appears in all three; "Coachability" in Role Play and Presentation.
   - Totals and Overall % are formulas. Final decision column is Hire / Standby / No Hire and is sometimes blank. A sheet header describes score bands at 85%, 70%, 65% and 50%, which the analysis will not use as cutoffs.
-  - `Buddy` is filled only for some hires, so it leaks the outcome. Exclude it from any predictive step.
+  - The repo copy of the test workbook has a `Buddy` column filled for Hire rows and for blank-Decision high scorers (never Standby or No Hire), which leaks the outcome. The user has since deleted it from their OneDrive copy, and the synthetic data omits it. If it reappears in real data, exclude it from any predictive step. Blanks in the test files are placeholders to be filled with test data, so synthetic data has none; in real data treat a blank Decision as missing, not as not-hired.
   - The test workbook has no interviewer or assessor column. Real data has manually redacted reviewer names; the test data will get sample reviewer names.
   - Comments are a short pick-list of phrases in the test data; real notes are free text and longer.
   - `Salutation` (Mr./Ms./Mx.) and `Country` are sensitive fields (gender and national-origin proxies). Never use as features; hold for post-hoc adverse-impact checks only.
@@ -43,7 +43,7 @@ Shared context for the hiring data themes and trends project. A separate Cursor 
 
 ## Synthetic dataset
 
-`synthetic/make_synthetic.py` writes a fake, redacted-style dataset (60 candidates, resumes, screening sheet, assessment center sheet with assessor columns and free-text notes) to the git-ignored `data/synthetic/`. It plants known effects (a lenient interviewer, a reviewer whose subjective language tracks resume path, exercise divergence, decision/score disagreement, an outcome-leaking Buddy column) and records them in `data/synthetic/_truth.json` so the pipeline can be checked against ground truth. The assessor columns and note length are assumptions to be replaced by the real layout. Notes are about 50 words; real notes will be longer.
+`synthetic/make_synthetic.py` writes a fake, redacted-style dataset (60 candidates, resumes, a screening sheet with the real 14 columns, and an assessment center workbook that mirrors the real TEMPLATE layout: header on row 9, an Example 1 row, no Buddy column, no blank cells) to the git-ignored `data/synthetic/`. It plants known effects (a lenient interviewer, a reviewer whose subjective language tracks resume path, exercise divergence, decision/score disagreement) and records them in `data/synthetic/_truth.json` so the pipeline can be checked against ground truth. The assessor columns and note length are assumptions to be replaced by the real layout. Notes are about 50 words; real notes will be longer.
 
 ## Analysis plan
 
