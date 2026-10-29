@@ -67,6 +67,11 @@ note to the candidate marks the flag as "(note added)". Rows named `Example ...`
 Candidate data stays on your machine. `tracker_state.json` and `*_tracked.xlsx` are git-ignored.
 `samples/FY27Q3_AMER_ASE_Scores_TEST_DATA.xlsx` contains fictional names only (`python tests/make_demo.py` regenerates it).
 
+## Test resumes
+
+`samples/resumes/` holds 10 fictional resumes (.docx) for candidates in the test workbook, with strength loosely following
+their scores. Regenerate with `pip install python-docx && python tests/make_resumes.py`.
+
 ## Tests
 
 ```bash
