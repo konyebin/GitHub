@@ -155,6 +155,7 @@ function render(id){
 document.getElementById('mode').textContent = P.mode==='shareable' ? 'Shareable: aggregates only' : 'Local: candidate-level';
 document.getElementById('mode').classList.toggle('share',P.mode==='shareable');
 document.getElementById('gen').textContent = 'Built '+P.built;
+if (/github\.io$/i.test(location.hostname)) { const b=el('span',{class:'mode',style:'background:#ff9aa2'},'Public demo: synthetic data only'); document.querySelector('header').append(b); }
 const nav=document.getElementById('nav'); SECTIONS.forEach(([id,label])=>nav.append(el('button',{'data-id':id,onclick:`location.hash='${id}'`},label)));
 render((location.hash||'#overview').slice(1));
 window.addEventListener('hashchange',()=>render(location.hash.slice(1)));
