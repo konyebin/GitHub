@@ -33,10 +33,11 @@ Shared context for the hiring data themes and trends project. A separate Cursor 
   - Competency sets differ by exercise. "Executive Presence & Communication" appears in all three; "Coachability" in Role Play and Presentation.
   - Totals and Overall % are formulas. Final decision column is Hire / Standby / No Hire and is sometimes blank. A sheet header describes score bands at 85%, 70%, 65% and 50%, which the analysis will not use as cutoffs.
   - `Buddy` is filled only for some hires, so it leaks the outcome. Exclude it from any predictive step.
-  - There is no interviewer or assessor column. Interviewer-level analysis needs one from the real data.
-  - Comments look like a short pick-list of phrases in the test data; real notes may be free text.
+  - The test workbook has no interviewer or assessor column. Real data has manually redacted reviewer names; the test data will get sample reviewer names.
+  - Comments are a short pick-list of phrases in the test data; real notes are free text and longer.
   - `Salutation` (Mr./Ms./Mx.) and `Country` are sensitive fields (gender and national-origin proxies). Never use as features; hold for post-hoc adverse-impact checks only.
-- `ASE_Candidate_Screen_Review_TEST_DATA.xlsx` (screening stage) has not been received yet.
+- `ASE_Candidate_Screen_Review_TEST_DATA.xlsx` is the resume screening stage. Confirmed by the user, but the file has not been received yet.
+- Confirmed by the user: the three exercises (Interview, Role Play, Presentation) together are the assessment center. Reviewer (interviewer/assessor) names were redacted manually; use sample names (Reviewer 1, 2, ...) when building synthetic test data. Outcomes are decided live and recorded manually (Decision column and the screening file). Written notes are free text and may be long, so text themes need real language analysis, not phrase counting.
 - Resumes: one `.docx` per candidate, about one page (header with name, city, phone, email; summary; experience; education; certifications; skills). 11 resumes versus about 20 score rows, so some candidates have no resume.
 - Join risk: the redactor turns every name into `[NAME]`, so the `Candidate Name` column and resume filenames stop being unique. IDs must be assigned to the score rows and resumes BEFORE redaction, and the redactor's `candidateN` numbering must not be assumed to match.
 
