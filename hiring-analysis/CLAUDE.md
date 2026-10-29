@@ -43,7 +43,7 @@ Shared context for the hiring data themes and trends project. A separate Cursor 
 
 ## Synthetic dataset
 
-`synthetic/make_synthetic.py` writes a fake, redacted-style dataset (60 candidates, resumes, a screening sheet with the real 14 columns, and an assessment center workbook that mirrors the real TEMPLATE layout: header on row 9, an Example 1 row, no Buddy column, no blank cells) to the git-ignored `data/synthetic/`. It plants known effects (a lenient interviewer, a reviewer whose subjective language tracks resume path, exercise divergence, decision/score disagreement) and records them in `data/synthetic/_truth.json` so the pipeline can be checked against ground truth. The assessor columns and note length are assumptions to be replaced by the real layout. Notes are about 50 words; real notes will be longer.
+`synthetic/make_synthetic.py` writes a fake, redacted-style dataset (150 candidates, resumes, a screening sheet with the real 14 columns, and an assessment center workbook that mirrors the real TEMPLATE layout: header on row 9, an Example 1 row, no Buddy column, no blank cells) to the git-ignored `data/synthetic/`. It plants known effects (a lenient interviewer, a reviewer whose subjective language tracks resume path, exercise divergence, decision/score disagreement) and records them in `data/synthetic/_truth.json` so the pipeline can be checked against ground truth. The assessor columns and note length are assumptions to be replaced by the real layout. Notes are about 50 words; real notes will be longer.
 
 ## Analysis plan
 

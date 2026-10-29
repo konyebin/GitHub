@@ -16,7 +16,7 @@ Planted effects (the analysis should find these without being told):
   6. Layout mirrors the real scores workbook (TEMPLATE sheet, header on row 9, an "Example 1" row, no Buddy column).
      Blanks in the test files were filled with generated values, so nothing is left empty.
 
-Run: python hiring-analysis/synthetic/make_synthetic.py [--n 60] [--seed 7]
+Run: python hiring-analysis/synthetic/make_synthetic.py [--n 150] [--seed 7]
 Requires: openpyxl, python-docx
 """
 
@@ -124,11 +124,13 @@ def write_resume(c: dict, folder: Path) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--n", type=int, default=60)
+    ap.add_argument("--n", type=int, default=150)
     ap.add_argument("--seed", type=int, default=7)
     args = ap.parse_args()
     rng = random.Random(args.seed)
     (OUT / "resumes").mkdir(parents=True, exist_ok=True)
+    for old in (OUT / "resumes").glob("*.docx"):
+        old.unlink()
 
     cands = [make_candidate(i, rng) for i in range(1, args.n + 1)]
     screen_rows, ac_rows, truth = [], [], {"planted": __doc__.split("Planted effects")[1].split("Run:")[0].strip(),
