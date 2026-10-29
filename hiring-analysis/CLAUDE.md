@@ -1,0 +1,47 @@
+# hiring-analysis
+
+Shared context for the hiring data themes and trends project. A separate Cursor chat (local, on the user's Mac) owns the PII redactor; this chat owns the analysis and dashboard. Keep this file current so both chats describe the same pipeline.
+
+## Pipeline
+
+1. **Redact (other chat, local).** `pii-redactor` turns originals into `candidateN` files. Runs fully offline.
+2. **Analyze and dashboard (this chat).** Reads only redacted `candidateN` files plus the outcome and score sheets.
+
+## PII redactor (owned by the other chat)
+
+- Lives at `~/Documents/GitHub/pii-redactor/` on the user's Mac. It is NOT in this repo yet (see "Bringing the code here").
+- Python 3.13, spaCy (English plus multilingual NER), about 400k first and last name dictionary, bundled school, company and place lists.
+- Replaces PII with tags: `[NAME]`, `[EMAIL]`, `[PHONE]`, `[LINKEDIN]`.
+- Locations (cities, states, countries, street addresses) and schools are deliberately NOT redacted. Treat them as proxy-risk features in the analysis.
+- Inputs: `.docx`, `.pptx`, `.pdf`, `.txt`, `.md`, `.xlsx` (all sheets). Old `.doc`, `.ppt`, `.xls` are skipped.
+- Output naming: `candidateN.<ext>`, N is the lowest unused number in the output folder, shared across types. `.docx` for Word, PDF and text (rebuilt from text, so layout is simplified); `.pptx` and `.xlsx` keep their type.
+- Input and output folders come from a git-ignored `.env` (`PII_REDACTOR_INPUT`, `PII_REDACTOR_OUT`, base folder in OneDrive CSAP). Do not hardcode paths.
+- It writes no report or log of what was removed and keeps no link from `candidateN` back to the source file. Only an allowlist of phrases to never redact is stored.
+- Known quirks: over-redacts single words (example: a sheet named `Data` is treated as a name and renamed); takes the capitalized word before or after a name; the same file run twice gets a new number.
+
+## What this implies for the analysis
+
+- Candidate and interviewer identity must be tied to outcomes before redaction by the user. Interviewers appear only as `[NAME]` in outputs, so interviewer labels (Interviewer 1, 2, ...) must come from the user's own mapping or sheet columns.
+- `candidateN` numbering is not stable across reruns. Join on the number in filenames and sheets only if the user confirms the mapping is fixed.
+- Because schools and locations remain, check them as proxies for protected traits and consider excluding them from resume theme features.
+- Tag tokens like `[NAME]` should be stripped or ignored in text models so they don't become themes.
+
+## Analysis plan
+
+See the plan in the chat (themes, trends, interviewer-level patterns, dashboard). Summary: rank-based comparisons (no fixed thresholds), within-instrument percentiles, funnel analysis including rejected candidates, bottom-up resume and notes themes, interviewer deviation from other signals, robustness checks, optional adverse-impact audit if an audit key exists. Outcomes (screened, interviewed, assessment center, hired) are past human decisions, not job performance.
+
+## Privacy rules
+
+- This repo is public. Never commit candidate files, scores, notes, outputs, the `.env`, or the redactor's `redacted files/` folder, even if redacted.
+- All candidate data lives under `hiring-analysis/data/` (git-ignored) or outside the repo.
+- Dashboard is local first; build it so an aggregate-only mode (with small-group suppression) can be hosted later.
+- Do not use the public GitHub Pages skill for candidate-level data.
+
+## Bringing the code here
+
+The redactor code is only on the user's Mac. To move it into this repo, the user commits `pii-redactor/` (code, tests with fake data, docs, bundled lists) and pushes a branch. `.env`, `redacted files/` contents and any real files stay out. Once it is on a branch, merge or copy it under `pii-redactor/` here and update this file.
+
+## Status
+
+- Analysis: waiting on sample redacted files (resume, interview, assessment center, outcome sheet) and rubric/scale examples.
+- Redactor: working locally in the other chat, not yet in this repo.
