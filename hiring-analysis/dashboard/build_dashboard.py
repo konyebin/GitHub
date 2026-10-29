@@ -2,7 +2,7 @@
 
   python hiring-analysis/dashboard/build_dashboard.py [--mode local|shareable] [--results DIR] [--out FILE]
 
-Defaults come from hiring-analysis/.env (HIRING_OUT_DIR) like the loader. `local` embeds results/local (candidate ids
+Folders come from hiring-analysis/settings.py (reads .env). `local` embeds results/local (candidate ids
 included; keep on this machine). `shareable` embeds results/shareable (aggregates only, small groups suppressed, no ids)
 and is the only mode that is safe to host. The HTML has no external requests: all data and code are inlined.
 """
@@ -18,8 +18,6 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
-sys.path.insert(0, str(ROOT / "pipeline"))
-from loader import load_env  # noqa: E402
 
 SECTIONS = ["funnel", "structure", "resume_themes", "notes_themes", "interviewers"]
 
@@ -42,14 +40,15 @@ def build(results_dir: Path, mode: str, out: Path) -> Path:
 
 
 if __name__ == "__main__":
-    load_env(ROOT / ".env")
+    sys.path.insert(0, str(ROOT))
+    from settings import load_settings
+
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode", choices=["local", "shareable"], default="local")
     ap.add_argument("--results", type=Path)
     ap.add_argument("--out", type=Path)
     a = ap.parse_args()
-    data_dir = Path(os.environ.get("HIRING_DATA_DIR", ROOT / "data" / "synthetic"))
-    out_dir = Path(os.environ.get("HIRING_OUT_DIR", data_dir / "processed"))
+    out_dir = load_settings()["out_dir"]
     results = a.results or out_dir / "results"
     out = a.out or out_dir / "dashboard" / f"dashboard_{a.mode}.html"
     print(build(results, a.mode, out))

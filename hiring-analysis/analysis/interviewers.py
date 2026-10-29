@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 import re
 import warnings
 from pathlib import Path
@@ -932,7 +933,9 @@ def run(processed_dir: Path, results_dir: Path) -> None:
 
 
 if __name__ == "__main__":
-    here = Path(__file__).resolve().parents[1]
-    out_dir = Path(os.environ.get("HIRING_OUT_DIR", here / "data" / "synthetic" / "processed"))
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from settings import load_settings
+
+    out_dir = load_settings()["out_dir"]
     run(out_dir, out_dir / "results")
     print(f"wrote {SECTION} results to {out_dir / 'results'}")

@@ -64,5 +64,5 @@ The redactor code is only on the user's Mac. To move it into this repo, the user
 
 - Pipeline, three analysis modules and the dashboard are built and tested (36 tests) against the synthetic data. Run everything with `hiring-analysis/run_all.sh`.
 - Dashboard: `data/<set>/processed/dashboard/dashboard_local.html` (candidate ids, keep local) and `dashboard_shareable.html` (aggregates only, groups under 5 suppressed, no ids, no external requests; the only hostable one).
-- Not yet run on real data: copy `.env.example` to `.env`, set `HIRING_DATA_DIR` to a folder containing the two real workbooks and a `resumes/` folder, then run `run_all.sh`. Expect to adjust the loader to the real layout (role column, assessor and reviewer columns, screening N/A conventions).
+- Not yet run on real data: copy `.env.example` to `.env` (this project's own settings file; `settings.py` reads it, with `${VAR}` and relative-path support; no paths are hardcoded and it shares nothing with the Webex tooling elsewhere in the repo), set `HIRING_BASE` / `HIRING_DATA_DIR` to a folder containing the two real workbooks and a `resumes/` folder, then run `run_all.sh`. Expect to adjust the loader to the real layout (role column, assessor and reviewer columns, screening N/A conventions).
 - Redactor: working locally in the other chat, not yet in this repo.

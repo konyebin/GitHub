@@ -1,6 +1,6 @@
 """Load the redacted resumes and the two workbooks into one shared, tidy dataset.
 
-Reads (paths come from hiring-analysis/.env or environment, never hardcoded):
+Reads (paths come from hiring-analysis/.env or environment via settings.py, never hardcoded):
   HIRING_DATA_DIR   folder holding screen_review.xlsx, assessment_center.xlsx and resumes/*.docx
   HIRING_OUT_DIR    where processed CSVs are written (default <DATA_DIR>/processed)
 
@@ -24,6 +24,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import sys
 from pathlib import Path
 
 import openpyxl
@@ -32,16 +33,6 @@ from docx import Document
 
 TAG = re.compile(r"\[(NAME|EMAIL|PHONE|LINKEDIN)\]")
 EXERCISES = ("Interview", "Role Play", "Presentation")
-
-
-def load_env(path: Path) -> None:
-    if not path.exists():
-        return
-    for line in path.read_text().splitlines():
-        line = line.strip()
-        if line and not line.startswith("#") and "=" in line:
-            k, _, v = line.partition("=")
-            os.environ.setdefault(k.strip(), v.strip().strip("'\""))
 
 
 def clean(v):
@@ -217,8 +208,8 @@ def build(data_dir: Path, out_dir: Path) -> dict:
 
 
 if __name__ == "__main__":
-    here = Path(__file__).resolve().parents[1]
-    load_env(here / ".env")
-    data_dir = Path(os.environ.get("HIRING_DATA_DIR", here / "data" / "synthetic"))
-    out_dir = Path(os.environ.get("HIRING_OUT_DIR", data_dir / "processed"))
-    print(json.dumps(build(data_dir, out_dir), indent=2))
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from settings import load_settings
+
+    cfg = load_settings()
+    print(json.dumps(build(cfg["data_dir"], cfg["out_dir"]), indent=2))

@@ -15,6 +15,7 @@ from __future__ import annotations
 import copy
 import json
 import os
+import sys
 import re
 import warnings
 from pathlib import Path
@@ -1277,20 +1278,10 @@ def _clean(o):
     return o
 
 
-def _load_env(path: Path) -> None:
-    if not path.exists():
-        return
-    for line in path.read_text().splitlines():
-        line = line.strip()
-        if line and not line.startswith("#") and "=" in line:
-            k, _, v = line.partition("=")
-            os.environ.setdefault(k.strip(), v.strip().strip("'\""))
-
-
 if __name__ == "__main__":
-    here = Path(__file__).resolve().parents[1]
-    _load_env(here / ".env")
-    data_dir = Path(os.environ.get("HIRING_DATA_DIR", here / "data" / "synthetic"))
-    out_dir = Path(os.environ.get("HIRING_OUT_DIR", data_dir / "processed"))
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from settings import load_settings
+
+    out_dir = load_settings()["out_dir"]
     run(out_dir, out_dir / "results")
     print(f"wrote {out_dir / 'results'}")
