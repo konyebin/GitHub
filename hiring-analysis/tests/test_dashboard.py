@@ -25,3 +25,15 @@ def test_builds_both_modes_without_network_references(tmp_path):
 def test_shareable_has_no_candidate_ids(tmp_path):
     out = build_dashboard.build(RESULTS, "shareable", tmp_path / "s.html")
     assert not re.search(r"candidate\d+", out.read_text()), "candidate ids leaked into the shareable dashboard"
+
+
+def test_every_chart_has_a_description():
+    template = (ROOT / "dashboard" / "template.html").read_text()
+    described = set(re.findall(r"^'([^']+)':", template, re.M))
+    missing = []
+    for mode in ("local", "shareable"):
+        for f in (RESULTS / mode).glob("*.json"):
+            for c in json.loads(f.read_text()).get("charts", []):
+                if c["id"] not in described and not c["id"].startswith("signal-scatter-"):
+                    missing.append(c["id"])
+    assert not missing, f"charts without a description: {missing}"
