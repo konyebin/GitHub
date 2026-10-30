@@ -31,6 +31,13 @@ ul.cav{margin:6px 0 0 18px;padding:0;color:var(--muted)}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}
 svg text{font:11px system-ui,sans-serif;fill:#3b4757}
 .small{font-size:12px;color:var(--muted)}
+abbr.g{text-decoration:underline dotted #7a8aa0;cursor:help}
+.hint{font-size:12px;color:var(--muted);background:#f3f6fa;border-radius:6px;padding:6px 10px;margin:8px 0 0}
+.gl dt{font-weight:700;margin-top:10px}.gl dd{margin:2px 0 0 0;color:#2b3645}
+.terms{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.terms span{background:#eef3f9;border-radius:12px;padding:2px 10px;font-size:12px}
+.pipe{display:flex;gap:8px;flex-wrap:wrap;align-items:stretch;margin:8px 0}
+.pipe div{flex:1;min-width:150px;background:#f3f6fa;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px}
+.pipe b{display:block;font-size:13px;margin-bottom:2px}
 </style>
 </head>
 <body>
@@ -40,7 +47,7 @@ svg text{font:11px system-ui,sans-serif;fill:#3b4757}
 <script id="payload" type="application/json">__PAYLOAD__</script>
 <script>
 const P = JSON.parse(document.getElementById('payload').textContent);
-const SECTIONS = [["overview","Overview"],["funnel","Funnel"],["structure","Score structure"],["resume_themes","Resume themes"],["notes_themes","Notes themes"],["interviewers","Interviewer trends"],["about","How to read this"]];
+const SECTIONS = [["overview","Overview"],["funnel","Funnel"],["structure","Score structure"],["resume_themes","Resume themes"],["notes_themes","Notes themes"],["interviewers","Interviewer trends"],["glossary","Legend and glossary"],["about","How to read this"]];
 const COLORS = ["#0b5cad","#e07a1f","#2a9d8f","#9b5de5","#d62839","#6c757d","#8ab17d","#264653"];
 const el = (t, a={}, ...k) => { const e=document.createElement(t); for (const [x,y] of Object.entries(a)) { if (x==='class') e.className=y; else if (x==='html') e.innerHTML=y; else e.setAttribute(x,y); } k.flat().forEach(c=>e.append(c&&c.nodeType?c:document.createTextNode(c??''))); return e; };
 const NS = 'http://www.w3.org/2000/svg';
@@ -49,9 +56,72 @@ const fmt = v => v===null||v===undefined ? 'suppressed' : (typeof v==='number' ?
 const num = v => typeof v==='number' && isFinite(v);
 const nice = (lo,hi) => { if(lo===hi){hi=lo+1} const span=hi-lo, step=Math.pow(10,Math.floor(Math.log10(span/5))); const m=[1,2,5,10].find(x=>span/(step*x)<=6)*step; const a=Math.floor(lo/m)*m, b=Math.ceil(hi/m)*m; const t=[]; for(let v=a; v<=b+m/1000; v+=m) t.push(+v.toPrecision(10)); return [a,b,t]; };
 
+
+const G = [
+ {c:'Stages and components',k:'TI',re:/\bTI\b/,d:'Technical interview. The screening-stage call a recruiter holds before the assessment center. It produces a score (the sheet\'s passing score is 21, but this analysis never uses it as a cutoff) plus Pass/Fail, notes and an invitation decision.'},
+ {c:'Stages and components',k:'AC',re:/\bAC\b/,d:'Assessment center. The second stage, made up of three exercises: Interview, Role Play and Presentation. Only people invited after the TI take part.'},
+ {c:'Stages and components',k:'Interview (exercise)',re:/\bInterview\b/,d:'First assessment center exercise. Four competencies scored 1 to 4 (maximum 16): Growth Mindset, Resilience and Learning Agility; Executive Presence and Communication; Collaboration and Teamwork; Business Acumen and Technical Insights.'},
+ {c:'Stages and components',k:'Role Play',re:/\bRole Play\b/,d:'Second exercise. Four competencies scored 1 to 4 (maximum 16): Builds Trust / Trusted Advisor; Executive Presence and Communication; Coachability; Explains Concepts Simply.'},
+ {c:'Stages and components',k:'Presentation',re:/\bPresentation\b/,d:'Third exercise. Four competencies scored 1 to 4 (maximum 16): AI Fluency and Orchestration; Executive Presence and Communication; Coachability; Goes Deep (Technical Acumen).'},
+ {c:'Stages and components',k:'RP / Pres / Int',re:/\b(?:RP|Pres|Int)\b/,d:'Short labels for Role Play, Presentation and Interview in chart labels.'},
+ {c:'Stages and components',k:'Total score (AC)',re:/\bAC total\b/,d:'Sum of the three exercise totals, out of 48. Turned into a within-group percentile rank for analysis.'},
+ {c:'Stages and components',k:'Decision (Hire / Standby / No Hire)',re:/\b(?:Standby|No Hire)\b/,d:'The final decision recorded after the assessment center. Recorded live by people, so it is a past human decision, not a measure of job performance.'},
+ {c:'Stages and components',k:'Recruiter / Assessor',re:/\b(?:Recruiter|Assessor) \d\b/,d:'Redacted reviewer labels. Recruiters run the TI. Assessors score the three exercises. One reviewer scores each candidate per exercise.'},
+ {c:'Stages and components',k:'Proxy-risk fields',re:/\bproxy[- ](?:risk )?(?:fields?|check|line)s?\b/i,d:'Fields that can stand in for protected traits, such as graduation date, home city, school and skills tags. They are checked for bias, never used as selection signals.'},
+ {c:'Reading the numbers',k:'Percentile rank',re:/\bpercentile(?: rank)?s?\b/i,d:'A candidate\'s position within their group, from 0 (lowest) to 100 (highest). Using ranks means no hand-picked pass mark decides who counts as good.'},
+ {c:'Reading the numbers',k:'n',re:/\bn=\d+/,d:'Number of candidates (or notes) behind an estimate. Small n means wide uncertainty.'},
+ {c:'Reading the numbers',k:'Range-restricted',re:/\brange-restricted\b/i,d:'Only people who passed earlier stages have later-stage scores, so comparisons there cover a narrower group and understate real relationships.'},
+ {c:'Reading the numbers',k:'Suppressed',re:/\bsuppressed\b/i,d:'Hidden because fewer than 5 candidates are in the group, to avoid identifying anyone.'},
+ {c:'Reading the numbers',k:'Robust / suggestive / weak',re:/\b(?:robust|suggestive)\b/,d:'Strength of a finding. Robust: held across more than one method and resampling. Suggestive: one method or wide uncertainty. Weak: could easily be noise, usually a small sample.'},
+ {c:'Statistics',k:'rho (Spearman)',re:/\brho\b|\bSpearman\b/,d:'Rank correlation between two measures, from -1 to +1. 0 means no relationship, +1 means the same ordering. Ignores the size of score gaps, so it avoids cutoffs.'},
+ {c:'Statistics',k:'tau (Kendall)',re:/\btau\b|\bKendall\b/,d:'Another rank correlation. It is the share of candidate pairs ordered the same way minus the share ordered oppositely.'},
+ {c:'Statistics',k:'CI',re:/\bCI\b|\bconfidence interval\b/i,d:'Confidence interval. The range that likely contains the true value. A CI that includes 0 means the effect could be zero.'},
+ {c:'Statistics',k:'Bootstrap',re:/\bbootstrap(?:ped)?\b/i,d:'Re-sampling the candidates many times to see how much an estimate moves. Used to build CIs.'},
+ {c:'Statistics',k:'perm. p (permutation test)',re:/\bperm(?:utation)?\.? ?p\b|\bpermutation\b|\bperm\./i,d:'Shuffles the labels many times to see how often chance alone gives a result this large. Smaller p means less likely to be chance.'},
+ {c:'Statistics',k:'BH q',re:/\bBH q\b|\bBH\b/,d:'Benjamini-Hochberg adjusted p-value. Corrects for checking many things at once so some do not look significant by luck. q below 0.05 is the usual bar.'},
+ {c:'Statistics',k:'AUC',re:/\bAUC\b/,d:'Area under the curve. The chance that a randomly chosen advancing candidate has a higher score rank than a non-advancing one. 0.5 is a coin flip, 1.0 is perfect separation.'},
+ {c:'Statistics',k:'ICC / variance share',re:/\bICC\b|\bvariance share\b/i,d:'Share of score differences explained by who the reviewer is rather than by the candidate. Higher means reviewer identity matters more.'},
+ {c:'Statistics',k:'Shrunken estimate',re:/\bshrunken\b|\bshrinkage\b/i,d:'A reviewer estimate pulled toward the average, more so when the reviewer scored few candidates. Prevents small samples from looking extreme.'},
+ {c:'Statistics',k:'PCA / principal component',re:/\bPCA\b|\bprincipal components?\b/i,d:'Finds the few underlying dimensions that explain most of the score differences. One dominant component means the competencies mostly measure the same thing.'},
+ {c:'Statistics',k:'Silhouette',re:/\bsilhouette\b/i,d:'How clearly separated clusters are, from -1 to 1. Higher means more distinct groups.'},
+ {c:'Statistics',k:"Cramer's V",re:/\bCramer\W?s V\b|\bCramer V\b/i,d:'Strength of association between two categories, from 0 (none) to 1 (perfect).'},
+ {c:'Statistics',k:'epsilon-squared',re:/\bepsilon(?:-squared)?\b/i,d:'Share of variation in a measure explained by group membership, from 0 to 1.'},
+ {c:'Statistics',k:'R-squared / delta R-squared',re:/\bdelta R2\b|\bR2\b|R²|ΔR²/,d:'Share of variation a model explains. Delta R-squared is what a set of variables adds on top of the others.'},
+ {c:'Statistics',k:'CV (cross-validated)',re:/\bCV\b|\bcross-validated\b/i,d:'Tested on candidates the model had not seen, to avoid overstating accuracy.'},
+ {c:'Statistics',k:'TF-IDF / topic model / NMF',re:/\bTF-?IDF\b|\bNMF\b|\btopics?\b/i,d:'Text methods. TF-IDF weights words by how distinctive they are. A topic model groups words that appear together into themes. Themes are described by their top terms.'},
+ {c:'Statistics',k:'Mann-Whitney / Wilson',re:/\bMann-Whitney\b|\bWilson\b/,d:'Standard tests: Mann-Whitney compares two groups by rank; Wilson gives an interval for a proportion.'},
+ {c:'Statistics',k:'SD',re:/\bSD\b/,d:'Standard deviation. How spread out scores are.'},
+];
+const HINT = {
+ bar:'Each bar is a count or value for the category below it. Hover a bar for the exact figure. "suppressed" means the group has fewer than 5 people.',
+ hbar:'Each bar is a value for the row at its left. Thin lines on a bar, where shown, are 95% confidence intervals: if a line crosses 0, the effect could be zero.',
+ line:'Each line follows one series across the x-axis. Hover points for exact values.',
+ scatter:'Each dot is one candidate (or one rating). Dots that rise from left to right mean the two measures agree. Colors show groups when a legend is present.',
+ heatmap:'Colors show strength of relationship: blue is positive, red is negative, near-white is close to none. The number in each cell is the value.',
+ boxplot:'Each box covers the middle 50% of the group, the black line is the median, and the thin line shows the full range. n is the group size.',
+ table:'Hover underlined terms for definitions. Sort order follows the analysis, not a ranking of people.'
+};
+const GRE = new RegExp(G.map(g=>g.re.source).join('|'),'gi');
+function rich(text){
+  text = text==null ? '' : String(text); const out=[]; let last=0, m; GRE.lastIndex=0;
+  while((m=GRE.exec(text))){ if(m[0]==='') {GRE.lastIndex++; continue;}
+    const g=G.find(x=>new RegExp('^(?:'+x.re.source+')$',x.re.flags.replace('g','')).test(m[0])); if(!g) continue;
+    if(m.index>last) out.push(text.slice(last,m.index)); out.push(el('abbr',{class:'g',title:g.k+': '+g.d},m[0])); last=m.index+m[0].length; }
+  if(last<text.length) out.push(text.slice(last)); return out;
+}
+function termsUsed(sec){
+  const t=JSON.stringify([sec.findings,sec.charts.map(c=>[c.title,c.subtitle,c.x_label,c.y_label,c.type==='table'?c.data.columns:null,c.type==='heatmap'?[c.data.row_labels,c.data.col_labels]:null,(c.data.labels||[])])]);
+  return G.filter(g=>new RegExp(g.re.source,g.re.flags.replace('g','')).test(t));
+}
+function termStrip(sec){
+  const used=termsUsed(sec); if(!used.length) return '';
+  return el('details',{},el('summary',{},`Key terms on this page (${used.length})`),el('dl',{class:'gl'},used.flatMap(g=>[el('dt',{},g.k),el('dd',{},g.d)])));
+}
+function typesHint(sec){ const ts=[...new Set(sec.charts.map(c=>c.type))].filter(t=>t!=='table'); return ts.length? el('details',{},el('summary',{},'How to read the charts on this page'),el('ul',{class:'cav'},ts.map(t=>el('li',{},t+': '+HINT[t])))):''; }
+
 function legend(names){ return el('div',{class:'legend'}, names.map((n,i)=>el('span',{},el('i',{style:'background:'+COLORS[i%COLORS.length]}),n))); }
 function wrap(c, body){
-  const d = el('div',{class:'card'}, el('h2',{},c.title), c.subtitle?el('div',{class:'sub'},c.subtitle):'' , body);
+  const d = el('div',{class:'card'}, el('h2',{},rich(c.title)), c.subtitle?el('div',{class:'sub'},rich(c.subtitle)):'' , body, el('div',{class:'hint'},HINT[c.type]));
   return d;
 }
 function barChart(c, horizontal){
@@ -119,13 +189,13 @@ function boxplot(c){
   return wrap(c,[svg,el('div',{class:'small'},[c.x_label,c.y_label].filter(Boolean).join(' / '))]);
 }
 function table(c){
-  const {columns,rows}=c.data; const t=el('table',{},el('thead',{},el('tr',{},columns.map(h=>el('th',{},h)))),el('tbody',{},rows.map(r=>el('tr',{},r.map(v=>el('td',{},fmt(v)))))));
+  const {columns,rows}=c.data; const t=el('table',{},el('thead',{},el('tr',{},columns.map(h=>el('th',{},rich(h))))),el('tbody',{},rows.map(r=>el('tr',{},r.map(v=>el('td',{},typeof v==='string'&&v.length<48?rich(v):fmt(v)))))));
   const box=el('div',{class:'tbl'},t);
   const card=wrap(c, rows.length>12 ? el('details',{},el('summary',{},`Show table (${rows.length} rows)`),box) : box);
   return card;
 }
 function chart(c){ return ({bar:x=>barChart(x,false),hbar:x=>barChart(x,true),line:lineChart,scatter:scatterChart,heatmap:heatmap,boxplot:boxplot,table:table})[c.type](c); }
-function findings(list){ return list.map(f=>el('div',{class:'finding'},el('span',{class:'badge '+f.strength},f.strength),el('div',{},el('div',{},f.text),el('div',{class:'ev'},f.evidence)))); }
+function findings(list){ return list.map(f=>el('div',{class:'finding'},el('span',{class:'badge '+f.strength},f.strength),el('div',{},el('div',{},rich(f.text)),el('div',{class:'ev'},rich(f.evidence))))); }
 function caveats(list){ return el('details',{},el('summary',{},'Limits of this analysis'),el('ul',{class:'cav'},list.map(x=>el('li',{},x)))); }
 
 function render(id){
@@ -135,7 +205,20 @@ function render(id){
     m.append(el('div',{class:'banner'},'Outcomes in this data (who advanced, who was hired) are past human decisions, not job performance. Patterns show what the process rewarded. Use them to prompt review, not as standalone reasons to reject anyone. Check with HR or counsel before any use in selection decisions.'));
     const counts={robust:0,suggestive:0,weak:0}; Object.values(P.sections).forEach(s=>s.findings.forEach(f=>counts[f.strength]++));
     m.append(el('div',{class:'card'},el('h2',{},'Headline findings'),el('div',{class:'sub'},`${counts.robust} robust, ${counts.suggestive} suggestive, ${counts.weak} weak across ${Object.keys(P.sections).length} sections. Robust means it held across more than one method and resampling. The top four robust findings per section are shown here; open each section for the rest.`),
-      Object.entries(P.sections).flatMap(([k,s])=>s.findings.filter(f=>f.strength==='robust').slice(0,4).map(f=>el('div',{class:'finding'},el('span',{class:'badge robust'},'robust'),el('div',{},el('div',{},f.text),el('div',{class:'ev'},SECTIONS.find(x=>x[0]===k)[1]+' | '+f.evidence)))))));
+      Object.entries(P.sections).flatMap(([k,s])=>s.findings.filter(f=>f.strength==='robust').slice(0,4).map(f=>el('div',{class:'finding'},el('span',{class:'badge robust'},'robust'),el('div',{},el('div',{},f.text),el('div',{class:'ev'},SECTIONS.find(x=>x[0]===k)[1]+' | ',rich(f.evidence))))))));
+    return;
+  }
+  if(id==='glossary'){
+    m.append(el('div',{class:'card'},el('h2',{},'How the hiring process maps to this dashboard'),
+      el('div',{class:'pipe'},
+        el('div',{},el('b',{},'1. Resume screen'),'Resumes reviewed. Redacted before analysis.'),
+        el('div',{},el('b',{},'2. TI'),'Technical interview by a recruiter. Score, Pass/Fail, notes, invitation.'),
+        el('div',{},el('b',{},'3. AC'),'Assessment center: Interview, Role Play, Presentation, each scored on 4 competencies (1 to 4).'),
+        el('div',{},el('b',{},'4. Decision'),'Hire, Standby or No Hire, recorded by people after the AC.')),
+      el('p',{class:'small'},'Rejected candidates are included, so later-stage scores are missing for them by design. Nothing is filled in.')));
+    const cats=[...new Set(G.map(g=>g.c))];
+    cats.forEach(cat=>m.append(el('div',{class:'card'},el('h2',{},cat),el('dl',{class:'gl'},G.filter(g=>g.c===cat).flatMap(g=>[el('dt',{},g.k),el('dd',{},g.d)])))));
+    m.append(el('div',{class:'card'},el('h2',{},'Chart types'),el('dl',{class:'gl'},Object.entries(HINT).flatMap(([t,h])=>[el('dt',{},t),el('dd',{},h)]))));
     return;
   }
   if(id==='about'){
@@ -148,7 +231,7 @@ function render(id){
     return;
   }
   const s=P.sections[id]; if(!s){ m.append(el('div',{class:'card'},'No results for this section yet.')); return; }
-  m.append(el('div',{class:'card'},el('h2',{},s.title),findings(s.findings),caveats(s.caveats)));
+  m.append(el('div',{class:'card'},el('h2',{},s.title),findings(s.findings),caveats(s.caveats),termStrip(s),typesHint(s)));
   const g=el('div',{class:'grid'}); s.charts.filter(c=>c.type!=='table').forEach(c=>g.append(chart(c))); m.append(g);
   s.charts.filter(c=>c.type==='table').forEach(c=>m.append(chart(c)));
 }
