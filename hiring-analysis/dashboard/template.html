@@ -31,6 +31,10 @@ ul.cav{margin:6px 0 0 18px;padding:0;color:var(--muted)}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px}
 svg text{font:11px system-ui,sans-serif;fill:#3b4757}
 .small{font-size:12px;color:var(--muted)}
+.intro{margin:2px 0 10px;color:#2b3645}
+.tour{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-top:8px}
+.tour a{display:block;border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:inherit;text-decoration:none;background:#fafbfd}
+.tour a:hover{border-color:var(--accent)}.tour b{display:block;color:var(--accent)}
 abbr.g{text-decoration:underline dotted #7a8aa0;cursor:help}
 .hint{font-size:12px;color:var(--muted);background:#f3f6fa;border-radius:6px;padding:6px 10px;margin:8px 0 0}
 .gl dt{font-weight:700;margin-top:10px}.gl dd{margin:2px 0 0 0;color:#2b3645}
@@ -47,7 +51,15 @@ abbr.g{text-decoration:underline dotted #7a8aa0;cursor:help}
 <script id="payload" type="application/json">__PAYLOAD__</script>
 <script>
 const P = JSON.parse(document.getElementById('payload').textContent);
-const SECTIONS = [["overview","Overview"],["funnel","Funnel"],["structure","Score structure"],["resume_themes","Resume themes"],["notes_themes","Notes themes"],["interviewers","Interviewer trends"],["glossary","Legend and glossary"],["about","How to read this"]];
+const SECTIONS = [
+ ["overview","Overview","The strongest findings from every section, in one place."],
+ ["funnel","Funnel","How many candidates make it through each stage, and whether scores line up with who moved forward."],
+ ["structure","Score structure","How the scores relate to each other. Do the exercises measure the same thing? Who scored very differently across them? Do final decisions match the scores?"],
+ ["resume_themes","Resume themes","Groups resumes by common themes, then checks whether any theme goes with who advanced or how they scored. Also a bias check."],
+ ["notes_themes","Notes themes","What reviewers wrote. Which words and themes go with higher or lower scores, and does the tone of a note match the score given?"],
+ ["interviewers","Interviewer trends","How reviewers compare. Do some score higher or lower than other scores would predict, or write in a different style? These are flags to review, not verdicts on people."],
+ ["glossary","Legend and glossary","Plain-language meanings for every term and abbreviation used here."],
+ ["about","How to read this","How findings are rated and what this analysis can and cannot tell you."]];
 const COLORS = ["#0b5cad","#e07a1f","#2a9d8f","#9b5de5","#d62839","#6c757d","#8ab17d","#264653"];
 const el = (t, a={}, ...k) => { const e=document.createElement(t); for (const [x,y] of Object.entries(a)) { if (x==='class') e.className=y; else if (x==='html') e.innerHTML=y; else e.setAttribute(x,y); } k.flat().forEach(c=>e.append(c&&c.nodeType?c:document.createTextNode(c??''))); return e; };
 const NS = 'http://www.w3.org/2000/svg';
@@ -203,13 +215,14 @@ function render(id){
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.id===id));
   if(id==='overview'){
     m.append(el('div',{class:'banner'},'Outcomes in this data (who advanced, who was hired) are past human decisions, not job performance. Patterns show what the process rewarded. Use them to prompt review, not as standalone reasons to reject anyone. Check with HR or counsel before any use in selection decisions.'));
+    m.append(el('div',{class:'card'},el('h2',{},'What is in this dashboard'),el('div',{class:'tour'},SECTIONS.filter(x=>x[0]!=='overview').map(x=>el('a',{href:'#'+x[0]},el('b',{},x[1]),x[2])))));
     const counts={robust:0,suggestive:0,weak:0}; Object.values(P.sections).forEach(s=>s.findings.forEach(f=>counts[f.strength]++));
     m.append(el('div',{class:'card'},el('h2',{},'Headline findings'),el('div',{class:'sub'},`${counts.robust} robust, ${counts.suggestive} suggestive, ${counts.weak} weak across ${Object.keys(P.sections).length} sections. Robust means it held across more than one method and resampling. The top four robust findings per section are shown here; open each section for the rest.`),
       Object.entries(P.sections).flatMap(([k,s])=>s.findings.filter(f=>f.strength==='robust').slice(0,4).map(f=>el('div',{class:'finding'},el('span',{class:'badge robust'},'robust'),el('div',{},el('div',{},f.text),el('div',{class:'ev'},SECTIONS.find(x=>x[0]===k)[1]+' | ',rich(f.evidence))))))));
     return;
   }
   if(id==='glossary'){
-    m.append(el('div',{class:'card'},el('h2',{},'How the hiring process maps to this dashboard'),
+    m.append(el('div',{class:'card'},el('h2',{},'How the hiring process maps to this dashboard'),el('p',{class:'intro'},SECTIONS.find(x=>x[0]==='glossary')[2]),
       el('div',{class:'pipe'},
         el('div',{},el('b',{},'1. Resume screen'),'Resumes reviewed. Redacted before analysis.'),
         el('div',{},el('b',{},'2. TI'),'Technical interview by a recruiter. Score, Pass/Fail, notes, invitation.'),
@@ -222,7 +235,7 @@ function render(id){
     return;
   }
   if(id==='about'){
-    m.append(el('div',{class:'card'},el('h2',{},'How to read this'),
+    m.append(el('div',{class:'card'},el('h2',{},'How to read this'),el('p',{class:'intro'},SECTIONS.find(x=>x[0]==='about')[2]),
       el('p',{},'Nothing here uses a pass mark. Scores are turned into within-group percentile ranks, and relationships are measured with rank correlations and permutation tests, so no hand-picked cutoff decides who counts as good.'),
       el('p',{},'Strength labels: robust (held across methods and resampling), suggestive (one method or wide uncertainty), weak (could be noise, usually a small sample).'),
       el('p',{},'Later-stage scores exist only for people who passed earlier gates, so comparisons there are range-restricted. Missing scores are never filled in.'),
@@ -231,7 +244,7 @@ function render(id){
     return;
   }
   const s=P.sections[id]; if(!s){ m.append(el('div',{class:'card'},'No results for this section yet.')); return; }
-  m.append(el('div',{class:'card'},el('h2',{},s.title),findings(s.findings),caveats(s.caveats),termStrip(s),typesHint(s)));
+  m.append(el('div',{class:'card'},el('h2',{},s.title),el('p',{class:'intro'},SECTIONS.find(x=>x[0]===id)[2]),findings(s.findings),caveats(s.caveats),termStrip(s),typesHint(s)));
   const g=el('div',{class:'grid'}); s.charts.filter(c=>c.type!=='table').forEach(c=>g.append(chart(c))); m.append(g);
   s.charts.filter(c=>c.type==='table').forEach(c=>m.append(chart(c)));
 }
