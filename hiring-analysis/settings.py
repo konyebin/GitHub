@@ -6,6 +6,7 @@ Order of precedence: real environment variables, then hiring-analysis/.env, then
   HIRING_BASE       optional base folder, so other paths can be written as ${HIRING_BASE}/...
   HIRING_DATA_DIR   folder holding the two workbooks and resumes/ (default: data/synthetic)
   HIRING_OUT_DIR    where processed CSVs, results and dashboards go (default: <DATA_DIR>/processed)
+  HIRING_ASK_ENDPOINT  optional URL of the ask-worker. Only the shareable dashboard uses it; empty means search-only Ask the data
 """
 
 from __future__ import annotations
@@ -39,10 +40,10 @@ def _path(value: str) -> Path:
     return p if p.is_absolute() else (ROOT / p).resolve()
 
 
-def load_settings() -> dict[str, Path]:
+def load_settings() -> dict:
     file_vals = _read_env_file(ROOT / ".env")
     merged = {**file_vals, **{k: v for k, v in os.environ.items() if k.startswith("HIRING_")}}
     merged = {k: _expand(v, merged) for k, v in merged.items()}
     data_dir = _path(merged["HIRING_DATA_DIR"]) if merged.get("HIRING_DATA_DIR") else ROOT / "data" / "synthetic"
     out_dir = _path(merged["HIRING_OUT_DIR"]) if merged.get("HIRING_OUT_DIR") else data_dir / "processed"
-    return {"data_dir": data_dir, "out_dir": out_dir}
+    return {"data_dir": data_dir, "out_dir": out_dir, "ask_endpoint": merged.get("HIRING_ASK_ENDPOINT") or None}

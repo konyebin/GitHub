@@ -52,3 +52,13 @@ def test_every_chart_has_a_plain_title_and_findings_have_plain_text():
                 assert c["id"] in titled or c["id"].startswith("signal-scatter-"), c["id"]
             for x in d["findings"]:
                 assert x.get("plain") and not plain_check.problems(x["plain"]), (f.name, x.get("plain"))
+
+
+def test_ask_endpoint_only_in_shareable(tmp_path):
+    url = "https://ask.example/api"
+    s = build_dashboard.build(RESULTS, "shareable", tmp_path / "s.html", url).read_text()
+    loc = build_dashboard.build(RESULTS, "local", tmp_path / "l.html", url).read_text()
+    assert url in s and url not in loc, "AI endpoint must be embedded in shareable mode only"
+    plain = build_dashboard.build(RESULTS, "shareable", tmp_path / "p.html").read_text()
+    payload = re.search(r'id="payload" type="application/json">(.*?)</script>', plain, re.S).group(1)
+    assert "ask_endpoint" not in payload

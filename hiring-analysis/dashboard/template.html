@@ -21,6 +21,8 @@ main{max-width:1180px;margin:0 auto;padding:20px 24px 60px}
 .finding{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--line)}.finding:first-child{border-top:0}
 .badge{flex:none;white-space:nowrap;height:20px;font-size:11px;font-weight:700;color:#fff;border-radius:10px;padding:0 9px;line-height:20px;text-transform:uppercase}
 .badge.robust{background:var(--robust)}.badge.suggestive{background:var(--suggestive)}.badge.weak{background:var(--weak)}
+.ask .q{font-weight:700;margin-bottom:6px}.ask .ans{font-size:15px;line-height:1.5}.badge-ai{display:inline-block;background:#6c3fc5;color:#fff;border-radius:10px;font-size:11px;font-weight:700;padding:1px 9px;margin-bottom:4px}.badge-ai.plain{background:#6c757d}.srcs{margin-top:10px;border-top:1px solid var(--line);padding-top:8px}.srcs>b{font-size:12px;color:var(--muted)}
+textarea{width:100%;box-sizing:border-box;font:inherit;padding:8px;border:1px solid var(--line);border-radius:6px}.askbar{margin:8px 0}.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{border:1px solid var(--line);background:#fff;border-radius:14px;padding:4px 10px;font-size:12px;cursor:pointer}.chip:hover{background:#eef4fb}button.primary{background:#0b5cad;color:#fff;border:0;border-radius:6px;padding:7px 18px;font-weight:600;cursor:pointer}button.primary:disabled{opacity:.6}
 .finding .plain{font-size:15px;line-height:1.45}.finding details.tech{margin-top:4px}.finding details.tech summary,.techname summary{font-size:12px;color:var(--muted)}.badge{text-transform:none}.finding .ev{color:var(--muted);font-size:12px;margin-top:2px}
 .tag{font-size:11px;color:var(--muted);margin-left:6px}
 table{border-collapse:collapse;width:100%;font-size:12px}th,td{border-bottom:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
@@ -58,6 +60,7 @@ const SECTIONS = [
  ["resume_themes","Resume themes","Groups resumes by common themes, then checks whether any theme goes with who advanced or how they scored. Also a bias check."],
  ["notes_themes","Notes themes","What reviewers wrote. Which words and themes go with higher or lower scores, and does the tone of a note match the score given?"],
  ["interviewers","Interviewer trends","How reviewers compare. Do some score higher or lower than other scores would predict, or write in a different style? These are flags to review, not verdicts on people."],
+ ["ask","Ask the data","Type a question about the data and get an answer drawn from the findings above, with links to the evidence."],
  ["glossary","Legend and glossary","Plain-language meanings for every term and abbreviation used here."],
  ["about","How to read this","How findings are rated and what this analysis can and cannot tell you."]];
 const COLORS = ["#0b5cad","#e07a1f","#2a9d8f","#9b5de5","#d62839","#6c757d","#8ab17d","#264653"];
@@ -395,6 +398,80 @@ function finding(f,extra){ return el('div',{class:'finding'},badge(f.strength),e
 function findings(list){ return list.map(f=>finding(f)); }
 function caveats(list){ return el('details',{},el('summary',{},'Limits of this analysis'),el('ul',{class:'cav'},list.map(x=>el('li',{},x)))); }
 
+const ASK_STOP=new Set('a an the of to in on for and or is are was were be been do does did how what which who why when where with without by from at as it its this that these those there any our we you your i about between among than then so if can could should would will not no yes more most less least per much many some tell show me us them they their have has had get got'.split(' '));
+const ASK_SYN={interviewer:['reviewer','assessor','recruiter'],reviewer:['assessor','recruiter','interviewer'],assessor:['reviewer'],recruiter:['reviewer'],
+  bias:['proxy','fair','group','flag'],fair:['bias','proxy'],unfair:['bias','proxy'],lenient:['higher','deviation','generous'],generous:['higher','deviation'],strict:['lower','deviation','severe'],harsh:['lower','deviation'],easy:['higher','deviation'],
+  drop:['narrow','loss','conversion'],lose:['narrow','loss','conversion'],lost:['narrow','loss','conversion'],attrition:['narrow','loss'],bottleneck:['narrow','conversion','loss'],funnel:['stage','conversion'],
+  hire:['decision','hire'],hired:['decision','hire'],reject:['fail','decision','invited'],rejected:['fail','decision','invited'],advance:['invited','moved','reached'],pass:['pass','fail','screening'],
+  cv:['resume'],resume:['theme','resume'],note:['notes','wording'],comment:['notes','wording'],written:['notes','wording'],language:['wording','style','notes'],
+  consistent:['agree','agreement'],consistency:['agree','agreement'],agree:['agreement','consistent'],time:['drift','over'],trend:['drift','pattern'],predict:['agree','link','follow'],
+  score:['rank','score'],different:['higher','lower','deviation'],differently:['higher','lower','deviation'],differ:['higher','lower','deviation'],exercise:['interview','presentation','role','play'],presentation:['exercise'],interview:['exercise'],unusual:['divergence','differs','flag'],outlier:['divergence','flag','differs']};
+const askStem=w=>w.length>4?w.replace(/(ing|ed|es|s)$/,''):w;
+const askTok=s=>(String(s).toLowerCase().match(/[a-z]+/g)||[]).filter(w=>w.length>2&&!ASK_STOP.has(w)).map(askStem);
+const noIds=s=>String(s).replace(/candidate\s*\d+/gi,'[candidate]');
+let ASK_DOCS=null;
+function askDocs(){
+  if(ASK_DOCS) return ASK_DOCS; const docs=[];
+  Object.entries(P.sections).forEach(([k,s])=>{
+    const lab=SECTIONS.find(x=>x[0]===k)[1];
+    s.findings.forEach((f,i)=>docs.push({kind:'finding',sec:k,lab,f,n:docs.filter(d=>d.kind==='finding').length+1,text:[f.plain,f.text,f.evidence,lab].join(' ')}));
+    s.charts.forEach(c=>docs.push({kind:'chart',sec:k,lab,c,text:[chartTitle(c),c.title,chartDesc(c),lab].join(' ')}));
+  });
+  const df={}; docs.forEach(d=>{d.tf={}; askTok(d.text).forEach(t=>{d.tf[t]=(d.tf[t]||0)+1}); Object.keys(d.tf).forEach(t=>df[t]=(df[t]||0)+1)});
+  docs.forEach(d=>d.idf=df); docs.N=docs.length; docs.df=df; return ASK_DOCS=docs;
+}
+function askSearch(q,k){
+  const docs=askDocs(), base=askTok(q), w={};
+  base.forEach(t=>{w[t]=1});
+  (q.toLowerCase().match(/[a-z]+/g)||[]).forEach(r=>(ASK_SYN[r]||[]).forEach(s=>{const t=askStem(s); if(!(t in w)) w[t]=.5}));
+  const scored=docs.map(d=>{let sc=0; for(const [t,wt] of Object.entries(w)){ if(d.tf[t]) sc+=wt*Math.log(1+docs.N/docs.df[t])*(1+Math.log(d.tf[t])); } if(d.kind==='finding') sc*=1.3; return [sc,d]; }).filter(x=>x[0]>0).sort((a,b)=>b[0]-a[0]);
+  return scored.slice(0,k).map(x=>x[1]);
+}
+const ASK_RULES='You help non-technical leaders understand an analysis of a hiring process. Answer only from the RESULTS provided. If the results do not answer the question, say so plainly and say what the data cannot tell. Use short paragraphs and everyday words, no statistics jargon. Say how sure the analysis is (High confidence, Possible pattern or Not reliable) and cite the findings you used by their F-number. Outcomes such as who advanced or was hired are past human decisions, not proof of job performance. Never recommend hiring or rejecting a specific person; flags about reviewers or bias are for review, not verdicts. Never try to identify a candidate.';
+function askContext(hits){
+  const docs=askDocs(), fs=docs.filter(d=>d.kind==='finding'), first=new Set(hits.filter(h=>h.kind==='finding').map(h=>h.n));
+  const ordered=[...fs.filter(d=>first.has(d.n)),...fs.filter(d=>!first.has(d.n))];
+  const lines=ordered.map(d=>`F${d.n} [${d.lab}] [${CONF[d.f.strength][0]}] ${d.f.plain||d.f.text} | Technical: ${d.f.text} | ${d.f.evidence}`);
+  const caveats=Object.entries(P.sections).map(([k,s])=>`${SECTIONS.find(x=>x[0]===k)[1]} limits: ${s.caveats.join(' ')}`);
+  const charts=docs.filter(d=>d.kind==='chart').map(d=>`${d.lab}: ${chartTitle(d.c)||d.c.title} - ${chartDesc(d.c)}`);
+  return noIds(['FINDINGS',...lines,'','LIMITS',...caveats,'','CHARTS AVAILABLE',...charts].join('\n')).slice(0,58000);
+}
+const ASK_EXAMPLES=['Where do we lose the most candidates?','Do any interviewers score differently from others?','Is there any sign of bias in the process?','Do interviews favor a type of resume?','Do reviewers\' notes match the scores they gave?','How consistent are the three exercises with each other?','Do final decisions follow the scores?'];
+function askAnswerCard(q,hits,answer,err){
+  const fs=hits.filter(h=>h.kind==='finding').slice(0,3), cs=hits.filter(h=>h.kind==='chart').slice(0,3);
+  const body=[el('div',{class:'q'},q)];
+  if(answer){ body.push(el('div',{class:'badge-ai'},'AI answer'),...answer.split(/\n{2,}/).map(p=>el('p',{class:'ans'},p.trim())),el('p',{class:'small'},'Written by an AI model from the findings in this dashboard only. Check the sources below, and open Show the statistics for the detail.')); }
+  else { body.push(el('div',{class:'badge-ai plain'},'Search result'),el('p',{class:'ans'},fs.length?'Here is what the analysis says that is closest to your question.':'Nothing in the analysis matches that question. This dashboard only covers the funnel, score structure, resume themes, notes themes and interviewer trends. Try one of the example questions.')); if(err) body.push(el('p',{class:'small'},'The AI service did not respond ('+err+'), so this is a plain search instead.')); }
+  if(fs.length) body.push(el('div',{class:'srcs'},el('b',{},'Based on'),fs.map(h=>finding(h.f,el('div',{class:'ev'},el('a',{href:'#'+h.sec},'F'+h.n+' · '+h.lab))))));
+  if(cs.length) body.push(el('div',{class:'srcs'},el('b',{},'Charts to look at'),el('ul',{class:'cav'},cs.map(h=>el('li',{},el('a',{href:'#'+h.sec},h.lab),': ',chartTitle(h.c)||h.c.title)))));
+  return el('div',{class:'card ask'},body);
+}
+function renderAsk(m){
+  const aiOn=!!P.ask_endpoint;
+  m.append(el('div',{class:'card'},el('h2',{},'Ask the data'),el('p',{class:'intro'},SECTIONS.find(x=>x[0]==='ask')[2]),
+    el('p',{},el('span',{class:'mode '+(aiOn?'share':'')},aiOn?'AI answers on':'Search mode, no AI'),' ',aiOn?'Questions are answered by an AI model that sees only the findings and limits shown in this dashboard (aggregates, no candidate IDs).':'Your question is matched against the findings and charts in this dashboard. Nothing leaves your browser. To get written answers, use the copy button below with your own AI tool.')));
+  const out=el('div',{id:'askout'}), inp=el('textarea',{rows:'2',maxlength:'500',placeholder:'Ask a question about the hiring data, for example: Which interviewers score differently from others?'});
+  const btn=el('button',{class:'primary'},'Ask');
+  async function go(q){
+    q=(q||inp.value).trim(); if(!q) return; inp.value=q; btn.disabled=true; btn.textContent=aiOn?'Thinking...':'Searching...';
+    const hits=askSearch(q,8); let answer=null,err=null;
+    if(aiOn){ try{ const r=await fetch(P.ask_endpoint,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({question:q,context:askContext(hits)})});
+      const j=await r.json().catch(()=>({})); if(!r.ok) throw new Error(j.error||('status '+r.status)); answer=String(j.answer||'').trim(); if(!answer) throw new Error('empty answer'); }catch(e){ err=e.message; } }
+    out.prepend(askAnswerCard(q,hits,answer,err)); btn.disabled=false; btn.textContent='Ask';
+  }
+  btn.onclick=()=>go(); inp.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); go(); } });
+  m.append(el('div',{class:'card'},inp,el('div',{class:'askbar'},btn),el('div',{class:'chips'},ASK_EXAMPLES.map(x=>{ const b=el('button',{class:'chip'},x); b.onclick=()=>go(x); return b; }))));
+  m.append(out);
+  const cp=el('button',{},'Copy question and data for my own AI'), msg=el('span',{class:'small'},'');
+  cp.onclick=async()=>{ const q=inp.value.trim()||'(write your question here)'; const txt=ASK_RULES+'\n\nRESULTS\n'+askContext(askSearch(q,8))+'\n\nQUESTION\n'+q;
+    try{ await navigator.clipboard.writeText(txt); msg.textContent=' Copied. Paste it into your AI tool.'; }catch(e){ const ta=el('textarea',{rows:'8'}); ta.value=txt; cp.after(ta); ta.select(); msg.textContent=' Copy the text below.'; } };
+  m.append(el('div',{class:'card'},el('details',{},el('summary',{},'Use your own AI tool'),el('p',{},'This copies the dashboard findings, their limits and your question, with rules that keep the AI to the facts here. Candidate IDs are removed. Only paste it into a tool your organization approves.'),cp,msg)));
+  m.append(el('div',{class:'card'},el('details',{},el('summary',{},'What this can and cannot do'),el('ul',{class:'cav'},
+    el('li',{},'It only knows what is in this dashboard: the findings, their limits and chart titles. It cannot look at individual candidates or re-run the numbers.'),
+    el('li',{},'Answers are only as good as the analysis. Check the confidence label on each source finding.'),
+    el('li',{},'It will not recommend hiring or rejecting a person. Flags about reviewers or bias are for review, not verdicts.'),
+    el('li',{},'Outcomes here are past decisions, not job performance.')))));
+}
 function render(id){
   const m=document.getElementById('main'); m.replaceChildren();
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.id===id));
@@ -406,6 +483,7 @@ function render(id){
       Object.entries(P.sections).flatMap(([k,s])=>s.findings.filter(f=>f.strength==='robust').slice(0,4).map(f=>finding(f,el('div',{class:'ev'},'From: '+SECTIONS.find(x=>x[0]===k)[1]))))));
     return;
   }
+  if(id==='ask'){ renderAsk(m); return; }
   if(id==='glossary'){
     m.append(el('div',{class:'card'},el('h2',{},'How the hiring process maps to this dashboard'),el('p',{class:'intro'},SECTIONS.find(x=>x[0]==='glossary')[2]),
       el('div',{class:'pipe'},
