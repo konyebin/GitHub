@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Influencing Without Authority — Influence Skills</title>
+<meta name="description" content="Influence Skills workshop deck, rebuilt as a PowerPoint-style HTML presentation with a Liquid Glass interface.">
+<style>
+:root{
+  --font:"SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,system-ui,sans-serif;
+  --base:#0b0a24;
+  --b1:#6c5cff; --b2:#19c3d9; --b3:#ff5fa8; --b4:#ffb454;
+  --accent:#9fb4ff; --accent2:#7ff0e6;
+  --text:#fff; --muted:rgba(255,255,255,.72); --faint:rgba(255,255,255,.48);
+  --dur:.8s;
+  --spring:cubic-bezier(.22,1.2,.36,1);
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+html[data-pal="ocean"]{--base:#04141f;--b1:#1d7bff;--b2:#12d8c8;--b3:#7a6bff;--b4:#5fe3ff;--accent:#8fd0ff;--accent2:#7ffff0}
+html[data-pal="sunset"]{--base:#1c0a1f;--b1:#ff6a3d;--b2:#ff3d8b;--b3:#8a4dff;--b4:#ffc14d;--accent:#ffb48f;--accent2:#ffe08f}
+html[data-pal="graphite"]{--base:#0c0e13;--b1:#5a6a8a;--b2:#3f8f9b;--b3:#8a7aa8;--b4:#a8b4c8;--accent:#c7d2e8;--accent2:#a9e3ea}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--base);color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+svg.i{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* ============ Liquid glass primitive ============ */
+.glass{
+  position:relative;border-radius:28px;
+  background:linear-gradient(140deg,rgba(255,255,255,.24),rgba(255,255,255,.07) 55%,rgba(255,255,255,.12));
+  -webkit-backdrop-filter:blur(22px) saturate(185%) brightness(1.06);
+  backdrop-filter:blur(22px) saturate(185%) brightness(1.06);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.55),
+    inset 0 -1px 0 rgba(255,255,255,.10),
+    inset 0 0 28px rgba(255,255,255,.07),
+    0 24px 48px -16px rgba(6,4,40,.55),
+    0 2px 6px rgba(6,4,40,.25);
+}
+.glass::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
+  background:linear-gradient(140deg,rgba(255,255,255,.9),rgba(255,255,255,.06) 32%,rgba(255,255,255,.04) 62%,rgba(255,255,255,.65));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;
+}
+.glass::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(320px circle at var(--mx,25%) var(--my,0%),rgba(255,255,255,.26),transparent 62%);
+  opacity:.7;transition:opacity .3s;
+}
+.glass.dim{background:linear-gradient(140deg,rgba(255,255,255,.14),rgba(255,255,255,.04) 60%,rgba(255,255,255,.07))}
+.glass.tint{background:linear-gradient(140deg,rgba(255,255,255,.34),rgba(255,255,255,.1) 60%,rgba(255,255,255,.18))}
+
+/* ============ App shell ============ */
+#app{position:fixed;inset:0;display:flex;flex-direction:column;gap:10px;padding:10px}
+.app-bg{position:absolute;inset:0;z-index:-1;overflow:hidden;background:var(--base)}
+.app-bg i{position:absolute;border-radius:50%;opacity:.8;will-change:transform}
+.app-bg i:nth-child(1){width:60vmax;height:60vmax;left:-15vmax;top:-20vmax;background:radial-gradient(circle,var(--b1),transparent 66%);animation:drift1 26s ease-in-out infinite alternate}
+.app-bg i:nth-child(2){width:55vmax;height:55vmax;right:-18vmax;top:5vmax;background:radial-gradient(circle,var(--b2),transparent 66%);animation:drift2 32s ease-in-out infinite alternate}
+.app-bg i:nth-child(3){width:50vmax;height:50vmax;left:15vmax;bottom:-28vmax;background:radial-gradient(circle,var(--b3),transparent 66%);animation:drift3 29s ease-in-out infinite alternate}
+.app-bg i:nth-child(4){width:34vmax;height:34vmax;right:12vmax;bottom:-10vmax;background:radial-gradient(circle,var(--b4),transparent 66%);opacity:.5;animation:drift1 36s ease-in-out infinite alternate-reverse}
+@keyframes drift1{to{transform:translate(9vmax,6vmax) scale(1.15)}}
+@keyframes drift2{to{transform:translate(-8vmax,10vmax) scale(.9)}}
+@keyframes drift3{to{transform:translate(10vmax,-7vmax) scale(1.1)}}
+
+.bar{border-radius:22px}
+.titlebar{display:flex;align-items:center;gap:14px;padding:9px 14px;flex:none}
+.logo{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;font-size:17px;
+  background:linear-gradient(145deg,var(--b3),var(--b1));box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 6px 14px -4px var(--b1)}
+.doc-title{display:flex;flex-direction:column;line-height:1.15;min-width:0}
+.doc-title b{font-size:14px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.doc-title span{font-size:11.5px;color:var(--faint)}
+.spacer{flex:1}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:999px;font-size:13px;font-weight:550;
+  background:rgba(255,255,255,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.4),inset 0 0 0 1px rgba(255,255,255,.12);
+  transition:transform .35s var(--spring),background .25s}
+.chip:hover{background:rgba(255,255,255,.22);transform:translateY(-1px) scale(1.03)}
+.chip:active{transform:scale(.96)}
+.chip.primary{background:linear-gradient(135deg,rgba(255,255,255,.5),rgba(255,255,255,.2));color:#0b0a24;font-weight:650}
+.chip.on{background:rgba(255,255,255,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 0 0 1px rgba(255,255,255,.3),0 0 18px -2px var(--accent)}
+.chip svg{font-size:15px}
+
+/* Ribbon */
+.ribbon{flex:none;padding:8px 10px 10px}
+.tabs{position:relative;display:flex;gap:2px;margin-bottom:8px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{position:relative;z-index:1;padding:7px 15px;border-radius:999px;font-size:13px;font-weight:550;color:var(--muted);transition:color .25s}
+.tab[aria-selected=true]{color:#fff}
+.tab-pill{position:absolute;z-index:0;top:0;height:100%;border-radius:999px;pointer-events:none;
+  background:linear-gradient(140deg,rgba(255,255,255,.34),rgba(255,255,255,.12));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.65),inset 0 0 0 1px rgba(255,255,255,.18),0 6px 16px -6px rgba(0,0,0,.4);
+  transition:left .5s var(--spring),width .5s var(--spring)}
+.panel{display:none;align-items:stretch;gap:6px;overflow-x:auto;scrollbar-width:none;min-height:62px}
+.panel::-webkit-scrollbar{display:none}
+.panel.active{display:flex;animation:panelIn .45s var(--ease)}
+@keyframes panelIn{from{opacity:0;transform:translateY(6px)}}
+.group{display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;gap:6px;padding:0 12px;flex:none;border-right:1px solid rgba(255,255,255,.12)}
+.group:last-child{border-right:0}
+.group .row{display:flex;gap:6px;align-items:center;flex:1}
+.group small{font-size:10.5px;color:var(--faint);letter-spacing:.04em;text-transform:uppercase;align-self:center;width:100%;text-align:center}
+.rbtn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:58px;padding:6px 10px;border-radius:14px;font-size:11.5px;font-weight:550;color:var(--muted);transition:background .25s,transform .35s var(--spring),color .2s}
+.rbtn svg{font-size:20px;color:#fff}
+.rbtn:hover{background:rgba(255,255,255,.14);color:#fff;transform:translateY(-1px)}
+.rbtn:active{transform:scale(.95)}
+.rbtn[aria-pressed=true],.rbtn.sel{background:rgba(255,255,255,.24);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 0 0 1px rgba(255,255,255,.2)}
+.swatch{width:26px;height:26px;border-radius:50%;box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 0 0 2px transparent;transition:transform .35s var(--spring),box-shadow .2s}
+.swatch:hover{transform:scale(1.15)}
+.swatch.sel{box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 0 0 2px #fff}
+.goto{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.goto input{width:54px;padding:6px 8px;border-radius:10px;border:0;color:#fff;font:inherit;text-align:center;background:rgba(0,0,0,.25);box-shadow:inset 0 1px 3px rgba(0,0,0,.4),inset 0 0 0 1px rgba(255,255,255,.12)}
+.goto input:focus{outline:2px solid var(--accent)}
+.hint{font-size:12px;color:var(--faint);align-self:center;padding-left:6px;max-width:260px;line-height:1.35}
+
+/* Workspace */
+.workspace{flex:1;min-height:0;display:flex;gap:10px;position:relative}
+.thumbs{width:208px;flex:none;border-radius:24px;padding:12px 10px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.3) transparent}
+.thumb{display:flex;gap:8px;align-items:flex-start;width:100%;padding:6px;border-radius:16px;text-align:left;transition:background .3s,transform .4s var(--spring)}
+.thumb+.thumb{margin-top:4px}
+.thumb:hover{background:rgba(255,255,255,.1)}
+.thumb[aria-current=true]{background:rgba(255,255,255,.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 0 0 1px rgba(255,255,255,.22),0 8px 20px -8px rgba(0,0,0,.5)}
+.thumb .n{font-size:11.5px;font-weight:600;color:var(--faint);width:16px;padding-top:2px;text-align:right}
+.thumb[aria-current=true] .n{color:#fff}
+.frame{position:relative;overflow:hidden;border-radius:10px;flex:none;box-shadow:0 0 0 1px rgba(255,255,255,.18),0 6px 14px -6px rgba(0,0,0,.6)}
+.thumb .frame{width:160px;height:90px}
+.canvas{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0;transform:scale(var(--s,1))}
+
+.main{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}
+.stage-wrap{flex:1;min-height:0;display:grid;place-items:center;position:relative}
+#stageFrame{border-radius:18px;box-shadow:0 0 0 1px rgba(255,255,255,.22),0 40px 80px -20px rgba(0,0,0,.7),0 0 120px -30px var(--b1);background:var(--base)}
+.notes{display:none;flex:none;height:136px;border-radius:22px;padding:14px 20px;overflow-y:auto}
+body.notes-on:not(.presenting) .notes{display:block}
+.notes h4{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+.notes p{font-size:14px;line-height:1.5;color:rgba(255,255,255,.88);margin-bottom:6px}
+.notes p.lead{font-weight:650;color:#fff;margin-top:8px}
+.notes p.quote{font-style:italic;color:var(--accent)}
+.notes .empty{color:var(--faint);font-style:italic}
+
+.sorter{display:none;position:absolute;inset:0;border-radius:24px;padding:22px;overflow-y:auto;z-index:5}
+body.sorting .sorter{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:20px;align-content:start}
+body.sorting .thumbs,body.sorting .main{visibility:hidden}
+.sort-item{display:flex;flex-direction:column;gap:8px;padding:8px;border-radius:18px;text-align:left;transition:transform .45s var(--spring),background .25s}
+.sort-item:hover{transform:translateY(-4px) scale(1.02);background:rgba(255,255,255,.12)}
+.sort-item[aria-current=true]{background:rgba(255,255,255,.2);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.5)}
+.sort-item .frame{width:100%;aspect-ratio:16/9;height:auto}
+.sort-item span{font-size:12.5px;color:var(--muted);padding:0 4px 2px}
+
+.status{flex:none;display:flex;align-items:center;gap:12px;padding:6px 14px;font-size:12px;color:var(--muted);border-radius:18px}
+.status .chip{padding:5px 11px;font-size:12px}
+
+/* ============ Slides ============ */
+.slide{position:absolute;inset:0;overflow:hidden;opacity:0;visibility:hidden;color:#fff;
+  transition:opacity 0s linear var(--dur),transform var(--dur) var(--tf,var(--ease)),filter var(--dur) var(--ease),visibility 0s linear var(--dur)}
+.slide.s-active{opacity:1;visibility:visible;transform:none;filter:none;z-index:2;
+  transition:opacity var(--dur) var(--ease),transform var(--dur) var(--tf,var(--ease)),filter var(--dur) var(--ease),visibility 0s}
+.slide .bg{position:absolute;inset:0;background:var(--base)}
+.slide .bg i{position:absolute;border-radius:50%;opacity:.95}
+.slide .bg i:nth-child(1){width:980px;height:980px;left:var(--x1,-240px);top:var(--y1,-320px);background:radial-gradient(circle,var(--b1),transparent 66%)}
+.slide .bg i:nth-child(2){width:860px;height:860px;left:var(--x2,640px);top:var(--y2,-120px);background:radial-gradient(circle,var(--b2),transparent 66%)}
+.slide .bg i:nth-child(3){width:900px;height:900px;left:var(--x3,160px);top:var(--y3,300px);background:radial-gradient(circle,var(--b3),transparent 66%)}
+.slide .bg i:nth-child(4){width:620px;height:620px;left:var(--x4,820px);top:var(--y4,380px);background:radial-gradient(circle,var(--b4),transparent 66%);opacity:.55}
+.slide.s-active:not(.static) .bg i:nth-child(odd){animation:sdrift 14s ease-in-out infinite alternate}
+.slide.s-active:not(.static) .bg i:nth-child(even){animation:sdrift 18s ease-in-out infinite alternate-reverse}
+@keyframes sdrift{to{transform:translate(70px,40px) scale(1.12)}}
+.slide .grain{position:absolute;inset:0;opacity:.05;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.slide .content{position:absolute;inset:0;padding:64px 84px;display:flex;flex-direction:column}
+
+/* transitions */
+.stage[data-tr="fade"] .slide.s-before,.stage[data-tr="fade"] .slide.s-after{transform:none}
+.stage[data-tr="push"] .slide.s-before{transform:translateX(-100%)}
+.stage[data-tr="push"] .slide.s-after{transform:translateX(100%)}
+.stage[data-tr="push"] .slide{opacity:1;transition:transform var(--dur) var(--ease),visibility 0s linear var(--dur)}
+.stage[data-tr="push"] .slide.s-active{transition:transform var(--dur) var(--ease),visibility 0s}
+.stage[data-tr="zoom"] .slide.s-before{transform:scale(1.25)}
+.stage[data-tr="zoom"] .slide.s-after{transform:scale(.78)}
+.stage[data-tr="liquid"] .slide.s-before{transform:scale(1.08) translateY(-2%);filter:blur(14px)}
+.stage[data-tr="liquid"] .slide.s-after{transform:scale(.94) translateY(3%);filter:blur(14px)}
+.stage[data-tr="liquid"]{--tf:var(--spring)}
+.stage[data-tr="none"] .slide,.stage[data-tr="none"] .slide.s-active{transition:none}
+.slide.static{opacity:1;visibility:visible;transition:none;filter:none;transform:none}
+
+/* reveal choreography */
+.slide .rv{opacity:0;transform:translateY(30px) scale(.97);transition:opacity .9s var(--ease),transform .9s var(--spring)}
+.slide.s-active .rv{opacity:1;transform:none;transition-delay:calc(var(--i,0) * 95ms + 260ms)}
+.slide.static .rv{opacity:1;transform:none;transition:none}
+.stage[data-tr="none"] .slide .rv{transition:none;opacity:1;transform:none}
+
+/* type */
+.kicker{font-size:17px;font-weight:650;letter-spacing:.16em;text-transform:uppercase;color:var(--accent2);margin-bottom:14px}
+h1.title{font-size:84px;line-height:1.02;letter-spacing:-.035em;font-weight:760}
+h2.title{font-size:56px;line-height:1.05;letter-spacing:-.03em;font-weight:740;margin-bottom:6px}
+.grad{background:linear-gradient(100deg,#fff 10%,var(--accent2) 55%,var(--accent) 95%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{font-size:24px;line-height:1.4;color:var(--muted);max-width:900px}
+.orb{position:absolute;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle at 30% 26%,rgba(255,255,255,.9) 0 3%,rgba(255,255,255,.28) 12%,transparent 34%),
+             radial-gradient(circle at 70% 78%,var(--b3),transparent 60%),
+             radial-gradient(circle at 40% 40%,var(--b1),var(--b2) 78%);
+  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.4),inset -30px -40px 80px rgba(0,0,0,.28),inset 20px 30px 70px rgba(255,255,255,.28),0 60px 100px -30px rgba(0,0,0,.6);}
+.slide.s-active:not(.static) .orb{animation:float 9s ease-in-out infinite alternate}
+@keyframes float{to{transform:translateY(-26px) rotate(6deg)}}
+.orb.sm{background:radial-gradient(circle at 30% 26%,rgba(255,255,255,.85) 0 4%,rgba(255,255,255,.2) 14%,transparent 38%),radial-gradient(circle at 50% 50%,var(--b4),var(--b3) 85%)}
+.ico{display:grid;place-items:center;width:72px;height:72px;border-radius:50%;font-size:32px;flex:none;
+  background:linear-gradient(145deg,rgba(255,255,255,.5),rgba(255,255,255,.12));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8),inset 0 0 0 1.5px rgba(255,255,255,.25),0 10px 24px -8px rgba(0,0,0,.5)}
+.num{display:grid;place-items:center;width:52px;height:52px;border-radius:50%;font-size:22px;font-weight:720;flex:none;
+  background:linear-gradient(145deg,rgba(255,255,255,.55),rgba(255,255,255,.14));color:#fff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.85),inset 0 0 0 1.5px rgba(255,255,255,.28),0 8px 18px -6px rgba(0,0,0,.5)}
+
+/* slide-specific */
+.s1 .content{justify-content:center;padding-right:520px}
+.s1 h1{margin-bottom:26px}
+.s1 .tag{display:inline-flex;align-self:flex-start;gap:10px;align-items:center;padding:12px 22px;border-radius:999px;font-size:19px;font-weight:600;color:var(--muted)}
+.def{padding:34px 42px;margin:26px 0 30px;font-size:35px;line-height:1.3;font-weight:560;letter-spacing:-.01em}
+.def em{font-style:normal;color:var(--accent2)}
+.ex-label{font-size:16px;font-weight:650;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:14px}
+.ex-row{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.ex{padding:24px 26px;display:flex;flex-direction:column;gap:16px;font-size:22px;line-height:1.4;color:rgba(255,255,255,.92)}
+.ex .num{width:42px;height:42px;font-size:18px}
+.pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:34px;flex:1;padding-bottom:10px}
+.pillar{padding:36px 32px;display:flex;flex-direction:column;gap:18px}
+.pillar h3{font-size:38px;letter-spacing:-.02em;font-weight:720}
+.pillar p{font-size:23px;line-height:1.45;color:rgba(255,255,255,.86)}
+.table{display:grid;grid-template-columns:.8fr 1fr 1.45fr;gap:12px 14px;margin-top:22px;align-items:stretch}
+.th{padding:0 26px;font-size:15px;font-weight:650;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.td{padding:20px 26px;font-size:21px;line-height:1.35;display:flex;align-items:center;gap:14px;border-radius:22px}
+.td.strat{font-weight:700;font-size:23px}
+.td.old{color:rgba(255,255,255,.62);font-style:italic}
+.td.old .i{color:#ff9db8}
+.td.new{color:#fff}
+.td.new .i{color:var(--accent2)}
+.td .i{font-size:22px}
+.s5 .cols{display:grid;grid-template-columns:1fr 1.05fr;gap:28px;margin-top:26px;flex:1;padding-bottom:6px}
+.card-pad{padding:30px 34px}
+.card-h{font-size:15px;font-weight:650;letter-spacing:.14em;text-transform:uppercase;color:var(--accent2);margin-bottom:16px}
+.card-p{font-size:23px;line-height:1.4;margin-bottom:14px;color:rgba(255,255,255,.92)}
+.blist{list-style:none;display:flex;flex-direction:column;gap:14px}
+.blist li{display:flex;gap:14px;font-size:22px;line-height:1.35;color:rgba(255,255,255,.9)}
+.blist li::before{content:"";width:10px;height:10px;border-radius:50%;margin-top:11px;flex:none;background:radial-gradient(circle at 30% 30%,#fff,var(--accent));box-shadow:0 0 12px var(--accent)}
+.blist li.key{font-weight:650;color:#fff}
+.qlist{list-style:none;display:flex;flex-direction:column;gap:14px;margin-top:6px}
+.qlist li{display:flex;gap:14px;align-items:flex-start;font-size:22px;line-height:1.35;font-weight:550}
+.qlist .num{width:36px;height:36px;font-size:16px;margin-top:-2px}
+.timer{position:absolute;right:28px;bottom:24px;display:inline-flex;align-items:center;gap:10px;padding:10px 18px;border-radius:999px;font-size:19px;font-weight:650;font-variant-numeric:tabular-nums;
+  background:linear-gradient(135deg,rgba(255,255,255,.4),rgba(255,255,255,.14));box-shadow:inset 0 1px 0 rgba(255,255,255,.7),inset 0 0 0 1px rgba(255,255,255,.2);cursor:pointer;z-index:3}
+.timer.run{box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 0 26px var(--accent2)}
+.rem{display:flex;flex-direction:column;gap:12px;margin-top:22px}
+.rem-row{display:flex;align-items:center;gap:24px;padding:0 30px 0 18px;height:84px;border-radius:26px}
+.rem-row h3{font-size:29px;font-weight:700;letter-spacing:-.015em;width:470px;flex:none;white-space:nowrap}
+.rem-row p{font-size:22px;color:rgba(255,255,255,.82);line-height:1.3}
+.s7 .content{align-items:center;justify-content:center;text-align:center}
+.s7 h1{font-size:140px;letter-spacing:-.045em;margin-bottom:34px}
+.s7 .big{padding:42px 64px;font-size:42px;line-height:1.3;font-weight:600;max-width:960px;letter-spacing:-.015em}
+.s7 .big em{font-style:normal;color:var(--accent2)}
+.sw{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+.sub2{font-size:23px;color:var(--muted);margin:2px 0 4px;max-width:900px}
+.qgrid{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:26px;flex:1;padding-bottom:6px}
+.qcard{padding:28px 32px;display:flex;gap:22px;align-items:flex-start}
+.qcard h3{font-size:31px;line-height:1.15;letter-spacing:-.02em;font-weight:720;margin-bottom:10px}
+.qcard p{font-size:21px;line-height:1.4;color:rgba(255,255,255,.84)}
+.s9 .content{justify-content:space-between}
+.mast{padding:36px 44px;font-size:27px;line-height:1.5;color:rgba(255,255,255,.93);max-width:1000px}
+.mast b{color:var(--accent2);font-weight:650}
+.levers{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.lever{display:flex;flex-direction:column;align-items:center;gap:14px;padding:26px 14px;text-align:center;font-size:25px;font-weight:700;letter-spacing:-.01em}
+.lever .ico{width:68px;height:68px;font-size:30px}
+.lever small{font-size:14px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-top:-8px}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:30px;flex:1;padding-bottom:6px}
+.metric{padding:34px 32px;display:flex;flex-direction:column;gap:14px}
+.metric .big-n{white-space:nowrap;font-size:112px;line-height:1;font-weight:780;letter-spacing:-.05em;font-variant-numeric:tabular-nums}
+.metric .unit{font-size:48px;letter-spacing:-.02em;font-weight:700;margin-left:4px}
+.metric p{font-size:22px;line-height:1.4;color:rgba(255,255,255,.88)}
+.metric .gauge{position:relative;height:14px;border-radius:999px;background:rgba(255,255,255,.14);box-shadow:inset 0 2px 4px rgba(0,0,0,.3);margin-top:auto}
+.metric .gauge .band{position:absolute;top:0;bottom:0;border-radius:999px;background:linear-gradient(90deg,var(--accent2),var(--accent));opacity:.9}
+.metric .gauge .dot{position:absolute;top:50%;width:26px;height:26px;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle at 30% 28%,#fff,#dfe8ff);box-shadow:0 0 0 3px rgba(255,255,255,.3),0 4px 12px rgba(0,0,0,.5)}
+.metric .gauge-l{display:flex;justify-content:space-between;font-size:13px;color:var(--faint);margin-top:8px}
+.flow{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:20px;margin-top:40px;flex:1;padding-bottom:6px}
+.flow::before{content:"";position:absolute;left:5%;right:5%;top:56px;height:4px;border-radius:4px;background:linear-gradient(90deg,var(--b3),var(--accent2),var(--b1));box-shadow:0 0 22px var(--accent2);opacity:.85}
+.step{padding:28px 22px;display:flex;flex-direction:column;gap:16px;margin-top:28px}
+.step .num{width:58px;height:58px;font-size:25px;margin-top:-58px;margin-bottom:6px}
+.step h3{font-size:27px;line-height:1.1;letter-spacing:-.02em;font-weight:720}
+.step p{font-size:18.5px;line-height:1.42;color:rgba(255,255,255,.84)}
+.s12 .content{align-items:center;justify-content:center;text-align:center}
+.s12 h1{font-size:150px;letter-spacing:-.045em;margin-bottom:14px}
+.s12 .q{font-size:40px;color:var(--muted);font-weight:500}
+
+/* ============ Present mode ============ */
+body.presenting #app{padding:0;gap:0;background:#000}
+body.presenting .titlebar,body.presenting .ribbon,body.presenting .thumbs,body.presenting .status,body.presenting .app-bg{display:none}
+body.presenting .workspace,body.presenting .main{display:block;position:fixed;inset:0}
+body.presenting .stage-wrap{position:absolute;inset:0}
+body.presenting #stageFrame{border-radius:0;box-shadow:none}
+body.presenting.hide-cursor{cursor:none}
+.pres-bar{display:none;position:fixed;left:50%;bottom:26px;transform:translate(-50%,30px);opacity:0;padding:8px 10px;border-radius:999px;gap:4px;align-items:center;z-index:50;transition:opacity .4s,transform .5s var(--spring);pointer-events:none}
+body.presenting .pres-bar{display:flex}
+body.presenting.show-ui .pres-bar{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.pres-bar .rbtn{flex-direction:row;min-width:0;padding:10px 14px;gap:6px;border-radius:999px}
+.pres-bar .rbtn svg{font-size:18px}
+.pres-bar .cnt{font-size:13px;font-weight:600;padding:0 10px;font-variant-numeric:tabular-nums;color:var(--muted)}
+body.presenting .notes{position:fixed;left:50%;transform:translateX(-50%);bottom:92px;width:min(900px,92vw);height:auto;max-height:34vh;z-index:40}
+body.presenting.pnotes-on .notes{display:block}
+.laser{position:fixed;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;pointer-events:none;z-index:60;display:none;
+  background:radial-gradient(circle,#fff 0 18%,#ff3b5c 35%,rgba(255,59,92,.0) 72%);box-shadow:0 0 22px 6px rgba(255,59,92,.55)}
+body.laser .laser.show{display:block}
+body.laser .stage-wrap{cursor:none}
+
+@media (max-width:900px){
+  .thumbs{display:none}
+  .doc-title span{display:none}
+  .status .hide-sm{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important}
+  .slide,.slide .rv{transition-duration:.01s!important;transition-delay:0s!important}
+}
+</style>
+</head>
+<body class="notes-on">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M6 4v16l14-8z"/></symbol>
+    <symbol id="i-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+    <symbol id="i-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
+    <symbol id="i-gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></symbol>
+    <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></symbol>
+    <symbol id="i-notes" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></symbol>
+    <symbol id="i-laser" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="m12 3 1.9 5.8L20 10l-6.1 1.2L12 17l-1.9-5.8L4 10l6.1-1.2z"/><path d="M19 17v4M17 19h4"/></symbol>
+    <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16.24 7.76-2.12 6.36-6.36 2.12 2.12-6.36z"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+    <symbol id="i-fs" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="i-pal" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r=".6"/><circle cx="17.5" cy="10.5" r=".6"/><circle cx="8.5" cy="7.5" r=".6"/><circle cx="6.5" cy="12.5" r=".6"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.9 0 1.5-.7 1.5-1.5 0-.4-.2-.8-.4-1-.3-.3-.5-.7-.5-1.1 0-.8.7-1.5 1.5-1.5H16c3.3 0 6-2.7 6-6 0-4.9-4.5-9-10-9z"/></symbol>
+  </defs>
+</svg>
+
+<div id="app">
+  <div class="app-bg" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+
+  <header class="titlebar glass bar">
+    <div class="logo" aria-hidden="true">✦</div>
+    <div class="doc-title"><b>Influence Skills</b><span>Influencing Without Authority · 12 slides</span></div>
+    <div class="spacer"></div>
+    <button class="chip" id="btnPresentCur" title="Start from current slide (Shift+F5)"><svg class="i"><use href="#i-play"/></svg>From current</button>
+    <button class="chip primary" id="btnPresent" title="Slide show from beginning (F5)"><svg class="i"><use href="#i-play"/></svg>Present</button>
+  </header>
+
+  <nav class="ribbon glass bar" aria-label="Ribbon">
+    <div class="tabs" role="tablist" id="tabs"><span class="tab-pill" id="tabPill"></span></div>
+    <div id="panels"></div>
+  </nav>
+
+  <div class="workspace">
+    <aside class="thumbs glass" id="thumbs" aria-label="Slide thumbnails"></aside>
+    <section class="main">
+      <div class="stage-wrap" id="stageWrap">
+        <div class="frame" id="stageFrame" data-fit>
+          <div class="canvas stage" id="stage" data-tr="liquid"></div>
+        </div>
+      </div>
+      <div class="notes glass" id="notes" aria-live="polite"></div>
+    </section>
+    <div class="sorter glass" id="sorter" aria-label="Slide sorter"></div>
+  </div>
+
+  <footer class="status glass bar">
+    <span id="statusSlide">Slide 1 of 12</span>
+    <span class="hide-sm" style="color:var(--faint)">Use ← → to navigate · F5 to present</span>
+    <div class="spacer"></div>
+    <button class="chip" id="btnNotes" aria-pressed="true"><svg class="i"><use href="#i-notes"/></svg>Notes</button>
+    <button class="chip" id="btnNormal"><svg class="i"><use href="#i-monitor"/></svg>Normal</button>
+    <button class="chip" id="btnSorter"><svg class="i"><use href="#i-grid"/></svg>Slide Sorter</button>
+  </footer>
+</div>
+
+<div class="pres-bar glass" id="presBar">
+  <button class="rbtn" id="pbPrev" aria-label="Previous slide"><svg class="i"><use href="#i-left"/></svg></button>
+  <span class="cnt" id="pbCount">1 / 12</span>
+  <button class="rbtn" id="pbNext" aria-label="Next slide"><svg class="i"><use href="#i-right"/></svg></button>
+  <button class="rbtn" id="pbNotes" aria-label="Toggle notes"><svg class="i"><use href="#i-notes"/></svg>Notes</button>
+  <button class="rbtn" id="pbLaser" aria-label="Laser pointer"><svg class="i"><use href="#i-laser"/></svg>Laser</button>
+  <button class="rbtn" id="pbExit" aria-label="End slide show"><svg class="i"><use href="#i-x"/></svg>End</button>
+</div>
+<div class="laser" id="laser"></div>
+
+<script>
+(function(){
+"use strict";
+
+const ic = n => `<svg class="i"><use href="#i-${n}"/></svg>`;
+const rv = i => `class="rv" style="--i:${i}"`;
+const rvg = (i, extra="") => `class="glass rv ${extra}" style="--i:${i}"`;
+
+/* ---------------------------------------------------------------
+   Slide content (text taken from "Influence Skills.pptx")
+---------------------------------------------------------------- */
+const SLIDES = [
+{ // 1
+  cls:"s1",
+  notes:["Ask the group for their thoughts: What does influence without authority mean?"],
+  html:()=>`
+    <div class="orb" style="width:520px;height:520px;right:70px;top:100px"></div>
+    <div class="orb sm" style="width:150px;height:150px;right:480px;top:520px;animation-delay:-3s"></div>
+    <div class="orb sm" style="width:90px;height:90px;right:96px;top:70px;animation-delay:-6s"></div>
+    <div class="content">
+      <div ${rv(0)}><div class="kicker">Influence Skills</div></div>
+      <h1 class="title grad rv" style="--i:1">Influencing Without Authority</h1>
+      <div class="glass dim tag rv" style="--i:3">${ic("sparkle")} Shaping outcomes through people, not position</div>
+    </div>`
+},
+{ // 2
+  cls:"s2",
+  notes:[
+    "We don't always have the authority to make decisions or determine someone else's priorities.",
+    "But in our roles, we're constantly working through other people to accomplish something.",
+    "Whether that's getting internal alignment, encouraging customer adoption, or partnering with another team, our ability to influence can determine whether we move forward or get stuck."
+  ],
+  html:()=>`
+    <div class="content">
+      <h2 class="title rv" style="--i:0">What does influence <span class="grad">without authority</span> mean?</h2>
+      <div ${rvg(1,"tint def")}>Influence is the ability to <em>shape someone's thinking or actions</em> without relying on your title, position, or control.</div>
+      <div class="ex-label rv" style="--i:2">Examples</div>
+      <div class="ex-row">
+        <div ${rvg(3,"ex")}><span class="num">1</span>You need a partner's cooperation, but you aren't their manager.</div>
+        <div ${rvg(4,"ex")}><span class="num">2</span>You need another team to prioritize an issue affecting your customer.</div>
+        <div ${rvg(5,"ex")}><span class="num">3</span>You want a customer to consider a different approach to implementation, adoption, or renewal.</div>
+      </div>
+    </div>`
+},
+{ // 3
+  cls:"s3",
+  notes:[
+    "Credibility Example:",
+    "Come to a customer conversation prepared with usage data, renewal history, product information, and specific recommendations.",
+    "Follow through on commitments and be someone colleagues can depend on.",
+    "Understanding Example:",
+    "Before approaching your field rep about an expansion opportunity, understand their current priorities, pipeline, and workload.",
+    "Before recommending an adoption strategy to a customer, understand what's preventing teachers or students from using IXL.",
+    "Mutual Value Example:",
+    "Instead of simply presenting an opportunity to increase licenses, connect the recommendation to increased student access, stronger implementation, and the customer's implementation goals.",
+    "When partnering with your ESC, demonstrate how working together can create a better customer experience while supporting shared business goals.",
+    "\u201COne thing I've learned is that having the right information isn't always enough. People need to trust your judgment, feel like you understand their situation, and see how your recommendation benefits them. That's what turns a conversation into collaboration.\u201D"
+  ],
+  html:()=>`
+    <div class="content">
+      <h2 class="title rv" style="--i:0">Setting Yourself Up <span class="grad">For Success</span></h2>
+      <div class="pillars">
+        <div ${rvg(1,"pillar")}><div class="ico">${ic("shield")}</div><h3>Credibility</h3><p>Demonstrate that you're prepared, reliable, knowledgeable, and focused on solving the problem.</p></div>
+        <div ${rvg(2,"pillar")}><div class="ico">${ic("eye")}</div><h3>Understanding</h3><p>Learn what matters to the other person, what constraints they face, and what success looks like from their perspective.</p></div>
+        <div ${rvg(3,"pillar")}><div class="ico">${ic("link")}</div><h3>Mutual value</h3><p>Connect your recommendation to an outcome that matters to both parties.</p></div>
+      </div>
+    </div>`
+},
+{ // 4
+  cls:"s4",
+  notes:[
+    "Sometimes the difference between getting buy-in and getting resistance is how we approach the conversation. Instead of immediately presenting our solution, we can create space for the other person to share their perspective. Then we can connect our recommendation to something they already care about.",
+    "You don't have to convince someone of everything at once. Sometimes the goal is simply getting agreement on the next step.",
+    "Can anyone think of an additional examples?"
+  ],
+  html:()=>{
+    const rows=[
+      ["Ask before advocating","Here's what we need to do.","What challenges are you currently running into?"],
+      ["Connect to shared goals","This is important to my account.","Here's how this could improve the customer experience and help us achieve our goals."],
+      ["Use evidence and examples","I think this is the right move.","Based on their usage trends and current licenses, here's an opportunity I noticed."],
+      ["Make the next step easy","Can you take care of this?","Would you be open to connecting for 15 minutes to talk through the opportunity?"]
+    ];
+    return `
+    <div class="content">
+      <h2 class="title rv" style="--i:0">Getting <span class="grad">Buy-in</span></h2>
+      <div class="table">
+        <div class="th rv" style="--i:1">Strategy</div><div class="th rv" style="--i:1">Instead of</div><div class="th rv" style="--i:1">Try</div>
+        ${rows.map((r,k)=>`
+          <div ${rvg(2+k,"td strat tint")}>${r[0]}</div>
+          <div ${rvg(2+k,"td old dim")}>${ic("x")}<span>“${r[1]}”</span></div>
+          <div ${rvg(2+k,"td new")}>${ic("check")}<span>“${r[2]}”</span></div>`).join("")}
+      </div>
+    </div>`;
+  }
+},
+{ // 5
+  cls:"s5",
+  notes:[
+    "Let's put this into practice. Imagine you're working with a customer who isn't fully implementing IXL. You recognize the opportunity, but you can't make the administrator prioritize implementation or make teachers use the platform.",
+    "\u201CHow would you influence the situation?\u201D",
+    "After the group shares, ask:",
+    "\u201CWhat would be the difference between trying to convince this customer and actually influencing them?\u201D",
+    "Your closing observation:",
+    "\u201CNotice how many of these approaches start with understanding the other person's challenges rather than immediately presenting a solution. That's really what influence is about.\u201D"
+  ],
+  html:()=>`
+    <div class="content">
+      <h2 class="title rv" style="--i:0">Let’s <span class="grad">try</span></h2>
+      <div class="cols">
+        <div ${rvg(1,"card-pad")}>
+          <div class="card-h">The situation</div>
+          <p class="card-p">You've identified an opportunity to improve a customer's IXL adoption. However:</p>
+          <ul class="blist">
+            <li>The customer administrator is overwhelmed.</li>
+            <li>Teachers aren't consistently using the platform.</li>
+            <li>The administrator isn't prioritizing implementation.</li>
+            <li class="key">You recognize the opportunity, but you don't have authority over the administrator or the teachers.</li>
+          </ul>
+        </div>
+        <div ${rvg(2,"card-pad tint")}>
+          <div class="card-h">Your challenge</div>
+          <p class="card-p"><b>As a group, brainstorm how you could influence the situation.</b></p>
+          <ol class="qlist">
+            <li><span class="num">1</span>What questions would you ask to better understand the situation?</li>
+            <li><span class="num">2</span>How would you demonstrate value without making the customer feel pressured?</li>
+            <li><span class="num">3</span>What's one small next step you could get them to agree to?</li>
+          </ol>
+          <button class="timer" data-timer title="Start a 3-minute brainstorm timer">${ic("clock")}<span data-timer-label>Brainstorm 3:00</span></button>
+        </div>
+      </div>
+    </div>`
+},
+{ // 6
+  cls:"s6",
+  notes:[],
+  html:()=>{
+    const r=[
+      ["Lead with curiosity","Ask questions before offering solutions"],
+      ["Understand their perspective","Consider their priorities, challenges, and other demands"],
+      ["Connect to shared goals","Show the value in working together"],
+      ["Bring something to the table","Use relevant information and examples to build credibility"],
+      ["Make the next step easy","Start with one actionable step"]
+    ];
+    return `
+    <div class="content">
+      <h2 class="title rv" style="--i:0"><span class="grad">5 Reminders</span> for your next conversation</h2>
+      <div class="rem">
+        ${r.map((x,k)=>`<div ${rvg(1+k,"rem-row")}><span class="num">${k+1}</span><h3>${x[0]}</h3><p>${x[1]}</p></div>`).join("")}
+      </div>
+    </div>`;
+  }
+},
+{ // 7
+  cls:"s7",
+  notes:[],
+  html:()=>`
+    <div class="orb sm" style="width:260px;height:260px;left:90px;top:420px"></div>
+    <div class="orb" style="width:200px;height:200px;right:110px;top:70px;animation-delay:-4s"></div>
+    <div class="content">
+      <div ${rv(0)}><div class="kicker">This week</div></div>
+      <h1 class="title grad rv" style="--i:1">Challenge</h1>
+      <div ${rvg(2,"tint big")}>This week, identify <em>one conversation</em> where you need someone’s buy-in or support.</div>
+    </div>`
+},
+{ // 8
+  cls:"s8",
+  notes:["\u201CLeadership isn't always about having the authority to make a decision. Sometimes it's about earning enough trust, understanding, and alignment that people choose to move forward with you.\u201D"],
+  html:()=>{
+    const q=[
+      ["What matters to them?","Define the concrete ask in one sentence to guide every follow-up."],
+      ["What shared goal can we connect around?","Pin the stakeholder’s top two motivations to align your ask."],
+      ["What evidence or credibility can I bring?","Select one persuasion lever and draft the opening line."],
+      ["What small next step can I propose?","Specify a small, time-limited ask with a reciprocal benefit."]
+    ];
+    return `
+    <div class="content">
+      <h2 class="title rv" style="--i:0"><span class="grad">5 Reminders</span> for your next conversation</h2>
+      <p class="sub2 rv" style="--i:1">The next time you need buy in, ask the following questions:</p>
+      <div class="qgrid">
+        ${q.map((x,k)=>`<div ${rvg(2+k,"qcard")}><span class="num">${k+1}</span><div><h3>${x[0]}</h3><p>${x[1]}</p></div></div>`).join("")}
+      </div>
+    </div>`;
+  }
+},
+{ // 9
+  cls:"s9",
+  notes:[],
+  html:()=>`
+    <div class="orb sm" style="width:300px;height:300px;right:-40px;top:-60px"></div>
+    <div class="content">
+      <div>
+        <div ${rv(0)}><div class="kicker">Key takeaway</div></div>
+        <h1 class="title grad rv" style="--i:1;font-size:92px;margin-bottom:26px">Influence Mastery</h1>
+        <div ${rvg(2,"tint mast")}>Influence without authority is a <b>strategic muscle</b> you can build. Levers—reciprocity, credibility, scarcity, and social proof—drive persuasive requests without formal power. Use the five-step prep and the lightweight metrics to plan, test, and learn from each cross-functional ask.</div>
+      </div>
+      <div class="levers">
+        <div ${rvg(3,"lever")}><div class="ico">${ic("gift")}</div>Reciprocity</div>
+        <div ${rvg(4,"lever")}><div class="ico">${ic("shield")}</div>Credibility</div>
+        <div ${rvg(5,"lever")}><div class="ico">${ic("clock")}</div>Scarcity</div>
+        <div ${rvg(6,"lever")}><div class="ico">${ic("users")}</div>Social proof</div>
+      </div>
+    </div>`
+},
+{ // 10
+  cls:"s10",
+  notes:[],
+  html:()=>`
+    <div class="content">
+      <h2 class="title rv" style="--i:0">Influence <span class="grad">Metrics</span></h2>
+      <p class="sub2 rv" style="--i:1">Three simple metrics to gauge whether an influence attempt sticks and where to improve.</p>
+      <div class="metrics">
+        <div ${rvg(2,"metric")}>
+          <div class="big-n grad"><span class="count" data-to="38" data-suffix="%">38%</span></div>
+          <p>Conversion rate (cross-team asks); target 30–50%.</p>
+          <div><div class="gauge"><div class="band" style="left:30%;width:20%"></div><div class="dot" style="left:38%"></div></div>
+          <div class="gauge-l"><span>0%</span><span>Target 30–50%</span><span>100%</span></div></div>
+        </div>
+        <div ${rvg(3,"metric")}>
+          <div class="big-n"><span class="grad count" data-to="7">7</span><span class="unit">days</span></div>
+          <p>Time-to-agreement (first request to commitment); aim to reduce by 25% over three attempts.</p>
+        </div>
+        <div ${rvg(4,"metric")}>
+          <div class="big-n grad"><span class="count" data-to="1" data-suffix="+">1+</span></div>
+          <p>Collaboration durability (repeat interactions or voluntary contributions next quarter); target at least one repeat contribution.</p>
+        </div>
+      </div>
+    </div>`
+},
+{ // 11
+  cls:"s11",
+  notes:[],
+  html:()=>{
+    const s=[
+      ["Ask before advocating","Identify the exact ask and the stakeholder's likely priorities; draft a concise one-paragraph request."],
+      ["Diagnose","Map incentives and constraints (time, KPIs, career goals) that drive the stakeholder."],
+      ["Frame","Open with their priorities, present the ask as low-risk/high-value, and apply one lever (e.g., reciprocity)."],
+      ["Offer","Present a clear, limited ask and explicit benefit (e.g., one-hour review meeting; credit your team in release notes)."],
+      ["Follow-up","Document agreements, thank collaborators publicly, and deliver on promised reciprocation."]
+    ];
+    return `
+    <div class="content">
+      <h2 class="title rv" style="--i:0">Four ways to <span class="grad">influence others</span></h2>
+      <div class="flow">
+        ${s.map((x,k)=>`<div ${rvg(1+k,"step")}><span class="num">${k+1}</span><h3>${x[0]}</h3><p>${x[1]}</p></div>`).join("")}
+      </div>
+    </div>`;
+  }
+},
+{ // 12
+  cls:"s12",
+  notes:[],
+  html:()=>`
+    <div class="orb" style="width:420px;height:420px;left:-80px;bottom:-120px"></div>
+    <div class="orb sm" style="width:220px;height:220px;right:90px;top:80px;animation-delay:-5s"></div>
+    <div class="content">
+      <h1 class="title grad rv" style="--i:0">Thanks!</h1>
+      <div class="q rv" style="--i:1">Do you have any questions?</div>
+    </div>`
+}
+];
+
+const BG_POS=[
+  [-240,-320, 640,-120, 160,300, 820,380],
+  [-120,-380, 700,-260, 60,380, 900,260],
+  [-300,-200, 560,-340, 260,340, 780,420],
+  [-200,-300, 760,-60, 20,330, 860,400],
+  [-340,-260, 600,-220, 200,360, 940,300],
+  [-160,-360, 680,-180, 100,320, 820,440],
+  [-260,-240, 540,-300, 300,300, 760,360],
+  [-180,-340, 720,-140, 40,380, 900,340],
+  [-320,-300, 620,-260, 180,320, 840,420],
+  [-220,-260, 700,-200, 120,360, 800,300],
+  [-140,-380, 560,-100, 240,300, 920,380],
+  [-280,-220, 680,-320, 80,340, 780,440]
+];
+
+/* ---------------------------------------------------------------
+   State & helpers
+---------------------------------------------------------------- */
+const $ = s => document.querySelector(s);
+const esc = s => s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+const store = {
+  get(k,d){try{return localStorage.getItem("influence-skills:"+k)||d}catch(e){return d}},
+  set(k,v){try{localStorage.setItem("influence-skills:"+k,v)}catch(e){}}
+};
+
+const total = SLIDES.length;
+let cur = 0;
+let presenting = false, sorting = false, notesOn = true, pNotesOn = false, laserOn = false;
+let tab = "home";
+const settings = { tr:store.get("tr","liquid"), dur:store.get("dur","0.8"), pal:store.get("pal","aurora") };
+
+const stage = $("#stage"), stageFrame = $("#stageFrame"), stageWrap=$("#stageWrap");
+
+function buildSlide(i, isStatic){
+  const s = SLIDES[i];
+  const p = BG_POS[i];
+  const el = document.createElement("section");
+  el.className = `slide ${s.cls}` + (isStatic ? " static s-active" : "");
+  el.setAttribute("aria-label", `Slide ${i+1}`);
+  el.style.cssText = `--x1:${p[0]}px;--y1:${p[1]}px;--x2:${p[2]}px;--y2:${p[3]}px;--x3:${p[4]}px;--y3:${p[5]}px;--x4:${p[6]}px;--y4:${p[7]}px`;
+  el.innerHTML = `<div class="bg"><i></i><i></i><i></i><i></i></div><div class="grain"></div>${s.html()}`;
+  return el;
+}
+SLIDES.forEach((_,i)=>stage.appendChild(buildSlide(i,false)));
+const slideEls = [...stage.children];
+
+/* thumbnails & sorter */
+const thumbsEl = $("#thumbs"), sorterEl=$("#sorter");
+function frameWith(i){
+  const f=document.createElement("div"); f.className="frame"; f.setAttribute("data-fit","");
+  const c=document.createElement("div"); c.className="canvas"; c.appendChild(buildSlide(i,true));
+  f.appendChild(c); return f;
+}
+SLIDES.forEach((_,i)=>{
+  const t=document.createElement("button");
+  t.className="thumb"; t.setAttribute("aria-label",`Go to slide ${i+1}`);
+  t.innerHTML=`<span class="n">${i+1}</span>`;
+  t.appendChild(frameWith(i));
+  t.addEventListener("click",()=>go(i));
+  thumbsEl.appendChild(t);
+
+  const si=document.createElement("button");
+  si.className="sort-item"; si.setAttribute("aria-label",`Open slide ${i+1}`);
+  si.appendChild(frameWith(i));
+  si.insertAdjacentHTML("beforeend",`<span>Slide ${i+1}</span>`);
+  si.addEventListener("click",()=>{go(i);setSorting(false)});
+  sorterEl.appendChild(si);
+});
+const thumbBtns=[...thumbsEl.children], sortBtns=[...sorterEl.children];
+
+/* scaling */
+function fit(){
+  const wrap = stageWrap.getBoundingClientRect();
+  const pad = presenting ? 0 : 6;
+  const aw = Math.max(200, wrap.width - pad*2), ah = Math.max(120, wrap.height - pad*2);
+  let w = aw, h = w*9/16;
+  if(h>ah){h=ah;w=h*16/9}
+  stageFrame.style.width=Math.floor(w)+"px";
+  stageFrame.style.height=Math.floor(h)+"px";
+  document.querySelectorAll("[data-fit]").forEach(f=>{
+    const cw=f.clientWidth||f.getBoundingClientRect().width;
+    f.style.setProperty("--s",cw/1280);
+    const c=f.firstElementChild; if(c) c.style.setProperty("--s",cw/1280);
+  });
+}
+new ResizeObserver(fit).observe(stageWrap);
+new ResizeObserver(()=>fit()).observe(sorterEl);
+window.addEventListener("resize",fit);
+
+/* navigation */
+function go(n, opts={}){
+  n=clamp(n,0,total-1);
+  const changed = n!==cur;
+  cur=n;
+  slideEls.forEach((el,i)=>{
+    el.classList.toggle("s-active",i===cur);
+    el.classList.toggle("s-before",i<cur);
+    el.classList.toggle("s-after",i>cur);
+  });
+  thumbBtns.forEach((b,i)=>{ if(i===cur) b.setAttribute("aria-current","true"); else b.removeAttribute("aria-current"); });
+  sortBtns.forEach((b,i)=>{ if(i===cur) b.setAttribute("aria-current","true"); else b.removeAttribute("aria-current"); });
+  if(!presenting && !sorting) thumbBtns[cur].scrollIntoView({block:"nearest",behavior:"smooth"});
+  renderNotes();
+  $("#statusSlide").textContent=`Slide ${cur+1} of ${total}`;
+  $("#pbCount").textContent=`${cur+1} / ${total}`;
+  const gi=document.getElementById("gotoInput"); if(gi) gi.value=cur+1;
+  if(history.replaceState) history.replaceState(null,"","#"+(cur+1));
+  if(changed || opts.force){ resetTimer(); runCounters(); }
+}
+const next=()=>go(cur+1), prev=()=>go(cur-1);
+
+function renderNotes(){
+  const n=SLIDES[cur].notes;
+  const body = n.length ? n.map(p=>{
+    const cls = /:$/.test(p) ? "lead" : (/^\u201C/.test(p) ? "quote" : "");
+    return `<p class="${cls}">${esc(p)}</p>`;
+  }).join("") : `<p class="empty">No speaker notes for this slide.</p>`;
+  $("#notes").innerHTML=`<h4>Speaker notes · Slide ${cur+1}</h4>${body}`;
+  $("#notes").scrollTop=0;
+}
+
+/* count-up on metrics slide */
+let countRAF=0;
+function runCounters(){
+  cancelAnimationFrame(countRAF);
+  const els=slideEls[cur].querySelectorAll(".count");
+  if(!els.length) return;
+  const reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
+  if(reduce) return;
+  const start=performance.now()+650, dur=1300;
+  els.forEach(e=>e.textContent="0"+(e.dataset.suffix||""));
+  const tick=now=>{
+    const t=clamp((now-start)/dur,0,1), k=1-Math.pow(1-t,3);
+    els.forEach(e=>{e.textContent=Math.round(+e.dataset.to*k)+(e.dataset.suffix||"")});
+    if(t<1) countRAF=requestAnimationFrame(tick);
+  };
+  countRAF=requestAnimationFrame(tick);
+}
+
+/* brainstorm timer (slide 5) */
+let timerId=0, timerLeft=180;
+function fmt(s){return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+function timerEl(){return slideEls[4].querySelector("[data-timer]")}
+function resetTimer(){
+  clearInterval(timerId); timerId=0; timerLeft=180;
+  const b=timerEl(); if(b){b.classList.remove("run");b.querySelector("[data-timer-label]").textContent="Brainstorm 3:00"}
+}
+function toggleTimer(){
+  const b=timerEl(), l=b.querySelector("[data-timer-label]");
+  if(timerId){ clearInterval(timerId); timerId=0; b.classList.remove("run"); l.textContent="Paused "+fmt(timerLeft); return; }
+  if(timerLeft<=0) timerLeft=180;
+  b.classList.add("run"); l.textContent=fmt(timerLeft);
+  timerId=setInterval(()=>{
+    timerLeft--; l.textContent=timerLeft>0?fmt(timerLeft):"Time’s up";
+    if(timerLeft<=0){clearInterval(timerId);timerId=0;b.classList.remove("run")}
+  },1000);
+}
+stage.addEventListener("click",e=>{
+  if(e.target.closest("[data-timer]")){ e.stopPropagation(); toggleTimer(); return; }
+});
+
+/* modes */
+function setSorting(v){
+  sorting=v; document.body.classList.toggle("sorting",v);
+  $("#btnSorter").classList.toggle("on",v); $("#btnNormal").classList.toggle("on",!v);
+  requestAnimationFrame(fit);
+  if(!v) thumbBtns[cur].scrollIntoView({block:"nearest"});
+}
+function setNotes(v){
+  notesOn=v; document.body.classList.toggle("notes-on",v);
+  $("#btnNotes").setAttribute("aria-pressed",v); $("#btnNotes").classList.toggle("on",v);
+  requestAnimationFrame(fit);
+}
+function setPNotes(v){ pNotesOn=v; document.body.classList.toggle("pnotes-on",v); $("#pbNotes").setAttribute("aria-pressed",v); }
+function setLaser(v){
+  laserOn=v; document.body.classList.toggle("laser",v);
+  $("#pbLaser").setAttribute("aria-pressed",v);
+  document.querySelectorAll("[data-laser]").forEach(b=>b.setAttribute("aria-pressed",v));
+  if(!v) $("#laser").classList.remove("show");
+}
+function present(from){
+  if(sorting) setSorting(false);
+  presenting=true; document.body.classList.add("presenting","show-ui");
+  go(from,{force:true});
+  const el=document.documentElement;
+  if(el.requestFullscreen) el.requestFullscreen().catch(()=>{});
+  requestAnimationFrame(()=>{fit();});
+  setTimeout(fit,150);
+  pokeUI();
+}
+function endShow(){
+  if(!presenting) return;
+  presenting=false; document.body.classList.remove("presenting","show-ui","hide-cursor","pnotes-on");
+  pNotesOn=false;
+  if(document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(()=>{});
+  setLaser(false);
+  requestAnimationFrame(()=>{fit();thumbBtns[cur].scrollIntoView({block:"nearest"})});
+  setTimeout(fit,150);
+}
+document.addEventListener("fullscreenchange",()=>{ if(!document.fullscreenElement && presenting) endShow(); else setTimeout(fit,100) });
+
+let uiTimer=0;
+function pokeUI(){
+  if(!presenting) return;
+  document.body.classList.add("show-ui"); document.body.classList.remove("hide-cursor");
+  clearTimeout(uiTimer);
+  uiTimer=setTimeout(()=>{document.body.classList.remove("show-ui"); if(!laserOn) document.body.classList.add("hide-cursor")},2600);
+}
+
+/* input */
+document.addEventListener("pointermove",e=>{
+  const g=e.target.closest&&e.target.closest(".glass");
+  if(g){const r=g.getBoundingClientRect();g.style.setProperty("--mx",((e.clientX-r.left)/r.width*100)+"%");g.style.setProperty("--my",((e.clientY-r.top)/r.height*100)+"%")}
+  if(presenting) pokeUI();
+  if(laserOn){
+    const L=$("#laser"), over=e.target.closest&&e.target.closest("#stageFrame");
+    L.classList.toggle("show",!!over); L.style.left=e.clientX+"px"; L.style.top=e.clientY+"px";
+  }
+});
+stageWrap.addEventListener("click",e=>{
+  if(!presenting) return;
+  if(e.target.closest("[data-timer]")) return;
+  const x=e.clientX/innerWidth;
+  if(x<.25) prev(); else next();
+});
+document.addEventListener("keydown",e=>{
+  if(e.target.matches("input,textarea,select")){ if(e.key==="Escape") e.target.blur(); return; }
+  const k=e.key;
+  if(k==="F5"){ e.preventDefault(); present(e.shiftKey?cur:0); return; }
+  if(k==="Escape"){ if(presenting) endShow(); else if(sorting) setSorting(false); return; }
+  if(["ArrowRight","ArrowDown","PageDown"," ","Enter"].includes(k)){ if(k===" "||k==="Enter"){ if(e.target.closest&&e.target.closest("button")&&!presenting) return; } e.preventDefault(); next(); }
+  else if(["ArrowLeft","ArrowUp","PageUp","Backspace"].includes(k)){ e.preventDefault(); prev(); }
+  else if(k==="Home"){ go(0) } else if(k==="End"){ go(total-1) }
+  else if(k==="n"||k==="N"){ presenting?setPNotes(!pNotesOn):setNotes(!notesOn) }
+  else if(k==="l"||k==="L"){ setLaser(!laserOn) }
+  else if(k==="g"||k==="G"){ if(!presenting) setSorting(!sorting) }
+  else if(/^[1-9]$/.test(k)){ go(+k-1) }
+});
+let tx=0,ty=0;
+stageWrap.addEventListener("touchstart",e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+stageWrap.addEventListener("touchend",e=>{
+  const dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
+  if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)) dx<0?next():prev();
+},{passive:true});
+
+$("#btnPresent").onclick=()=>present(0);
+$("#btnPresentCur").onclick=()=>present(cur);
+$("#btnNotes").onclick=()=>setNotes(!notesOn);
+$("#btnNormal").onclick=()=>setSorting(false);
+$("#btnSorter").onclick=()=>setSorting(true);
+$("#pbPrev").onclick=prev; $("#pbNext").onclick=next; $("#pbExit").onclick=endShow;
+$("#pbNotes").onclick=()=>setPNotes(!pNotesOn);
+$("#pbLaser").onclick=()=>setLaser(!laserOn);
+
+/* ---------------------------------------------------------------
+   Ribbon
+---------------------------------------------------------------- */
+const TABS=[["home","Home"],["transitions","Transitions"],["design","Design"],["slideshow","Slide Show"],["view","View"]];
+const tabsEl=$("#tabs"), panelsEl=$("#panels"), pill=$("#tabPill");
+const rb=(id,icon,label,attrs="")=>`<button class="rbtn" id="${id}" ${attrs}>${ic(icon)}<span>${label}</span></button>`;
+const PANELS={
+  home:`
+    <div class="group"><div class="row">${rb("rbPrev","left","Previous")}${rb("rbNext","right","Next")}</div><small>Navigate</small></div>
+    <div class="group"><div class="row"><label class="goto">Go to slide <input id="gotoInput" type="number" min="1" max="${total}" value="1" aria-label="Go to slide number"> of ${total}</label></div><small>Jump</small></div>
+    <div class="group"><div class="row">${rb("rbLaser","laser","Laser pointer",'data-laser aria-pressed="false"')}</div><small>Pointer</small></div>
+    <div class="hint">Tip: press <b>L</b> for the laser pointer and <b>N</b> to toggle notes.</div>`,
+  transitions:`
+    <div class="group"><div class="row">
+      ${[["none","None"],["fade","Fade"],["push","Push"],["zoom","Zoom"],["liquid","Liquid"]].map(([k,l])=>rb("tr-"+k,"sparkle",l,`data-tr="${k}"`)).join("")}
+    </div><small>Transition to this slide</small></div>
+    <div class="group"><div class="row">
+      ${[["0.4","Quick"],["0.8","Normal"],["1.4","Slow"]].map(([k,l])=>rb("du-"+k.replace(".",""),"clock",l,`data-dur="${k}"`)).join("")}
+    </div><small>Duration</small></div>`,
+  design:`
+    <div class="group"><div class="row" style="gap:12px;padding:6px 4px">
+      ${[["aurora","Aurora","linear-gradient(135deg,#ff5fa8,#6c5cff,#19c3d9)"],["ocean","Ocean","linear-gradient(135deg,#7a6bff,#1d7bff,#12d8c8)"],["sunset","Sunset","linear-gradient(135deg,#8a4dff,#ff3d8b,#ffc14d)"],["graphite","Graphite","linear-gradient(135deg,#8a7aa8,#5a6a8a,#a8b4c8)"]]
+        .map(([k,l,g])=>`<button class="rbtn" data-pal="${k}" style="min-width:74px"><span class="swatch" style="background:${g};display:block"></span><span>${l}</span></button>`).join("")}
+    </div><small>Liquid palettes</small></div>`,
+  slideshow:`
+    <div class="group"><div class="row">${rb("ssBegin","play","From Beginning")}${rb("ssCur","play","From Current Slide")}</div><small>Start slide show</small></div>
+    <div class="hint"><b>F5</b> starts from the beginning, <b>Shift+F5</b> from the current slide. Click or use arrow keys to advance, <b>Esc</b> to end.</div>`,
+  view:`
+    <div class="group"><div class="row">${rb("vNormal","monitor","Normal")}${rb("vSorter","grid","Slide Sorter")}</div><small>Presentation views</small></div>
+    <div class="group"><div class="row">${rb("vNotes","notes","Notes",'aria-pressed="true"')}</div><small>Show</small></div>`
+};
+TABS.forEach(([id,label])=>{
+  const b=document.createElement("button");
+  b.className="tab"; b.setAttribute("role","tab"); b.dataset.tab=id; b.textContent=label; b.id="tab-"+id;
+  b.onclick=()=>setTab(id);
+  tabsEl.appendChild(b);
+  const p=document.createElement("div");
+  p.className="panel"; p.id="panel-"+id; p.setAttribute("role","tabpanel"); p.innerHTML=PANELS[id];
+  panelsEl.appendChild(p);
+});
+function setTab(id){
+  tab=id;
+  tabsEl.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",t.dataset.tab===id));
+  panelsEl.querySelectorAll(".panel").forEach(p=>p.classList.toggle("active",p.id==="panel-"+id));
+  const t=$("#tab-"+id);
+  pill.style.left=t.offsetLeft+"px"; pill.style.width=t.offsetWidth+"px";
+  requestAnimationFrame(fit);
+}
+function applySettings(){
+  stage.dataset.tr=settings.tr;
+  document.documentElement.style.setProperty("--dur",settings.dur+"s");
+  document.documentElement.dataset.pal=settings.pal==="aurora"?"":settings.pal;
+  document.querySelectorAll("[data-tr]").forEach(b=>{ if(b.classList.contains("rbtn")) b.classList.toggle("sel",b.dataset.tr===settings.tr)});
+  document.querySelectorAll("[data-dur]").forEach(b=>b.classList.toggle("sel",b.dataset.dur===settings.dur));
+  document.querySelectorAll("[data-pal]").forEach(b=>{ if(b.classList.contains("rbtn")) b.querySelector(".swatch").classList.toggle("sel",b.dataset.pal===settings.pal)});
+}
+document.addEventListener("click",e=>{
+  const b=e.target.closest(".rbtn"); if(!b) return;
+  if(b.dataset.tr){ settings.tr=b.dataset.tr; store.set("tr",settings.tr); applySettings(); }
+  else if(b.dataset.dur){ settings.dur=b.dataset.dur; store.set("dur",settings.dur); applySettings(); }
+  else if(b.dataset.pal){ settings.pal=b.dataset.pal; store.set("pal",settings.pal); applySettings(); }
+});
+$("#rbPrev").onclick=prev; $("#rbNext").onclick=next;
+$("#rbLaser").onclick=()=>setLaser(!laserOn);
+$("#ssBegin").onclick=()=>present(0); $("#ssCur").onclick=()=>present(cur);
+$("#vNormal").onclick=()=>setSorting(false); $("#vSorter").onclick=()=>setSorting(true);
+$("#vNotes").onclick=()=>{ setNotes(!notesOn); $("#vNotes").setAttribute("aria-pressed",notesOn) };
+$("#gotoInput").addEventListener("change",e=>{ go((parseInt(e.target.value,10)||1)-1) });
+
+/* ---------------------------------------------------------------
+   Boot
+---------------------------------------------------------------- */
+applySettings();
+setNotes(true);
+$("#btnNormal").classList.add("on");
+setTab("home");
+fit();
+const hashN=parseInt(location.hash.slice(1),10);
+slideEls.forEach(s=>s.style.transition="none");
+go(hashN>=1&&hashN<=total?hashN-1:0,{force:true});
+requestAnimationFrame(()=>requestAnimationFrame(()=>{slideEls.forEach(s=>s.style.transition="");fit();}));
+window.addEventListener("hashchange",()=>{const n=parseInt(location.hash.slice(1),10); if(n>=1&&n<=total&&n-1!==cur) go(n-1)});
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>setTab(tab));
+})();
+</script>
+</body>
+</html>
