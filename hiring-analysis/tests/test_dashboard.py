@@ -62,3 +62,16 @@ def test_ask_endpoint_only_in_shareable(tmp_path):
     plain = build_dashboard.build(RESULTS, "shareable", tmp_path / "p.html").read_text()
     payload = re.search(r'id="payload" type="application/json">(.*?)</script>', plain, re.S).group(1)
     assert "ask_endpoint" not in payload
+
+
+def test_published_demo_is_shareable_only():
+    published = ROOT.parent / "docs" / "public" / "demos" / "hiring-analysis"
+    if not published.exists():
+        return
+    for page in published.glob("*.html"):
+        assert page.name != "full.html", "local build must not be published"
+        html = page.read_text()
+        assert not re.search(r"candidate\d+", html), f"{page.name} contains candidate ids"
+        payload = re.search(r'id="payload" type="application/json">(.*?)</script>', html, re.S)
+        if payload:
+            assert json.loads(payload.group(1).replace("<\\/", "</"))["mode"] == "shareable", f"{page.name} is not a shareable build"
