@@ -17,8 +17,9 @@ SYNTH = ROOT / "data" / "synthetic" / "assessment_center.xlsx"
 def test_testdata_scores_workbook_has_six_cohort_sheets_and_screening_has_one():
     scores = openpyxl.load_workbook(TESTDATA / "FY27Q3_AMER_ASE_Scores_TEST_DATA.xlsx")
     assert len(scores.sheetnames) == 6 and all(SHEET.match(n) for n in scores.sheetnames)
-    names = [scores[s].cell(r, 3).value for s in scores.sheetnames for r in range(11, 40) if scores[s].cell(r, 3).value]
+    names = [scores[s].cell(r, 2).value for s in scores.sheetnames for r in range(11, 40) if scores[s].cell(r, 2).value]
     assert len(names) == len(set(names)) == 20
+    assert all("salutation" not in str(c.value).lower() for s in scores.worksheets for c in s[9])
     assert len(openpyxl.load_workbook(TESTDATA / "ASE_Candidate_Screen_Review_TEST_DATA.xlsx").sheetnames) == 1
 
 

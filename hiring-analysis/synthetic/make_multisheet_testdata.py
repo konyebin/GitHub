@@ -6,7 +6,7 @@ center day. Two weeks of three AC days each gives six sheets named like `AMER Oc
 workbook stays a single sheet.
 
 Outputs (hiring-analysis/testdata/, tracked because it holds only fake names):
-  FY27Q3_AMER_ASE_Scores_TEST_DATA.xlsx          6 cohort sheets, same layout as the source on every sheet
+  FY27Q3_AMER_ASE_Scores_TEST_DATA.xlsx          6 cohort sheets, source layout minus the Salutation column
   ASE_Candidate_Screen_Review_TEST_DATA.xlsx     1 sheet, columns as in the real screening workbook
 
 Run: python hiring-analysis/synthetic/make_multisheet_testdata.py --source path/to/FY27Q3_AMER_ASE_Scores_TEST_DATA.xlsx
@@ -22,6 +22,7 @@ from datetime import date, timedelta
 from pathlib import Path
 
 import openpyxl
+import openpyxl.utils
 
 OUT = Path(__file__).resolve().parents[1] / "testdata"
 HEADER_ROW, FIRST_ROW = 9, 11
@@ -40,6 +41,33 @@ def shift_row(value, old: int, new: int):
     if isinstance(value, str) and value.startswith("="):
         return re.sub(rf"(?<![0-9])([A-Z]{{1,2}}){old}(?![0-9])", rf"\g<1>{new}", value)
     return value
+
+
+def drop_column(ws, col: int) -> None:
+    """Delete a column and shift formula references, widths, freeze panes and the filter range left."""
+    from openpyxl.utils import get_column_letter as L
+
+    ref = re.compile(r"(^|[^A-Za-z0-9_])(\$?)([A-Z]{1,2})(\$?[0-9]+)(?![0-9(])")
+
+    def fix(v):
+        if isinstance(v, str) and v.startswith("="):
+            return ref.sub(lambda m: m.group(1) + m.group(2) + (L(openpyxl.utils.column_index_from_string(m.group(3)) - 1)
+                           if openpyxl.utils.column_index_from_string(m.group(3)) > col else m.group(3)) + m.group(4), v)
+        return v
+
+    widths = {k: d.width for k, d in ws.column_dimensions.items() if d.width}
+    ws.delete_cols(col)
+    for row in ws.iter_rows():
+        for c in row:
+            c.value = fix(c.value)
+    for k, w in widths.items():
+        idx = openpyxl.utils.column_index_from_string(k)
+        if idx > col:
+            ws.column_dimensions[L(idx - 1)].width = w
+    if ws.freeze_panes:
+        m = re.match(r"([A-Z]+)(\d+)", ws.freeze_panes)
+        ws.freeze_panes = f"{L(openpyxl.utils.column_index_from_string(m.group(1)) - 1)}{m.group(2)}"
+    ws.auto_filter.ref = f"A{HEADER_ROW}:{L(ws.max_column)}{HEADER_ROW}"
 
 
 def build_scores(source: Path, sheets: list[str], out: Path) -> dict[str, int]:
@@ -68,6 +96,9 @@ def build_scores(source: Path, sheets: list[str], out: Path) -> dict[str, int]:
         counts[name] = size
         start += size
     wb.remove(template)
+    for ws in wb.worksheets:
+        col = next(c.column for c in ws[HEADER_ROW] if isinstance(c.value, str) and c.value.strip().lower() == "salutation")
+        drop_column(ws, col)
     wb.save(out)
     return counts
 
@@ -117,7 +148,7 @@ def main() -> None:
     counts = build_scores(a.source, sheets, scores_out)
 
     wb = openpyxl.load_workbook(scores_out)
-    names = {ws.title: [ws.cell(r, 3).value for r in range(FIRST_ROW, ws.max_row + 1) if ws.cell(r, 3).value]
+    names = {ws.title: [ws.cell(r, 2).value for r in range(FIRST_ROW, ws.max_row + 1) if ws.cell(r, 2).value]
              for ws in wb}
     build_screen(names, OUT / "ASE_Candidate_Screen_Review_TEST_DATA.xlsx", rng)
     print(scores_out, counts)

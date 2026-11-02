@@ -181,7 +181,7 @@ def main() -> None:
             total += sum(sc)
         noisy = total + rng.gauss(0, 3)
         decision = "Hire" if noisy >= 36 else "Standby" if noisy >= 28 else "No Hire"
-        row = [rng.choice(["USA", "CAN", "MEX", "BRA", "COL"]), rng.choice(["Mr.", "Ms.", "Mx."]), f"candidate{c['n']}"]
+        row = [rng.choice(["USA", "CAN", "MEX", "BRA", "COL"]), f"candidate{c['n']}"]
         for stage in ("Interview", "Role Play", "Presentation"):
             sc, reviewer, note, rec = rows[stage]
             row += sc + [sum(sc), rec, note]
@@ -201,13 +201,13 @@ def main() -> None:
         ws.append(r)
     wb.save(OUT / "screen_review.xlsx")
 
-    head = ["Country", "Salutation ", "Candidate Name"]
+    head = ["Country", "Candidate Name"]
     for comps, tail in ((INTERVIEW_COMP, "TOTAL - Interview"), (ROLEPLAY_COMP, "TOTAL -  Role Play (weighted to 16)"),
                         (PRESENT_COMP, "TOTAL - Presentation")):
         head += [f"{i}. {c}" for i, c in enumerate(comps, 1)] + [tail, "Recommendation", "Comments/Notes"]
     head += ["Total Score", "Overall %", "Hire \nNo Hire\nStandby", "Comments/Notes",
              "Assessor - Interview", "Assessor - Role Play", "Assessor - Presentation"]
-    example = ["", "", "Example 1"] + [4, 4, 4, 4, 16, "Yes", "", 4, 4, 4, 4, 16, "Yes", "", 4, 4, 4, 4, 16, "Yes", "",
+    example = ["", "Example 1"] + [4, 4, 4, 4, 16, "Yes", "", 4, 4, 4, 4, 16, "Yes", "", 4, 4, 4, 4, 16, "Yes", "",
                                       48, 1.0, "Hire", "", "", "", ""]
 
     # Two weeks of three assessment center days each: one cohort sheet per day, like the real workbook.

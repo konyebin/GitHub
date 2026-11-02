@@ -28,7 +28,7 @@ Shared context for the hiring data themes and trends project. A separate Cursor 
 
 ## Observed data layout (synthetic TEST_DATA copies from branch `cursor/candidate-tracker-ui-076c`)
 
-- `FY27Q3_AMER_ASE_Scores_TEST_DATA.xlsx` (candidate-tracker sample) has one sheet (`TEMPLATE`); real workbooks will have one sheet per assessment center day named like `AMER Oct 15` (the loader reads every sheet and stores the sheet name as `cohort`). Each sheet: header on row 9, one row per candidate (about 20 rows). Columns: Country, Salutation, Candidate Name, then three exercises, then totals and decision.
+- `FY27Q3_AMER_ASE_Scores_TEST_DATA.xlsx` (candidate-tracker sample) has one sheet (`TEMPLATE`); real workbooks will have one sheet per assessment center day named like `AMER Oct 15` (the loader reads every sheet and stores the sheet name as `cohort`). Each sheet: header on row 9, one row per candidate (about 20 rows). Columns: Country, (Salutation was removed from the redactor test and synthetic workbooks; the loader still accepts it if present), Candidate Name, then three exercises, then totals and decision.
   - Interview, Role Play and Presentation each have 4 competencies scored 1-4 (max 16 per exercise), a per-exercise recommendation (Yes / Standby / No) and a comment. Total is out of 48.
   - Competency sets differ by exercise. "Executive Presence & Communication" appears in all three; "Coachability" in Role Play and Presentation.
   - Totals and Overall % are formulas. Final decision column is Hire / Standby / No Hire and is sometimes blank. A sheet header describes score bands at 85%, 70%, 65% and 50%, which the analysis will not use as cutoffs.
