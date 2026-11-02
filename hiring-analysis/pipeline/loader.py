@@ -89,9 +89,29 @@ def load_screen(path: Path, warnings: list) -> pd.DataFrame:
     return out
 
 
-def load_assessment(path: Path, warnings: list) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def load_assessment(path: Path, warnings: list) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """Read every cohort sheet (one per assessment center day, e.g. "AMER Oct 15") and stack them.
+
+    Sheets without a "Candidate Name" header are skipped with a warning. The sheet name is kept as `cohort`.
+    """
     wb = openpyxl.load_workbook(path, data_only=True)
-    ws = wb.active
+    parts = []
+    for ws in wb.worksheets:
+        try:
+            parts.append(_load_assessment_sheet(ws, warnings))
+        except ValueError as e:
+            warnings.append(f"assessment sheet {ws.title!r} skipped: {e}")
+    if not parts:
+        raise ValueError("no assessment sheet with a 'Candidate Name' header found")
+    frames = [pd.concat([p[i] for p in parts], ignore_index=True) for i in range(5)]
+    dup = frames[0]["candidate_id"][frames[0]["candidate_id"].duplicated()].tolist()
+    if dup:
+        warnings.append(f"{len(dup)} candidates appear on more than one cohort sheet: {dup[:5]}")
+    return tuple(frames)
+
+
+def _load_assessment_sheet(ws, warnings: list):
+    cohort = ws.title
     hr = find_header(ws, "Candidate Name")
     headers = [clean(c.value) for c in ws[hr]]
     idx = {h: i for i, h in enumerate(headers) if h}
@@ -123,7 +143,7 @@ def load_assessment(path: Path, warnings: list) -> tuple[pd.DataFrame, pd.DataFr
         if cid in (None, ""):
             continue
         if str(cid).lower().startswith("example"):
-            warnings.append(f"skipped example row {cid!r}")
+            warnings.append(f"skipped example row {cid!r} on sheet {cohort!r}")
             continue
         blanks += sum(1 for v in r if v in (None, ""))
         total_score = r[total_i]
@@ -138,11 +158,11 @@ def load_assessment(path: Path, warnings: list) -> tuple[pd.DataFrame, pd.DataFr
                               "text": r[meta[ex]["notes"]]})
         if overall_notes_i is not None:
             note_rows.append({"candidate_id": cid, "source": "Overall", "reviewer": None, "text": r[overall_notes_i]})
-        cand_rows.append({"candidate_id": cid, "ac_total": total_score, "decision": clean(r[decision_i])})
+        cand_rows.append({"candidate_id": cid, "ac_total": total_score, "decision": clean(r[decision_i]), "cohort": cohort})
         audit_rows.append({"candidate_id": cid, "country": r[country_i] if country_i is not None else None,
                            "salutation": clean(r[salut_i]) if salut_i is not None else None})
     if blanks:
-        warnings.append(f"assessment workbook has {blanks} blank cells (real data is expected to have none)")
+        warnings.append(f"assessment sheet {cohort!r} has {blanks} blank cells (real data is expected to have none)")
     cands = pd.DataFrame(cand_rows)
     return cands, pd.DataFrame(long_rows), pd.DataFrame(ex_rows), pd.DataFrame(note_rows), pd.DataFrame(audit_rows)
 

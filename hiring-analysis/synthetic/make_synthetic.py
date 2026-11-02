@@ -13,7 +13,8 @@ Planted effects (the analysis should find these without being told):
   3. Interview and Role Play ranks agree strongly; Presentation partly diverges (it reflects a separate skill).
   4. Screening Pass/Fail and Status track the TI score, but a few candidates are advanced or stopped against it.
   5. The final Decision follows total score loosely and disagrees for a handful of candidates.
-  6. Layout mirrors the real scores workbook (TEMPLATE sheet, header on row 9, an "Example 1" row, no Buddy column).
+  6. Layout mirrors the real scores workbook (header on row 9, an "Example 1" row, no Buddy column), with one
+     sheet per assessment center day (6 sheets, e.g. "AMER Oct 15"). The screening workbook has a single sheet.
      Blanks in the test files were filled with generated values, so nothing is left empty.
 
 Run: python hiring-analysis/synthetic/make_synthetic.py [--n 150] [--seed 7]
@@ -25,6 +26,7 @@ from __future__ import annotations
 import argparse
 import json
 import random
+from datetime import date, timedelta
 from pathlib import Path
 
 import openpyxl
@@ -122,6 +124,15 @@ def write_resume(c: dict, folder: Path) -> None:
     d.save(folder / f"candidate{c['n']}.docx")
 
 
+def cohort_sheet_names(rng: random.Random) -> list[str]:
+    """Six sheet names such as 'AMER Oct 15': three random weekdays in each of two consecutive weeks."""
+    monday = date(2026, 10, 5)
+    days = []
+    for week in range(2):
+        days += [monday + timedelta(weeks=week, days=d) for d in sorted(rng.sample(range(5), 3))]
+    return [f"AMER {d.strftime('%b')} {d.day}" for d in days]
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--n", type=int, default=150)
@@ -190,31 +201,35 @@ def main() -> None:
         ws.append(r)
     wb.save(OUT / "screen_review.xlsx")
 
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "TEMPLATE"
-    ws["A1"] = "Notes:"
-    ws["B1"] = "Interview; max points is 16. Assessors will score candidates based on the competencies."
-    ws["B2"] = "Role Play; max points is 16. Assessors will score candidates based on the competencies."
-    ws["B3"] = "Presentation; max points is 16. Assessors will score candidates based on the competencies."
-    ws["A5"] = "Total Score = sum of Interview + Role Play + Presentation (max total score is 48)"
-    ws["A6"] = "Overall % = sum of Total Score divided by 48"
-    ws["A7"] = "MS Form"
     head = ["Country", "Salutation ", "Candidate Name"]
     for comps, tail in ((INTERVIEW_COMP, "TOTAL - Interview"), (ROLEPLAY_COMP, "TOTAL -  Role Play (weighted to 16)"),
                         (PRESENT_COMP, "TOTAL - Presentation")):
         head += [f"{i}. {c}" for i, c in enumerate(comps, 1)] + [tail, "Recommendation", "Comments/Notes"]
     head += ["Total Score", "Overall %", "Hire \nNo Hire\nStandby", "Comments/Notes",
              "Assessor - Interview", "Assessor - Role Play", "Assessor - Presentation"]
-    for col, h in enumerate(head, 1):
-        ws.cell(row=9, column=col, value=h)
     example = ["", "", "Example 1"] + [4, 4, 4, 4, 16, "Yes", "", 4, 4, 4, 4, 16, "Yes", "", 4, 4, 4, 4, 16, "Yes", "",
                                       48, 1.0, "Hire", "", "", "", ""]
-    for col, v in enumerate(example, 1):
-        ws.cell(row=10, column=col, value=v)
-    for r, row in enumerate(ac_rows, 11):
-        for col, v in enumerate(row, 1):
-            ws.cell(row=r, column=col, value=v)
+
+    # Two weeks of three assessment center days each: one cohort sheet per day, like the real workbook.
+    cohorts = cohort_sheet_names(rng)
+    wb = openpyxl.Workbook()
+    wb.remove(wb.active)
+    for ci, name in enumerate(cohorts):
+        ws = wb.create_sheet(name)
+        ws["A1"] = "Notes:"
+        ws["B1"] = "Interview; max points is 16. Assessors will score candidates based on the competencies."
+        ws["B2"] = "Role Play; max points is 16. Assessors will score candidates based on the competencies."
+        ws["B3"] = "Presentation; max points is 16. Assessors will score candidates based on the competencies."
+        ws["A5"] = "Total Score = sum of Interview + Role Play + Presentation (max total score is 48)"
+        ws["A6"] = "Overall % = sum of Total Score divided by 48"
+        ws["A7"] = "MS Form"
+        for col, h in enumerate(head, 1):
+            ws.cell(row=9, column=col, value=h)
+        for col, v in enumerate(example, 1):
+            ws.cell(row=10, column=col, value=v)
+        for r, row in enumerate(ac_rows[ci::len(cohorts)], 11):
+            for col, v in enumerate(row, 1):
+                ws.cell(row=r, column=col, value=v)
     wb.save(OUT / "assessment_center.xlsx")
 
     (OUT / "_truth.json").write_text(json.dumps(truth, indent=2))

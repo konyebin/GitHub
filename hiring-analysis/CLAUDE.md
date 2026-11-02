@@ -28,7 +28,7 @@ Shared context for the hiring data themes and trends project. A separate Cursor 
 
 ## Observed data layout (synthetic TEST_DATA copies from branch `cursor/candidate-tracker-ui-076c`)
 
-- `FY27Q3_AMER_ASE_Scores_TEST_DATA.xlsx`, one sheet (`TEMPLATE`), header on row 9, one row per candidate (about 20 rows). Columns: Country, Salutation, Candidate Name, then three exercises, then totals and decision.
+- `FY27Q3_AMER_ASE_Scores_TEST_DATA.xlsx` (candidate-tracker sample) has one sheet (`TEMPLATE`); real workbooks will have one sheet per assessment center day named like `AMER Oct 15` (the loader reads every sheet and stores the sheet name as `cohort`). Each sheet: header on row 9, one row per candidate (about 20 rows). Columns: Country, Salutation, Candidate Name, then three exercises, then totals and decision.
   - Interview, Role Play and Presentation each have 4 competencies scored 1-4 (max 16 per exercise), a per-exercise recommendation (Yes / Standby / No) and a comment. Total is out of 48.
   - Competency sets differ by exercise. "Executive Presence & Communication" appears in all three; "Coachability" in Role Play and Presentation.
   - Totals and Overall % are formulas. Final decision column is Hire / Standby / No Hire and is sometimes blank. A sheet header describes score bands at 85%, 70%, 65% and 50%, which the analysis will not use as cutoffs.
@@ -68,3 +68,7 @@ The redactor code is only on the user's Mac. To move it into this repo, the user
 - Dashboard UI: Cisco-branded (inline Cisco logo, Cisco blue palette), single-page app with hash routing and View Transitions. Horizontal tabs: Overview, How to read this, Legend and glossary, Ask the data. Vertical tabs: Funnel, Score structure, Resume themes, Notes themes, Interviewer trends. Light and dark themes and four page transitions (Glide, Liquid reveal, Rise, None) under Appearance, saved in localStorage. Design previews live in `dashboard/ui-samples/`.
 - Ask the data page: always works as a local search over the findings. With `HIRING_ASK_ENDPOINT` set (shareable build only) it sends the question plus aggregate findings to `ask-worker/` (Cloudflare Workers AI) and shows an AI answer with its source findings. Not yet deployed or run against live Workers AI. This is the one optional network call the dashboard can make.
 - Redactor: working locally in the other chat, not yet in this repo.
+
+## Redactor test files (multi-sheet)
+
+`testdata/` holds un-redacted fictional inputs for testing the redactor: `FY27Q3_AMER_ASE_Scores_TEST_DATA.xlsx` with 6 cohort sheets (two weeks, three AC days each, `AMER Oct 5` ... `AMER Oct 16`) and `ASE_Candidate_Screen_Review_TEST_DATA.xlsx` with 1 sheet. Rebuild with `synthetic/make_multisheet_testdata.py --source <original scores workbook>`. Totals are formulas without cached values (openpyxl writes none); Excel recalculates on open, but run them through the redactor, not the loader, unless saved from Excel first. Synthetic data from `make_synthetic.py` is also multi-sheet now.
