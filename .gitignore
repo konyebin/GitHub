@@ -8,3 +8,4 @@ __pycache__/
 docs/node_modules/
 docs/.vitepress/dist/
 docs/.vitepress/cache/
+.env.admin
