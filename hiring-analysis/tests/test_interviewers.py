@@ -46,8 +46,8 @@ def _paths(results):
 
 def test_schema_local_and_shareable(results):
     local, share = _paths(results)
-    dl = validate(local, shareable=False)
-    ds = validate(share, shareable=True)
+    dl = validate(local, shareable=False, require_plain=True)
+    ds = validate(share, shareable=True, require_plain=True)
     assert dl["section"] == ds["section"] == "interviewers"
     assert dl["findings"] and all(f["evidence"] for f in dl["findings"])
     assert {c["id"] for c in ds["charts"]} <= {c["id"] for c in dl["charts"]}
@@ -76,8 +76,8 @@ def test_small_reviewer_suppressed_in_shareable(processed, tmp_path):
     ex.loc[idx, "assessor"] = "Assessor 9"
     ex.to_csv(work / "exercises.csv", index=False)
     iv.run(work, tmp_path / "out")
-    local = validate(tmp_path / "out" / "local" / "interviewers.json")
-    share = validate(tmp_path / "out" / "shareable" / "interviewers.json", shareable=True)
+    local = validate(tmp_path / "out" / "local" / "interviewers.json", require_plain=True)
+    share = validate(tmp_path / "out" / "shareable" / "interviewers.json", shareable=True, require_plain=True)
     assert "Assessor 9" in json.dumps(local)
     box = [g for c in share["charts"] if c["type"] == "boxplot" for g in c["data"]["groups"] if g["name"].startswith("Assessor 9")]
     assert box and all(g["suppressed"] and g["median"] is None for g in box)

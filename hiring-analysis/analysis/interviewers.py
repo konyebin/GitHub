@@ -586,6 +586,20 @@ def _fmt(x, nd=3):
     return "n/a" if x is None or not np.isfinite(x) else f"{x:.{nd}f}"
 
 
+def _in10(x) -> str:
+    """Human-readable share, e.g. 0.87 -> 'about 9 in 10'."""
+    k = int(round(float(np.clip(x, 0, 1)) * 10))
+    return "fewer than 1 in 10" if k == 0 else "nearly all" if k == 10 else f"about {k} in 10"
+
+
+def _agree_share(tau: float) -> float:
+    """Chance that two randomly picked candidates are ordered the same way in both rankings."""
+    return (1 + float(tau)) / 2
+
+
+_REVIEW = "It is a flag for review, not a verdict on the person."
+
+
 def _render(R: dict, share: bool) -> dict:
     rev_n = R["rev_n"]
 
@@ -599,10 +613,10 @@ def _render(R: dict, share: bool) -> dict:
 
     findings: list[dict] = []
 
-    def add(text, strength, evidence, revs=()):
+    def add(text, strength, evidence, revs=(), *, plain):
         if share and any(rev_n.get(r, 0) < MIN_SHARE for r in revs):
             return
-        findings.append({"text": text, "strength": strength, "evidence": evidence})
+        findings.append({"text": text, "strength": strength, "evidence": evidence, "plain": plain})
 
     charts: list[dict] = []
     vol, dev, var, drift = R["vol"], R["dev"], R["var"], R["drift"]
@@ -633,8 +647,12 @@ def _render(R: dict, share: bool) -> dict:
                             "rows": [[r.role, int(r.k), int(r.n), None if not np.isfinite(r.p) else round(float(r.p), 4)] for r in sp.itertuples()]}})
     for _, r in sp.iterrows():
         if np.isfinite(r["p"]) and r["p"] < 0.10:
+            sp_s = "suggestive" if r["p"] < 0.05 else "weak"
+            sp_plain = (f"Some of the {int(r['k'])} reviewers kept their {r['role']} scores close together while others used the whole scale. "
+                        + ("This is a possible pattern, but not a firm one." if sp_s == "suggestive"
+                           else "The difference is small and could be chance, so it is not reliable."))
             add(f"Reviewers differ in how widely they spread {r['role']} scores (some use a narrower or wider range of the rank scale).",
-                "suggestive" if r["p"] < 0.05 else "weak", f"n={int(r['n'])} ratings, {int(r['k'])} reviewers, Fligner-Killeen p={r['p']:.3f}")
+                sp_s, f"n={int(r['n'])} ratings, {int(r['k'])} reviewers, Fligner-Killeen p={r['p']:.3f}", plain=sp_plain)
 
     # (2) deviation
     if len(dev):
@@ -668,21 +686,39 @@ def _render(R: dict, share: bool) -> dict:
             ok_ci = np.isfinite(r.icc_ci_lo) and r.icc_ci_lo > 0
             mixed_ok = np.isfinite(r.icc_mixed) and r.icc_mixed > 0
             s = "robust" if (r.p_adj < 0.05 and ok_ci and mixed_ok) else "suggestive" if (r.p_perm < 0.05 or r.p_adj < 0.10) else "weak"
+            if s == "weak":
+                vplain = (f"We could not show that the choice of reviewer changed {r.role} rankings by more than chance would. "
+                          "Any difference between reviewers here is not reliable.")
+            else:
+                vplain = (f"Which reviewer a candidate got made a real difference to their {r.role} ranking. "
+                          f"Reviewer choice accounts for {_in10(max(r.icc_adj, 0) if np.isfinite(r.icc_adj) else 0)} of the differences in rankings "
+                          f"that other results do not explain"
+                          + ("." if s == "robust" else ", though this is a possible pattern, not a firm one."))
             add(f"For {r.role}, reviewer identity {'explains more rank variance than chance' if s != 'weak' else 'does not explain more rank variance than chance'} "
                 f"after adjusting for independent signals.", s,
                 f"n={int(r.n)}, {int(r.k)} reviewers, adjusted ICC={_fmt(r.icc_adj)} (unadjusted {_fmt(r.icc_unadj)}, mixed model {_fmt(r.icc_mixed)}), "
-                f"permutation p={r.p_perm:.3f} (adj {r.p_adj:.3f}), bootstrap CI [{_fmt(r.icc_ci_lo)}, {_fmt(r.icc_ci_hi)}]")
+                f"permutation p={r.p_perm:.3f} (adj {r.p_adj:.3f}), bootstrap CI [{_fmt(r.icc_ci_lo)}, {_fmt(r.icc_ci_hi)}]", plain=vplain)
     if len(dev):
         flagged = dev[dev["strength"] != "weak"]
         for r in flagged.sort_values("p_adj").itertuples():
             direction = "higher" if r.dev > 0 else "lower"
+            pts = int(round(abs(r.dev) * 100))
+            adverb = "noticeably" if r.strength == "robust" else "somewhat"
+            if r.strength == "robust":
+                tail = "This is a clear, consistent pattern worth a conversation; "
+            else:
+                tail = "This is a possible pattern worth a look, but it is not firm; "
+            dplain = (f"{r.reviewer} scored {r.role} {adverb} {direction} than the same candidates' other results would suggest, "
+                      f"by roughly {pts} places in a ranking of 100. " + tail + "it is a flag for review, not a verdict on the person.")
             add(f"{r.reviewer} gave {r.role} scores that are {direction} than other signals predict for the same candidates "
                 f"(possible {'leniency' if r.dev > 0 else 'severity'}; for review, not a verdict).", r.strength,
                 f"n={int(r.n)}, shrunken deviation={r.dev * 100:+.1f} percentile-rank points (raw {r.raw * 100:+.1f}), 95% CI [{r.ci_lo * 100:+.1f}, {r.ci_hi * 100:+.1f}], "
-                f"permutation p adj={r.p_adj:.3f}, rank-sum p adj={r.p_mw_adj:.3f}", [r.reviewer])
+                f"permutation p adj={r.p_adj:.3f}, rank-sum p adj={r.p_mw_adj:.3f}", [r.reviewer], plain=dplain)
         if flagged.empty:
             add("No reviewer-exercise deviates from independent signals by more than chance would produce.", "weak",
-                f"n={int(dev['n'].sum())} ratings in {len(dev)} reviewer-exercise units, smallest adjusted permutation p={dev['p_adj'].min():.3f}")
+                f"n={int(dev['n'].sum())} ratings in {len(dev)} reviewer-exercise units, smallest adjusted permutation p={dev['p_adj'].min():.3f}",
+                plain=(f"We found no reviewer who scored {len(dev)} reviewer-and-exercise groups consistently higher or lower than the same candidates' "
+                       f"other results would suggest. The differences seen are the size chance alone could produce."))
     if len(dev):
         for role, d in R["ratings"].dropna(subset=["signal"]).groupby("role"):
             charts.append({"id": f"signal-scatter-{re.sub('[^a-z]+', '-', role.lower())}", "type": "scatter",
@@ -714,11 +750,18 @@ def _render(R: dict, share: bool) -> dict:
                                             "p (Spearman)", "Adjusted p (Spearman)", "Adjusted p (Kendall)", "Strength"], "rows": rows}})
         flagged = drift[drift["strength"] != "weak"]
         for r in flagged.sort_values("p_adj").itertuples():
+            more = r.rho > 0
+            rplain = (f"{r.reviewer} became {'more generous' if more else 'stricter'} when scoring {r.role} for later candidate numbers, "
+                      f"compared with the same candidates' other results ({int(r.n)} ratings). "
+                      + ("This is a clear pattern worth a look" if r.strength == "robust" else "This is a possible pattern, not a firm one")
+                      + "; candidate number is only a rough stand-in for time, so it may reflect who applied rather than the reviewer.")
             add(f"{r.reviewer}'s {r.role} scores relative to other signals trend {'upward' if r.rho > 0 else 'downward'} with candidate number.", r.strength,
-                f"n={int(r.n)}, Spearman rho={r.rho:+.2f} [{r.lo:+.2f}, {r.hi:+.2f}], adjusted p={r.p_adj:.3f} (Kendall adjusted {r.p_tau_adj:.3f})", [r.reviewer])
+                f"n={int(r.n)}, Spearman rho={r.rho:+.2f} [{r.lo:+.2f}, {r.hi:+.2f}], adjusted p={r.p_adj:.3f} (Kendall adjusted {r.p_tau_adj:.3f})", [r.reviewer], plain=rplain)
         if flagged.empty and len(tested):
             add("No reviewer shows a trend in scoring across candidate-number order beyond chance (candidate number is a rough time proxy).", "weak",
-                f"n={int(tested['n'].sum())} ratings in {len(tested)} units tested (>=8 each), smallest adjusted p={tested['p_adj'].min():.3f}")
+                f"n={int(tested['n'].sum())} ratings in {len(tested)} units tested (>=8 each), smallest adjusted p={tested['p_adj'].min():.3f}",
+                plain=(f"We found no sign that any reviewer got stricter or more generous as the process went on "
+                       f"({int(tested['n'].sum())} ratings checked across {len(tested)} reviewer-and-exercise groups)."))
     db = R["drift_bins"]
     if len(db):
         bins = ["Earlier third", "Middle third", "Later third"]
@@ -764,12 +807,24 @@ def _render(R: dict, share: bool) -> dict:
         s = "robust" if (glob["p"] < 0.01 and glob["lo"] > 0 and np.isfinite(glob["tau"]) and glob["tau"] > 0) else "suggestive" if glob["p"] < 0.05 else "weak"
         add("Across reviewers, the written tone of notes tracks the scores given (notes alone recover the rank order).", s,
             f"n={glob['n']} notes, cross-validated Spearman rho={glob['rho']:.2f} [{glob['lo']:.2f}, {glob['hi']:.2f}], Kendall tau={glob['tau']:.2f}, "
-            f"same-tercile agreement={glob['same']:.2f}")
+            f"same-tercile agreement={glob['same']:.2f}",
+            plain=(("The wording of reviewers' written notes lines up with the scores they gave, so notes and scores tell the same story. "
+                    f"For {_in10(glob['same'])} notes (of {glob['n']}), the note and the score landed in the same third of the ranking."
+                    if s == "robust" else
+                    "The wording of reviewers' notes seems to line up with their scores, but this is a possible pattern, not a firm one. "
+                    f"For {_in10(glob['same'])} notes (of {glob['n']}), the note and the score landed in the same third of the ranking.")
+                   if s != "weak" else
+                   "We could not show reliably that the wording of reviewers' notes matches the scores they gave; any match could be chance."))
         for r in cons[cons["p_adj"] < 0.10].itertuples():
             worse = r.gap > r.gap_others
+            nplain = (f"{r.reviewer}'s written notes {'match' if not worse else 'matched'} their scores "
+                      f"{'more' if not worse else 'less'} closely than other reviewers' notes do ({int(r.n)} notes). "
+                      + ("This is a possible pattern worth a look, but it is not firm." if r.p_adj < 0.05
+                         else "The difference is small and could be chance, so it is not reliable.")
+                      + (" " + _REVIEW if r.p_adj < 0.05 else ""))
             add(f"{r.reviewer}'s written notes {'disagree more' if worse else 'agree more'} with their scores than other reviewers' notes do.",
                 "suggestive" if r.p_adj < 0.05 else "weak",
-                f"n={int(r.n)} notes, mean rank gap {r.gap:.2f} vs {r.gap_others:.2f} others, rank-sum adjusted p={r.p_adj:.3f}", [r.reviewer])
+                f"n={int(r.n)} notes, mean rank gap {r.gap:.2f} vs {r.gap_others:.2f} others, rank-sum adjusted p={r.p_adj:.3f}", [r.reviewer], plain=nplain)
 
     # (5) language style
     style, variants, lm = R["style"], R["variants"], R["lex_meta"]
@@ -804,8 +859,17 @@ def _render(R: dict, share: bool) -> dict:
             if np.isfinite(r.p_adj) and r.p_adj < 0.10 and rb is not None:
                 both = np.isfinite(rb["p_adj"]) and rb["p_adj"] < 0.10 and (rb["mean"] > rb["others"]) == (r.mean > r.others)
                 s = "robust" if (r.p_adj < 0.05 and both and r.lo > r.others if r.mean > r.others else False) else "suggestive" if r.p_adj < 0.05 else "weak"
+                more = r.mean > r.others
+                hi_lo = (r.mean / r.others) if more else (r.others / r.mean) if r.mean > 0 else np.nan
+                nums = ("" if s == "weak" or not np.isfinite(hi_lo) or hi_lo < 1.5
+                        else f" (roughly {int(round(hi_lo))} times {'as much' if more else 'as little'} as others)")
+                splain = (f"{r.reviewer}'s notes used {'more' if more else 'less'} general-impression wording, not tied to the score given, than other reviewers' notes{nums}. "
+                          + ("This is a clear, consistent pattern worth a conversation; " if s == "robust"
+                             else "This is a possible pattern, but not a firm one; " if s == "suggestive"
+                             else "The difference is small and could be chance, so it is not reliable.")
+                          + ("it is a flag for review, not a verdict on the person." if s != "weak" else ""))
                 add(f"{r.reviewer} uses {'more' if r.mean > r.others else 'less'} subjective-style (score-unrelated) language than other reviewers.", s,
-                    f"n={int(r.n_all)} notes, share {r.mean:.3f} vs {r.others:.3f} others, rank-sum adjusted p={r.p_adj:.3f} (lexicon B {rb['p_adj']:.3f})", [r.reviewer])
+                    f"n={int(r.n_all)} notes, share {r.mean:.3f} vs {r.others:.3f} others, rank-sum adjusted p={r.p_adj:.3f} (lexicon B {rb['p_adj']:.3f})", [r.reviewer], plain=splain)
 
     # (6) bias by resume group
     bias, gi = R["bias"], R["group_info"]
@@ -853,12 +917,25 @@ def _render(R: dict, share: bool) -> dict:
             hi_g = max(cells, key=lambda k: cells[k][1]) if cells else "n/a"
             lo_g = min(cells, key=lambda k: cells[k][1]) if cells else "n/a"
             what = "subjective-style language share (given the score rank)" if r.outcome == "style" else "score deviation"
+            if r.outcome == "style":
+                core = (f"{r.reviewer}'s notes used more general-impression wording, at similar scores, for candidates in {hi_g} "
+                        f"than for those in {lo_g}") if cells else f"{r.reviewer}'s note wording differed between candidate groups"
+            else:
+                core = (f"{r.reviewer} scored candidates in {hi_g} higher, relative to their other results, "
+                        f"than candidates in {lo_g}") if cells else f"{r.reviewer}'s scoring differed between candidate groups"
+            bplain = (core + f" ({int(r.n)} candidates compared). "
+                      + ("This is a clear, consistent pattern worth a look" if s == "robust"
+                         else "This is a possible pattern, but not a firm one" if s == "suggestive"
+                         else "The difference is small and could be chance, so it is not reliable")
+                      + ("; it is a flag for review, not evidence of intent." if s != "weak" else "."))
             add(f"{r.reviewer}'s {what} differs by resume group (highest in {hi_g}, lowest in {lo_g}); this is a flag for review, not evidence of intent.", s,
                 f"n={int(r.n)} candidates, {int(r.k)} groups, variance share between groups={r.eta:.2f}, permutation p={r.p_perm:.3f} (adjusted {r.p_adj:.3f}), "
-                f"Kruskal adjusted p={r.p_kw_adj:.3f}", [r.reviewer])
+                f"Kruskal adjusted p={r.p_kw_adj:.3f}", [r.reviewer], plain=bplain)
         if not any(f["text"].find("resume group") >= 0 for f in findings):
             add("No reviewer's language style or score deviation differs by resume group beyond chance.", "weak",
-                f"n={int(bias['n'].sum())} candidate-reviewer pairs in {len(bias)} tests, smallest adjusted p={bias['p_adj'].min():.3f}")
+                f"n={int(bias['n'].sum())} candidate-reviewer pairs in {len(bias)} tests, smallest adjusted p={bias['p_adj'].min():.3f}",
+                plain=("We found no sign that any reviewer's note wording or scoring differed by candidate background group "
+                       f"by more than chance would ({len(bias)} comparisons)."))
 
     # (7) agreement
     pairs, conv, tia = R["pairs"], R["conv"], R["ti_ac"]
@@ -869,8 +946,15 @@ def _render(R: dict, share: bool) -> dict:
                                 "rows": [[r.a, r.b, int(r.n), int(r.same)] + [round(float(v), 4) for v in (r.rho, r.lo, r.hi, r.tau, r.p)] for r in pairs.itertuples()]}})
         for r in pairs.itertuples():
             s = "robust" if (r.lo > 0 and r.p < 0.01 and r.tau > 0) else "suggestive" if r.p < 0.05 else "weak"
+            if s == "weak" or r.tau <= 0:
+                pplain = (f"We could not show reliably that candidates ranked high in {r.a} also ranked high in {r.b} when different assessors scored them "
+                          f"({int(r.n)} candidates). Any match could be chance.")
+            else:
+                pplain = (f"Different assessors tended to agree: candidates ranked higher in {r.a} were usually ranked higher in {r.b} too. "
+                          f"For {_in10(_agree_share(r.tau))} of candidate pairs, the order was the same in both ({int(r.n)} candidates)."
+                          + (" This is a possible pattern, not a firm one." if s == "suggestive" else ""))
             add(f"{r.a} and {r.b} ranks agree across different assessors {'strongly' if r.rho >= 0.5 else 'moderately' if r.rho >= 0.3 else 'weakly'}.", s,
-                f"n={int(r.n)} candidates, Spearman rho={r.rho:.2f} [{r.lo:.2f}, {r.hi:.2f}], Kendall tau={r.tau:.2f}, p={r.p:.3g}")
+                f"n={int(r.n)} candidates, Spearman rho={r.rho:.2f} [{r.lo:.2f}, {r.hi:.2f}], Kendall tau={r.tau:.2f}, p={r.p:.3g}", plain=pplain)
     if len(conv):
         charts.append({"id": "agreement-reviewer-hbar", "type": "hbar", "title": "Agreement of each reviewer's ranks with the independent signal (Spearman rho)",
                        "subtitle": "Low agreement can mean a noisy rater or a different construct; it cannot distinguish the two",
@@ -890,8 +974,16 @@ def _render(R: dict, share: bool) -> dict:
         for r in tia.itertuples():
             if r.reviewer == "All recruiters":
                 s = "robust" if (r.lo > 0 and r.p < 0.01 and r.tau > 0) else "suggestive" if r.p < 0.05 else "weak"
+                if s == "weak" or r.tau <= 0:
+                    tplain = ("We could not show reliably that technical-interview scores line up with later assessment-center results "
+                              f"({int(r.n)} candidates who advanced). Any match could be chance. These are past decisions, not job performance.")
+                else:
+                    tplain = (f"Among the {int(r.n)} candidates who advanced (only people who got this far were scored), higher technical-interview scores "
+                              f"went with higher assessment-center rankings. For {_in10(_agree_share(r.tau))} of candidate pairs the order matched"
+                              + (", though this is a possible pattern, not a firm one." if s == "suggestive" else ".")
+                              + " These are past decisions, not job performance.")
                 add("Technical-interview scores agree with later assessment-center rank among candidates who advanced (range-restricted).", s,
-                    f"n={int(r.n)}, Spearman rho={r.rho:.2f} [{r.lo:.2f}, {r.hi:.2f}], Kendall tau={r.tau:.2f}, p={r.p:.3g}")
+                    f"n={int(r.n)}, Spearman rho={r.rho:.2f} [{r.lo:.2f}, {r.hi:.2f}], Kendall tau={r.tau:.2f}, p={r.p:.3g}", plain=tplain)
 
     # (8) what was and was not testable
     testable = [

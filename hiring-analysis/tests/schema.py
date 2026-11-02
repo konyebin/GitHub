@@ -2,15 +2,21 @@
 import json
 from pathlib import Path
 
+import plain_check
+
 CHART_TYPES = {"bar", "hbar", "scatter", "heatmap", "table", "boxplot", "line"}
 STRENGTH = {"robust", "suggestive", "weak"}
 
 
-def validate(path: Path, shareable: bool = False) -> dict:
+def validate(path: Path, shareable: bool = False, require_plain: bool = False) -> dict:
     d = json.loads(Path(path).read_text())
     assert {"section", "title", "caveats", "findings", "charts"} <= set(d), "missing top-level keys"
     for f in d["findings"]:
         assert {"text", "strength", "evidence"} <= set(f) and f["strength"] in STRENGTH
+        if require_plain:
+            assert f.get("plain", "").strip(), f"finding without plain-language text: {f['text'][:80]}"
+            bad = plain_check.problems(f["plain"])
+            assert not bad, f"plain text not simple enough ({bad}): {f['plain']}"
     ids = set()
     for c in d["charts"]:
         assert c["type"] in CHART_TYPES and c["id"] not in ids and "data" in c and "title" in c

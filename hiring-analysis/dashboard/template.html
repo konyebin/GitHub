@@ -19,9 +19,9 @@ main{max-width:1180px;margin:0 auto;padding:20px 24px 60px}
 .card h2{margin:0 0 4px;font-size:16px}.card .sub{color:var(--muted);font-size:12px;margin-bottom:10px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(520px,1fr));gap:16px}
 .finding{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--line)}.finding:first-child{border-top:0}
-.badge{flex:none;height:20px;font-size:11px;font-weight:700;color:#fff;border-radius:10px;padding:0 9px;line-height:20px;text-transform:uppercase}
+.badge{flex:none;white-space:nowrap;height:20px;font-size:11px;font-weight:700;color:#fff;border-radius:10px;padding:0 9px;line-height:20px;text-transform:uppercase}
 .badge.robust{background:var(--robust)}.badge.suggestive{background:var(--suggestive)}.badge.weak{background:var(--weak)}
-.finding .ev{color:var(--muted);font-size:12px;margin-top:2px}
+.finding .plain{font-size:15px;line-height:1.45}.finding details.tech{margin-top:4px}.finding details.tech summary,.techname summary{font-size:12px;color:var(--muted)}.badge{text-transform:none}.finding .ev{color:var(--muted);font-size:12px;margin-top:2px}
 .tag{font-size:11px;color:var(--muted);margin-left:6px}
 table{border-collapse:collapse;width:100%;font-size:12px}th,td{border-bottom:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
 th{background:#f0f3f7;position:sticky;top:0}.tbl{max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:6px}
@@ -82,20 +82,21 @@ const G = [
  {c:'Stages and components',k:'Proxy-risk fields',re:/\bproxy[- ](?:risk )?(?:fields?|check|line)s?\b/i,d:'Fields that can stand in for protected traits, such as graduation date, home city, school and skills tags. They are checked for bias, never used as selection signals.'},
  {c:'Reading the numbers',k:'Percentile rank',re:/\bpercentile(?: rank)?s?\b/i,d:'A candidate\'s position within their group, from 0 (lowest) to 100 (highest). Using ranks means no hand-picked pass mark decides who counts as good.'},
  {c:'Reading the numbers',k:'n',re:/\bn=\d+/,d:'Number of candidates (or notes) behind an estimate. Small n means wide uncertainty.'},
- {c:'Reading the numbers',k:'Range-restricted',re:/\brange-restricted\b/i,d:'Only people who passed earlier stages have later-stage scores, so comparisons there cover a narrower group and understate real relationships.'},
+ {c:'Reading the numbers',k:'Range-restricted',re:/\brange-restricted\b/i,d:'Only people who passed earlier stages have later scores, so later comparisons cover a narrower group and can understate real links.'},
  {c:'Reading the numbers',k:'Suppressed',re:/\bsuppressed\b/i,d:'Hidden because fewer than 5 candidates are in the group, to avoid identifying anyone.'},
- {c:'Reading the numbers',k:'Robust / suggestive / weak',re:/\b(?:robust|suggestive)\b/,d:'Strength of a finding. Robust: held across more than one method and resampling. Suggestive: one method or wide uncertainty. Weak: could easily be noise, usually a small sample.'},
- {c:'Statistics',k:'rho (Spearman)',re:/\brho\b|\bSpearman\b/,d:'Rank correlation between two measures, from -1 to +1. 0 means no relationship, +1 means the same ordering. Ignores the size of score gaps, so it avoids cutoffs.'},
- {c:'Statistics',k:'tau (Kendall)',re:/\btau\b|\bKendall\b/,d:'Another rank correlation. It is the share of candidate pairs ordered the same way minus the share ordered oppositely.'},
- {c:'Statistics',k:'CI',re:/\bCI\b|\bconfidence interval\b/i,d:'Confidence interval. The range that likely contains the true value. A CI that includes 0 means the effect could be zero.'},
- {c:'Statistics',k:'Bootstrap',re:/\bbootstrap(?:ped)?\b/i,d:'Re-sampling the candidates many times to see how much an estimate moves. Used to build CIs.'},
- {c:'Statistics',k:'perm. p (permutation test)',re:/\bperm(?:utation)?\.? ?p\b|\bpermutation\b|\bperm\./i,d:'Shuffles the labels many times to see how often chance alone gives a result this large. Smaller p means less likely to be chance.'},
- {c:'Statistics',k:'BH q',re:/\bBH q\b|\bBH\b/,d:'Benjamini-Hochberg adjusted p-value. Corrects for checking many things at once so some do not look significant by luck. q below 0.05 is the usual bar.'},
- {c:'Statistics',k:'AUC',re:/\bAUC\b/,d:'Area under the curve. The chance that a randomly chosen advancing candidate has a higher score rank than a non-advancing one. 0.5 is a coin flip, 1.0 is perfect separation.'},
- {c:'Statistics',k:'ICC / variance share',re:/\bICC\b|\bvariance share\b/i,d:'Share of score differences explained by who the reviewer is rather than by the candidate. Higher means reviewer identity matters more.'},
- {c:'Statistics',k:'Shrunken estimate',re:/\bshrunken\b|\bshrinkage\b/i,d:'A reviewer estimate pulled toward the average, more so when the reviewer scored few candidates. Prevents small samples from looking extreme.'},
- {c:'Statistics',k:'PCA / principal component',re:/\bPCA\b|\bprincipal components?\b/i,d:'Finds the few underlying dimensions that explain most of the score differences. One dominant component means the competencies mostly measure the same thing.'},
- {c:'Statistics',k:'Silhouette',re:/\bsilhouette\b/i,d:'How clearly separated clusters are, from -1 to 1. Higher means more distinct groups.'},
+ {c:'Reading the numbers',k:'Robust / suggestive / weak',re:/\b(?:robust|suggestive)\b/,d:'How much to trust a finding. High confidence (robust): it held up across several checks. Possible pattern (suggestive): worth a look but not proven. Not reliable (weak): could easily be chance.'},
+ {c:'Statistics',k:'rho (Spearman)',re:/\brho\b|\bSpearman\b/,d:'A score from -1 to +1 for how closely two lineups match. +1 means the same order, 0 means no link, -1 means opposite order.'},
+ {c:'Statistics',k:'tau (Kendall)',re:/\btau\b|\bKendall\b/,d:'Another way to measure how closely two lineups match: how often two candidates are in the same order in both.'},
+ {c:'Statistics',k:'CI',re:/\bCI\b|\bconfidence interval\b/i,d:'Margin of error: the range the true value probably falls in. If the range includes zero, the real effect could be nothing.'},
+ {c:'Statistics',k:'Bootstrap',re:/\bbootstrap(?:ped)?\b/i,d:'Re-drawing the candidates at random many times to see how much the answer moves. Used to work out the margin of error.'},
+ {c:'Statistics',k:'perm. p (permutation test)',re:/\bperm(?:utation)?\.? ?p\b|\bpermutation\b|\bperm\./i,d:'Shuffles the data at random many times to see how often luck alone gives a result this big. A small number means it is unlikely to be luck.'},
+ {c:'Statistics',k:'BH q',re:/\bBH q\b|\bBH\b/,d:'A p-value adjusted for testing many things at once, so a few do not look special by luck. Below 0.05 is the usual bar.'},
+ {c:'Statistics',k:'AUC difference',re:/\bAUC difference\b/i,d:'The gap between two AUC values, for example how much more one step follows scores than another. It matters because if the gap is smaller than the margin of error, we cannot say one step really follows scores more than the other.'},
+ {c:'Statistics',k:'AUC',re:/\bAUC\b/,d:'How often a candidate who moved on had the higher score than one who did not, when you compare them in pairs. 0.5 is a coin flip, 1.0 means scores fully explain who moved on.'},
+ {c:'Statistics',k:'ICC / variance share',re:/\bICC\b|\bvariance share\b/i,d:'How much of the difference in rankings is down to who the reviewer was rather than the candidate. Higher means the reviewer matters more.'},
+ {c:'Statistics',k:'Shrunken estimate',re:/\bshrunken\b|\bshrinkage\b/i,d:"A reviewer's result pulled toward the average, more so when they scored few candidates, so a small sample cannot look extreme."},
+ {c:'Statistics',k:'PCA / principal component',re:/\bPCA\b|\bprincipal components?\b/i,d:'Finds how many separate things a set of scores really measures. One dominant pattern means the scores mostly measure the same thing.'},
+ {c:'Statistics',k:'Silhouette',re:/\bsilhouette\b/i,d:'How clearly separated the groups are, from -1 to 1. Higher means more distinct groups.'},
  {c:'Statistics',k:"Cramer's V",re:/\bCramer\W?s V\b|\bCramer V\b/i,d:'Strength of association between two categories, from 0 (none) to 1 (perfect).'},
  {c:'Statistics',k:'epsilon-squared',re:/\bepsilon(?:-squared)?\b/i,d:'Share of variation in a measure explained by group membership, from 0 to 1.'},
  {c:'Statistics',k:'R-squared / delta R-squared',re:/\bdelta R2\b|\bR2\b|R²|ΔR²/,d:'Share of variation a model explains. Delta R-squared is what a set of variables adds on top of the others.'},
@@ -219,11 +220,102 @@ const CHART_DESC={
 'notes-discordant':'Candidates whose note tone does not match the score given.',
 'testability-table':'What this data can and cannot show, given each candidate has only one reviewer per exercise.'
 };
+const CHART_TITLE={
+'funnel-stages':'How many candidates are left at each stage',
+'funnel-decisions':'Final decisions for assessment-center attendees',
+'gate-table':'How many moved on at each step, and how much scores mattered',
+'gate-selection':'How much each step follows the scores',
+'ti-rank-by-advance':'Technical interview results: invited vs not invited',
+'ti-score-by-advance':'Technical interview scores: invited vs not invited',
+'ti-rank-by-decision':'Technical interview results by final decision',
+'screen-agreement':'Does Pass/Fail match the technical interview score?',
+'proxy-tests':'Background details vs who advanced: bias check',
+'proxy-effects':'How strongly background details line up with outcomes',
+'proxy-rates':'Invitation rate for each background group',
+'instrument-ranks':'How each score was put on a common scale',
+'spearman-heatmap':'How closely the scores move together',
+'exercise-rank-correlations':'Technical interview vs the three exercises',
+'competency-recurrence':'Skills scored in more than one exercise',
+'correlation-blocks':'Do the same skills agree across exercises?',
+'shared-competency-agreement':'Shared skills: do exercises rank people the same way?',
+'shared-competency-bars':'How much exercises agree on shared skills',
+'pca-variance':'How many separate things the 12 skill scores measure',
+'pca-loadings':'Which skills group together',
+'divergence-scatter':'Presentation vs the other two exercises',
+'divergence-by-exercise':'Which exercise stands apart from the others',
+'cluster-selection':'How many candidate groups the data supports',
+'cluster-profiles':'Groups of candidates with similar score patterns',
+'cluster-heatmap':'Average ranking for each candidate group',
+'decision-score-overlap':'Assessment-center ranking for each final decision',
+'decision-overlap-table':'How much decision groups overlap on scores',
+'decision-vs-rank':'Final decision vs assessment-center ranking',
+'resume-coverage':'Candidates with and without a resume',
+'resume-k-selection':'How many resume types the data supports',
+'resume-topics':'Common types of resume',
+'resume-topic-outcome-heatmap':'Do any resume types go with better outcomes?',
+'resume-topic-outcome':'Resume types vs outcomes, with margin of error',
+'resume-hypothesis':'Do interviews favor a type of resume?',
+'resume-hypothesis-contrast':'Is the Interview different from the other exercises?',
+'resume-hypothesis-sensitivity':'Does the answer change when graduation date is considered?',
+'resume-interview-rank-by-theme':'Interview ranking for each resume type (simple view)',
+'resume-hypothesis-scatter':'Interview ranking vs how much a resume fits one type',
+'resume-proxy-check':'Do resume types just reflect city, skills tag or graduation date?',
+'resume-proxy-topics':'What schools, employers and cities alone pick up',
+'resume-proxy-outcome':'Do schools, employers and cities go with outcomes?',
+'resume-proxy-field-outcome':'Background fields vs outcomes',
+'notes-length':'How long the notes are',
+'notes-length-rank':'Do longer notes go with higher or lower scores?',
+'notes-reviewer-counts':'Number of notes per reviewer',
+'notes-topics':'What the notes talk about',
+'notes-rank-terms':'Words that show up with higher or lower scores',
+'notes-rank-terms-bar':'Words linked to higher or lower scores',
+'notes-consistency':'Do the notes match the scores given?',
+'notes-consistency-scatter':'Score implied by the note vs actual score',
+'notes-style-terms':'Words used to spot general-impression language',
+'notes-style-source':'General-impression language in each type of note',
+'notes-style-by-theme':'General-impression language by resume type',
+'notes-style-by-theme-bar':'General-impression language by resume type (chart)',
+'notes-style-theme-bias':'Does note language differ by resume type at the same score?',
+'rank-boxplot':'Rankings each reviewer gave, by exercise',
+'volume-table':'Reviewer workload and scoring spread',
+'spread-table':'Do some reviewers use a wider range of scores?',
+'deviation-hbar':'Which reviewers score higher or lower than expected',
+'deviation-table':'Reviewer scoring vs expectation: all numbers',
+'variance-table':'How much the reviewer affects the ranking',
+'signal-scatter-interview':'Interview: other results vs ranking given',
+'signal-scatter-presentation':'Presentation: other results vs ranking given',
+'signal-scatter-role-play':'Role Play: other results vs ranking given',
+'signal-scatter-technical-interview':'Technical interview: other results vs ranking given',
+'drift-hbar':'Did reviewers get stricter or more generous over time?',
+'drift-table':'Change over time: all numbers',
+'drift-line':'Reviewer scoring early, middle and late',
+'notes-consistency-table':'Do each reviewer\'s notes match their scores?',
+'notes-consistency-hbar':'How often each reviewer\'s notes match their scores',
+'notes-mismatches':'Notes that do not match the score',
+'style-hbar':'General-impression language by reviewer',
+'style-table':'General-impression language by reviewer: numbers',
+'style-lexicon-table':'Words used to measure language style',
+'resume-groups-table':'Resume groups used for the fairness check',
+'bias-table':'Does reviewer behavior differ by resume group?',
+'bias-heatmap-style':'Language style by reviewer and resume group',
+'bias-heatmap-deviation':'Scoring vs expectation by reviewer and resume group',
+'agreement-pairs-table':'Do two assessors agree on the same candidate?',
+'agreement-reviewer-hbar':'How well each reviewer agrees with other signals',
+'agreement-ti-table':'Do technical interview scores predict later results?',
+'testability-table':'What this data can and cannot tell us',
+'divergent-candidates':'Candidates whose Presentation differs most',
+'decision-flags':'Decisions that do not match the scores',
+'screen-disagreements':'Screening records that do not match the TI score',
+'notes-discordant':'Candidates whose notes and scores disagree'
+};
+function chartTitle(c){ if(CHART_TITLE[c.id]) return CHART_TITLE[c.id]; const m=/^signal-scatter-(.+)$/.exec(c.id); return m? m[1].replace(/-/g,' ')+': other results vs ranking given' : ''; }
 function chartDesc(c){ if(CHART_DESC[c.id]) return CHART_DESC[c.id]; if(/^signal-scatter-/.test(c.id)) return 'Each dot is a candidate. Their other scores against the rank this exercise reviewer gave.'; return ''; }
 function legend(names){ return el('div',{class:'legend'}, names.map((n,i)=>el('span',{},el('i',{style:'background:'+COLORS[i%COLORS.length]}),n))); }
 function wrap(c, body){
-  const d = el('div',{class:'card'}, el('h2',{},rich(c.title)), chartDesc(c)?el('p',{class:'intro'},chartDesc(c)):'', c.subtitle?el('div',{class:'sub'},rich(c.subtitle)):'' , body, el('div',{class:'hint'},HINT[c.type]));
-  return d;
+  const pt=chartTitle(c), tech=(pt&&pt!==c.title)||(pt&&c.subtitle);
+  return el('div',{class:'card'}, el('h2',{},pt?pt:rich(c.title)), chartDesc(c)?el('p',{class:'intro'},chartDesc(c)):'',
+    pt? (tech? el('details',{class:'techname'},el('summary',{},'Technical name and notes'),el('div',{class:'sub'},rich(c.title)),c.subtitle?el('div',{class:'sub'},rich(c.subtitle)):''):'') : (c.subtitle?el('div',{class:'sub'},rich(c.subtitle)):''),
+    body, el('div',{class:'hint'},HINT[c.type]));
 }
 function barChart(c, horizontal){
   const {labels, series} = c.data, W=720, ml = horizontal? 190 : 50, mb = horizontal? 30 : 70, mt=10, mr=20;
@@ -292,11 +384,15 @@ function boxplot(c){
 function table(c){
   const {columns,rows}=c.data; const t=el('table',{},el('thead',{},el('tr',{},columns.map(h=>el('th',{},rich(h))))),el('tbody',{},rows.map(r=>el('tr',{},r.map(v=>el('td',{},typeof v==='string'&&v.length<48?rich(v):fmt(v)))))));
   const box=el('div',{class:'tbl'},t);
-  const card=wrap(c, rows.length>12 ? el('details',{},el('summary',{},`Show table (${rows.length} rows)`),box) : box);
+  const card=wrap(c, el('details',{},el('summary',{},`Show the numbers (${rows.length} rows)`),box));
   return card;
 }
 function chart(c){ return ({bar:x=>barChart(x,false),hbar:x=>barChart(x,true),line:lineChart,scatter:scatterChart,heatmap:heatmap,boxplot:boxplot,table:table})[c.type](c); }
-function findings(list){ return list.map(f=>el('div',{class:'finding'},el('span',{class:'badge '+f.strength},f.strength),el('div',{},el('div',{},rich(f.text)),el('div',{class:'ev'},rich(f.evidence))))); }
+const CONF={robust:['High confidence','Held up across several different checks.'],suggestive:['Possible pattern','Worth a look, but not proven. It showed up in one check or the margin of error is wide.'],weak:['Not reliable','Could easily be chance, usually because there are too few candidates.']};
+function badge(s){ return el('span',{class:'badge '+s,title:CONF[s][1]},CONF[s][0]); }
+function finding(f,extra){ return el('div',{class:'finding'},badge(f.strength),el('div',{},el('div',{class:'plain'},f.plain||rich(f.text)),
+  extra||'', f.plain? el('details',{class:'tech'},el('summary',{},'Show the statistics'),el('div',{},rich(f.text)),el('div',{class:'ev'},rich(f.evidence))) : el('div',{class:'ev'},rich(f.evidence)))); }
+function findings(list){ return list.map(f=>finding(f)); }
 function caveats(list){ return el('details',{},el('summary',{},'Limits of this analysis'),el('ul',{class:'cav'},list.map(x=>el('li',{},x)))); }
 
 function render(id){
@@ -306,8 +402,8 @@ function render(id){
     m.append(el('div',{class:'banner'},'Outcomes in this data (who advanced, who was hired) are past human decisions, not job performance. Patterns show what the process rewarded. Use them to prompt review, not as standalone reasons to reject anyone. Check with HR or counsel before any use in selection decisions.'));
     m.append(el('div',{class:'card'},el('h2',{},'What is in this dashboard'),el('div',{class:'tour'},SECTIONS.filter(x=>x[0]!=='overview').map(x=>el('a',{href:'#'+x[0]},el('b',{},x[1]),x[2])))));
     const counts={robust:0,suggestive:0,weak:0}; Object.values(P.sections).forEach(s=>s.findings.forEach(f=>counts[f.strength]++));
-    m.append(el('div',{class:'card'},el('h2',{},'Headline findings'),el('div',{class:'sub'},`${counts.robust} robust, ${counts.suggestive} suggestive, ${counts.weak} weak across ${Object.keys(P.sections).length} sections. Robust means it held across more than one method and resampling. The top four robust findings per section are shown here; open each section for the rest.`),
-      Object.entries(P.sections).flatMap(([k,s])=>s.findings.filter(f=>f.strength==='robust').slice(0,4).map(f=>el('div',{class:'finding'},el('span',{class:'badge robust'},'robust'),el('div',{},el('div',{},f.text),el('div',{class:'ev'},SECTIONS.find(x=>x[0]===k)[1]+' | ',rich(f.evidence))))))));
+    m.append(el('div',{class:'card'},el('h2',{},'Headline findings'),el('div',{class:'sub'},`${Object.values(counts).reduce((a,b)=>a+b,0)} findings across ${Object.keys(P.sections).length} sections: ${counts.robust} with high confidence, ${counts.suggestive} possible patterns, ${counts.weak} not reliable. The top four high-confidence findings per section are shown here; open each section for the rest. Click Show the statistics under any finding for the technical detail.`),
+      Object.entries(P.sections).flatMap(([k,s])=>s.findings.filter(f=>f.strength==='robust').slice(0,4).map(f=>finding(f,el('div',{class:'ev'},'From: '+SECTIONS.find(x=>x[0]===k)[1]))))));
     return;
   }
   if(id==='glossary'){
@@ -325,11 +421,22 @@ function render(id){
   }
   if(id==='about'){
     m.append(el('div',{class:'card'},el('h2',{},'How to read this'),el('p',{class:'intro'},SECTIONS.find(x=>x[0]==='about')[2]),
-      el('p',{},'Nothing here uses a pass mark. Scores are turned into within-group percentile ranks, and relationships are measured with rank correlations and permutation tests, so no hand-picked cutoff decides who counts as good.'),
-      el('p',{},'Strength labels: robust (held across methods and resampling), suggestive (one method or wide uncertainty), weak (could be noise, usually a small sample).'),
-      el('p',{},'Later-stage scores exist only for people who passed earlier gates, so comparisons there are range-restricted. Missing scores are never filled in.'),
+      el('p',{},'Nothing here uses a pass mark. Everyone is lined up from highest to lowest within each score, and we look at how those lineups relate. No hand-picked cutoff decides who counts as good.'),
+      el('p',{},'Past decisions, not job performance. Who advanced or was hired is what people decided, not proof of who would do the job well. Use patterns here to start a conversation, not to reject anyone.'),
+      el('p',{},'Later stages only include people who got that far, so comparisons there cover a narrower group. Missing scores are never filled in.'),
       el('p',{},'Fields that can stand in for protected traits (graduation date, home city, school, skills tags) are checked for bias and are not used as selection signals. Country, salutation and any buddy field are excluded entirely.'),
       el('p',{},P.mode==='shareable'?'This copy is aggregate-only: groups under 5 are hidden and no candidate IDs appear.':'This copy is local: it includes candidate IDs. Do not share or host it.')));
+    m.append(el('div',{class:'card'},el('h2',{},'How sure are we?'),el('p',{class:'intro'},'Every finding carries one of three labels. They describe how much to trust the finding, not how important it is.'),
+      el('dl',{class:'gl'},...Object.entries(CONF).flatMap(([k,[n,d]])=>[el('dt',{},badge(k)),el('dd',{},d)]))));
+    m.append(el('div',{class:'card'},el('h2',{},'Ideas behind the numbers'),el('p',{class:'intro'},'Plain explanations of the ideas that show up under Show the statistics.'),
+      el('dl',{class:'gl'},...[
+        ['Could be chance','With a small group, numbers bounce around. If shuffling the same data at random often gives a result as big as ours, the result is probably luck. We say "could be chance" when that is the case.'],
+        ['Margin of error (CI)','Our best guess is never exact, so we also give a range it is likely to fall in. If the range runs from below zero to above zero, the true effect could be nothing at all.'],
+        ['Bootstrap','A way to get that range: re-draw the candidates at random many times and see how much the answer moves. If it barely moves, we are more sure.'],
+        ['Why compare two gaps','When we say one step follows scores more than another, we check whether the gap between them is bigger than the margin of error. If not, we say we cannot tell them apart, because a different group of candidates might flip the order.'],
+        ['Checking many things at once','If you test 20 things, one will look special by luck alone. We adjust for this, so a finding survives only if it still stands out after the adjustment.'],
+        ['Ranking, not score','Scores from different exercises use different scales. We turn each into a ranking (1st to last) so they can be compared fairly.']
+      ].flatMap(([k,d])=>[el('dt',{},k),el('dd',{},d)]))));
     return;
   }
   const s=P.sections[id]; if(!s){ m.append(el('div',{class:'card'},'No results for this section yet.')); return; }

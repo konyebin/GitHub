@@ -47,7 +47,7 @@ in any chart or table).
   "title": "Hiring funnel",
   "caveats": ["plain-language limits of this analysis"],
   "findings": [
-    {"text": "plain-language finding", "strength": "robust|suggestive|weak", "evidence": "n=..., stat, CI/p"}
+    {"plain": "what leadership should take from this, no jargon", "text": "technical finding", "strength": "robust|suggestive|weak", "evidence": "n=..., stat, CI/p"}
   ],
   "charts": [
     {"id": "unique-id", "type": "bar|hbar|scatter|heatmap|table|boxplot|line",
@@ -68,3 +68,21 @@ Sections and owners: `funnel`, `structure` (analysis/funnel_structure.py); `resu
 (analysis/text_themes.py); `interviewers` (analysis/interviewers.py).
 Each module also ships a pytest file in `hiring-analysis/tests/` that checks (a) the JSON validates against this schema and
 (b) the module recovers the planted effects in `data/synthetic/_truth.json` (the test may read the truth file).
+
+
+## Plain-language field (`plain`)
+
+Every finding carries `plain`: one or two short sentences a non-technical leader can read without help. It is what the
+dashboard shows first; `text` and `evidence` are kept as "technical detail" underneath.
+
+Rules for `plain`:
+- Say what happened and what it means, in everyday words. Aim for a 9th-grade reading level, under 45 words.
+- Lead with the point, then one number in human terms ("about 9 in 10", "67 of 121", "roughly twice as often").
+- Never use statistics names or symbols: AUC, rho, Spearman, Kendall, CI, confidence interval, bootstrap, permutation,
+  p-value, q-value, BH, ICC, Mann-Whitney, silhouette, ridge, PCA, ARI, epsilon, variance, "percentile rank" (say "ranking"),
+  "range-restricted" (say "only people who got this far were scored"), "cross-validated", "partial", "residual".
+- Do not say "robust/suggestive/weak" either; the dashboard turns strength into "High confidence / Possible pattern / Not reliable".
+- Match the strength: for a weak finding say it is not reliable or could be chance, and do not describe it as a real pattern.
+- Outcomes are past human decisions, not job performance. Flags about people or bias are "worth a look", never a verdict.
+- Shareable copy: no candidate ids, and respect the same small-group suppression as `text`.
+- Compute numbers from the same variables as `text`; do not hard-code values from the synthetic data.

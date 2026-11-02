@@ -65,12 +65,34 @@ def styled(inputs):
 
 def test_json_validates(results):
     for sec in SECTIONS:
-        local = validate(results / "local" / f"{sec}.json")
-        share = validate(results / "shareable" / f"{sec}.json", shareable=True)
+        local = validate(results / "local" / f"{sec}.json", require_plain=True)
+        share = validate(results / "shareable" / f"{sec}.json", shareable=True, require_plain=True)
         assert local["section"] == share["section"] == sec
         assert local["findings"] and share["findings"]
         for f in local["findings"]:
             assert f["evidence"].strip()
+
+
+def test_plain_helpers_branch_wording():
+    import plain_check
+    for strength in ("robust", "suggestive", "weak"):
+        for effect in ("negligible", "small", "moderate", "large"):
+            for txt in (tt._conf(strength, effect), tt._conf(strength, short=True)):
+                assert not plain_check.problems(txt), txt
+    assert "not reliable" in tt._conf("weak", "small") and "could be chance" in tt._conf("weak", "small")
+    assert "not certain" in tt._conf("suggestive", "small")
+    assert tt._outcome_phrase("Interview rank", 0.3) == "higher interview scores"
+    assert tt._outcome_phrase("Interview rank", -0.3) == "lower interview scores"
+    assert tt._pair_chance(0.0) == "about 5 times in 10" and tt._pair_chance(0.99) == "almost every time"
+    assert tt._words(["alpha beta", "beta gamma", "delta epsilonish"], 3) == ["alpha", "beta", "gamma"]
+    assert tt._say(["alpha", "beta"]) == "'alpha' and 'beta'"
+    for m in ({"rho": -0.2, "strength": "weak"}, {"rho": 0.2, "strength": "weak"}, {"rho": 0.5, "strength": "suggestive"}):
+        txt = tt._model_plain("Interview", m)
+        assert not plain_check.problems(txt), txt
+    rho = {"rho": 0.1}
+    for diff, strength in ((0.3, "suggestive"), (0.3, "weak"), (-0.1, "weak")):
+        txt = tt._style_plain({"source": "Role Play", "diff": diff, "strength": strength, "rho_tone": {"rho": 0.7}, "rho_subj": rho})
+        assert not plain_check.problems(txt), txt
 
 
 def test_shareable_has_no_candidate_ids_or_free_text(results, inputs):

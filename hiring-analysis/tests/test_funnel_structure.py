@@ -47,7 +47,7 @@ def test_json_validates(results):
     for section in SECTIONS:
         for kind in ("local", "shareable"):
             path = results / kind / f"{section}.json"
-            d = validate(path, shareable=(kind == "shareable"))
+            d = validate(path, shareable=(kind == "shareable"), require_plain=True)
             assert d["section"] == section
             assert d["findings"] and d["charts"] and d["caveats"]
             for f in d["findings"]:
@@ -177,7 +177,7 @@ def test_small_groups_suppressed_in_shareable(tmp_path):
     out = tmp_path / "out"
     fs.run(proc, out)
     for kind in ("local", "shareable"):
-        validate(out / kind / "structure.json", shareable=(kind == "shareable"))
+        validate(out / kind / "structure.json", shareable=(kind == "shareable"), require_plain=True)
     loc = load(out, "local", "structure")
     sh = load(out, "shareable", "structure")
     lb = {g["name"]: g for g in chart(loc, "decision-score-overlap")["data"]["groups"]}

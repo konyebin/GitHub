@@ -116,6 +116,77 @@ def share_count(k: int) -> str:
     return str(k) if (k == 0 or k >= MIN_GROUP) else f"fewer than {MIN_GROUP}"
 
 
+# ---- plain-language helpers (leadership-facing `plain` field; see analysis/CONTRACT.md)
+
+def rate(p: float) -> str:
+    """A proportion in everyday words: 'about 9 in 10', 'about half', 'nearly all', 'very few'."""
+    if p >= 0.95:
+        return "nearly all"
+    if p < 0.05:
+        return "very few"
+    if p < 0.075:
+        return "about 1 in 20"
+    if 0.45 <= p <= 0.55:
+        return "about half"
+    return f"about {max(1, min(9, round(p * 10)))} in 10"
+
+
+def rate_range(a: float, b: float) -> str:
+    lo, hi = sorted((a, b))
+    if hi - lo < 0.1:
+        return rate((a + b) / 2)
+    return f"between about {max(1, min(9, round(lo * 10)))} and {max(1, min(9, round(hi * 10)))} in 10"
+
+
+def closeness(p: float) -> str:
+    """How closely a score-rank gate follows scores, from a 0.5-1 'higher scorer comes out ahead' proportion."""
+    if p >= 0.85:
+        return "closely"
+    if p >= 0.7:
+        return "fairly closely"
+    if p >= 0.55:
+        return "only loosely"
+    return "hardly at all"
+
+
+def caveat(strength: str) -> str:
+    if strength == "weak":
+        return " This is not reliable and could be chance."
+    if strength == "suggestive":
+        return " This is a possible pattern, not a certain one."
+    return ""
+
+
+def cand_have(n) -> str:
+    """'1 candidate has' / '15 candidates have' / 'fewer than 5 candidates have'."""
+    n = str(n)
+    return (f"{n} candidate has" if n == "1" else f"{n} candidates have").capitalize()
+
+
+GATE_PLAIN = {
+    "Screening -> reached TI": "step from screening to the technical interview",
+    "TI -> invited": "step from the technical interview to an invitation",
+    "Invited -> attended AC": "step from invitation to the assessment center",
+}
+RANK_GATE_PLAIN = {
+    "TI -> invited": "invitation step",
+    "Invited -> attended AC": "step from invitation to attending the assessment center",
+    "AC -> Hire": "final hire step",
+    "AC -> Hire or Standby": "hire-or-standby step",
+}
+PROXY_FIELD_PLAIN = {
+    "Graduation year": "graduation year", "Home city": "home city", "Skills tag": "skills tag",
+    "Has resume": "whether a resume is on file",
+}
+PROXY_OUTCOME_PLAIN = {
+    "Reached TI (of all in screening)": "reaching the technical interview",
+    "Invited after TI (of those who reached TI)": "being invited after the technical interview",
+    "Hired (of those who attended the AC)": "being hired after the assessment center",
+    "TI score rank (reached TI)": "technical-interview score ranking",
+    "AC total rank (attended AC)": "assessment-center score ranking",
+}
+
+
 def wilson(k: int, n: int) -> tuple[float, float]:
     if n == 0:
         return (np.nan, np.nan)
@@ -166,10 +237,11 @@ class Doc:
         self.findings: list[dict] = []
         self.charts: list[dict] = []
 
-    def finding(self, text, strength, evidence, share_text=None, share_evidence=None):
+    def finding(self, text, strength, evidence, plain, share_text=None, share_evidence=None, share_plain=None):
         assert strength in ("robust", "suggestive", "weak")
-        self.findings.append({"text": text, "strength": strength, "evidence": evidence,
-                              "_share_text": share_text, "_share_evidence": share_evidence})
+        assert plain and plain.strip(), "every finding needs a plain-language sentence"
+        self.findings.append({"text": text, "strength": strength, "evidence": evidence, "plain": plain,
+                              "_share_text": share_text, "_share_evidence": share_evidence, "_share_plain": share_plain})
 
     def chart(self, cid, ctype, title, data, subtitle=None, x_label=None, y_label=None, share=None, local_only=False):
         ch = {"id": cid, "type": ctype, "title": title, "data": data, "_share": share, "_local_only": local_only}
@@ -184,11 +256,12 @@ class Doc:
     def _render(self, shareable: bool) -> dict:
         findings = []
         for f in self.findings:
-            t, e = f["text"], f["evidence"]
+            t, e, pl = f["text"], f["evidence"], f["plain"]
             if shareable:
                 t = f["_share_text"] or t
                 e = f["_share_evidence"] or e
-            findings.append({"text": t, "strength": f["strength"], "evidence": e})
+                pl = f["_share_plain"] or pl
+            findings.append({"text": t, "strength": f["strength"], "evidence": e, "plain": pl})
         charts = []
         for ch in self.charts:
             if shareable and ch["_local_only"]:
@@ -611,6 +684,13 @@ def build_funnel(c: pd.DataFrame) -> tuple[Doc, dict]:
     worst_rate = min((x for x in conv if np.isfinite(x[1])), key=lambda x: x[1])
     worst_abs = max(lost, key=lambda x: x[1])
     lo, hi = wilson(worst_rate[3], worst_rate[2])
+    if worst_rate[3] >= worst_rate[2]:
+        narrow_plain = "No early step lost anyone. "
+    else:
+        narrow_plain = (f"The process narrows most at the {GATE_PLAIN[worst_rate[0]]}: only {worst_rate[3]} of {worst_rate[2]} "
+                        "candidates moved on. "
+                        + ("That is also where the most people were lost. " if worst_abs[0] == worst_rate[0] else
+                           f"The most people were lost at the {GATE_PLAIN[worst_abs[0]]} ({worst_abs[1]}). "))
     doc.finding(
         f"The process narrows most at '{worst_rate[0]}' (conversion {worst_rate[1]:.0%}); "
         + (f"that is also the largest absolute loss ({worst_abs[1]} candidates). " if worst_abs[0] == worst_rate[0] else
@@ -618,7 +698,8 @@ def build_funnel(c: pd.DataFrame) -> tuple[Doc, dict]:
         + f"Overall {n_scr} candidates in screening, {n_ti} reached TI, "
         f"{n_inv} were invited, {n_att} attended the assessment center, and {dec_n['Hire']} received Hire, "
         f"{dec_n['Standby']} Standby, {dec_n['No Hire']} No Hire.",
-        "robust", f"n={n_scr}; conversion at narrowest gate {worst_rate[3]}/{worst_rate[2]} (Wilson 95% CI {lo:.0%}-{hi:.0%}); exact counts")
+        "robust", f"n={n_scr}; conversion at narrowest gate {worst_rate[3]}/{worst_rate[2]} (Wilson 95% CI {lo:.0%}-{hi:.0%}); exact counts",
+        plain=narrow_plain + f"Of {n_scr} people in screening, {dec_n['Hire']} received a Hire decision.")
 
     # ---- findings: gate selectivity
     own = [k for k in rank_names]
@@ -629,6 +710,15 @@ def build_funnel(c: pd.DataFrame) -> tuple[Doc, dict]:
         diff = gt["boots"] - gb["boots"]
         dlo, dhi = np.percentile(diff, [2.5, 97.5])
         st = "robust" if (dlo > 0 and gt["strength"] == "robust") else ("suggestive" if dlo > 0 else "weak")
+        top_p, bot_p = RANK_GATE_PLAIN[top], RANK_GATE_PLAIN[bot]
+        if dlo > 0:
+            sel_plain = (f"The {top_p} follows the scores more closely than the {bot_p}. The person who moved on had the higher "
+                         f"score in {rate(gt['auc'])} comparisons at the {top_p}, versus {rate(gb['auc'])} at the {bot_p}."
+                         + caveat(st))
+        else:
+            sel_plain = (f"Both the {top_p} and the {bot_p} follow the scores {closeness(gb['auc'])}: the person who moved on had "
+                         f"the higher score in {rate_range(gt['auc'], gb['auc'])} comparisons. We cannot say which step leans "
+                         "on scores more; the gap between them is small enough to be chance.")
         doc.finding(
             f"On score rank, '{top}' is the most score-driven gate (AUC {gt['auc']:.2f}, CI {gt['lo']:.2f}-{gt['hi']:.2f}) and "
             f"'{bot}' the least (AUC {gb['auc']:.2f}, CI {gb['lo']:.2f}-{gb['hi']:.2f}). Gates are compared on the score each "
@@ -636,19 +726,31 @@ def build_funnel(c: pd.DataFrame) -> tuple[Doc, dict]:
             "assessment-center gates are range-restricted."
             + ("" if dlo > 0 else " The difference between these two gates is within sampling noise, so they cannot be ranked with confidence."),
             st, f"n={gt['n_pos'] + gt['n_neg']} vs {gb['n_pos'] + gb['n_neg']}; AUC difference {gt['auc'] - gb['auc']:.2f} "
-                f"(bootstrap CI {dlo:.2f} to {dhi:.2f}); top gate perm. p={gt['p_perm']:.4f}, BH q={gt['q']:.4f}")
+                f"(bootstrap CI {dlo:.2f} to {dhi:.2f}); top gate perm. p={gt['p_perm']:.4f}, BH q={gt['q']:.4f}",
+            plain=sel_plain)
     g2 = gate_auc["TI -> invited"]
     if g2:
+        med_inv, med_not = box_stats('i', tadv[1][1])['median'], box_stats('n', tadv[0][1])['median']
+        if g2["auc"] >= 0.5:
+            inv_plain = (f"Invited candidates usually ranked higher on the technical interview than those who were not (typical "
+                         f"ranking {med_inv:.0f} vs {med_not:.0f} out of 100), but not always: someone not invited outscored an "
+                         f"invited candidate in {rate(1 - g2['auc'])} comparisons.")
+        else:
+            inv_plain = ("Invited candidates did not tend to rank higher on the technical interview than those who were not: "
+                         f"someone not invited outscored an invited candidate in {rate(1 - g2['auc'])} comparisons.")
         doc.finding(
             f"Invited candidates had higher TI percentile ranks than non-invited ones (median {box_stats('i', tadv[1][1])['median']:.0f} vs "
             f"{box_stats('n', tadv[0][1])['median']:.0f}), but the distributions overlap: a random non-invited candidate outranked a random "
             f"invited one in {1 - g2['auc']:.0%} of pairs.",
             g2["strength"], f"n={g2['n_pos']} invited vs {g2['n_neg']} not; AUC {g2['auc']:.2f} (bootstrap CI {g2['lo']:.2f}-{g2['hi']:.2f}); "
-                            f"perm. p={g2['p_perm']:.4f}, Mann-Whitney p={g2['p_mwu']:.2g}")
+                            f"perm. p={g2['p_perm']:.4f}, Mann-Whitney p={g2['p_mwu']:.2g}",
+            plain=inv_plain + caveat(g2["strength"]))
     if gate_auc["Invited -> attended AC"] is None:
         doc.finding("Everyone who was invited attended the assessment center in this data, so that gate shows no attrition and "
                     "cannot be compared on score rank.", "robust",
-                    f"n={n_inv} invited, {gate_defs[2][2]} attended")
+                    f"n={n_inv} invited, {gate_defs[2][2]} attended",
+                    plain=f"Everyone who was invited ({n_inv} people) came to the assessment center, so no one dropped out at that "
+                          "step and there is nothing to compare there.")
 
     # ---- screening alignment: Pass/Fail and Status vs TI score
     t = ti_c.copy()
@@ -732,18 +834,36 @@ def build_funnel(c: pd.DataFrame) -> tuple[Doc, dict]:
         lo_p = pass_s.min()
         hi_f = fail_s.max()
         sep = f"lowest Pass score {lo_p:.0f} vs highest Fail score {hi_f:.0f}"
+        if auc_pf["auc"] < 0.5:
+            pf_plain = ("The screening Pass/Fail result does not follow the technical-interview score: people marked Fail "
+                        "tended to score higher than people marked Pass.")
+        elif inversions == 0:
+            pf_plain = (f"The screening Pass/Fail result matches the technical-interview score exactly: all {len(pass_s)} people "
+                        f"marked Pass scored above everyone marked Fail (lowest Pass {lo_p:.0f}, highest Fail {hi_f:.0f}). "
+                        "It works like a fixed score line.")
+        else:
+            pf_plain = (f"The screening Pass/Fail result mostly follows the technical-interview score, but not perfectly: in "
+                        f"{inversions} of {pairs} Pass/Fail pairings the person marked Fail scored at least as high as the "
+                        "person marked Pass.")
         doc.finding(
             f"Screening Pass/Fail follows TI score closely (AUC {auc_pf['auc']:.2f}); {inversions} of {pairs} Pass/Fail pairs have the "
             f"Fail candidate scoring at or above the Pass candidate ({sep}). "
             + ("The two groups do not overlap, so the sheet behaves like a fixed TI score line even though the analysis imposes none."
                if inversions == 0 else "The groups overlap, so Pass/Fail is not a pure function of the TI score."),
             auc_pf["strength"], f"n={len(pass_s)} Pass, {len(fail_s)} Fail; AUC CI {auc_pf['lo']:.2f}-{auc_pf['hi']:.2f}; "
-                                f"perm. p={auc_pf['p_perm']:.4f}")
+                                f"perm. p={auc_pf['p_perm']:.4f}",
+            plain=pf_plain + caveat(auc_pf["strength"]))
     doc.finding(
         f"{n_dis} candidate(s) have a screening record that disagrees with the TI score or with another screening field "
         f"({n_pf_inv} where Pass/Fail and the invitation disagree, {n_model} where the invitation is unlikely under a model on TI rank, "
         f"{n_noti} whose Status says instructions were sent although no TI score exists and they never attended). Candidate ids are in the local copy only.",
         "suggestive", f"n={len(t)} with a TI score; model-fence threshold on -log P = {thr:.2f} (95th percentile of model-simulated outcomes)",
+        plain=(f"{cand_have(n_dis)} a screening record that does not fit the technical-interview score or other screening "
+               f"fields; for {n_pf_inv} of them the Pass/Fail result and the invitation point opposite ways. Worth a look, "
+               "not a verdict. Names are in the local copy only.") if n_dis else
+              "No screening record was out of line with the technical-interview score or with other screening fields.",
+        share_plain=(f"{cand_have(share_count(n_dis))} a screening record that does not fit the technical-interview score or "
+                     "other screening fields. Worth a look, not a verdict. Details are in the local copy only.") if n_dis else None,
         share_text=f"{share_count(n_dis)} candidate(s) have a screening record that disagrees with the TI score or with another screening field; "
                    "details are in the local copy only.",
         share_evidence=f"n={len(t)} with a TI score; flagged by field disagreement or by a model-simulated 95% fence")
@@ -768,14 +888,21 @@ def build_funnel(c: pd.DataFrame) -> tuple[Doc, dict]:
         doc.finding(
             f"Bias check: {len(sig)} of {len(scan_ok)} proxy-field tests show an association worth a closer look, the strongest being "
             f"{best.field} vs '{best.outcome}'. This is a flag for review, not evidence of discrimination.",
-            best.strength, f"n={int(best.n)}; {best.statistic}={best.stat:.2f}; permutation p={best.p_perm:.4f}, BH q={best.q_bh:.3f}, asymptotic p={best.p_asym:.3f}")
+            best.strength, f"n={int(best.n)}; {best.statistic}={best.stat:.2f}; permutation p={best.p_perm:.4f}, BH q={best.q_bh:.3f}, asymptotic p={best.p_asym:.3f}",
+            plain=(f"{len(sig)} of {len(scan_ok)} checks found a link between background details and who advanced or scored well "
+                   f"that is worth a closer look; the strongest is {PROXY_FIELD_PLAIN.get(best.field, best.field)} and "
+                   f"{PROXY_OUTCOME_PLAIN.get(best.outcome, best.outcome)}. This is a flag to review, not a verdict on bias."
+                   + caveat(best.strength)))
     else:
         minq = scan_ok["q_bh"].min() if len(scan_ok) else np.nan
         doc.finding(
             f"Bias check: none of {len(scan_ok)} tests of the proxy-risk fields (graduation year, home city, skills tag, resume on file) against "
             f"reaching TI, invitation, hire or score rank survives multiple-testing correction. Small cells mean low power, so this does not rule out bias.",
             "weak", f"n={int(scan_ok['n'].min())}-{int(scan_ok['n'].max())} per test; smallest BH q={minq:.2f} across {len(scan_ok)} tests; "
-                    f"permutation p-values with {N_PERM} permutations")
+                    f"permutation p-values with {N_PERM} permutations",
+            plain=f"We ran {len(scan_ok)} checks for links between background details (graduation year, home city, skills tag, "
+                  "resume on file) and who advanced or scored well, and none stood out beyond chance. With groups this small the "
+                  "checks are not sensitive, so this does not rule out bias.")
 
     # ---- proxy rate table at the TI -> invite gate
     fields = proxy_fields(c)
@@ -921,6 +1048,16 @@ def build_structure(c: pd.DataFrame, long: pd.DataFrame, ex: pd.DataFrame) -> Do
     comb_ci = np.percentile(comb_boot, [2.5, 97.5])
     comb = rho_ir - (rho_ip + rho_rp) / 2
     strength = grade([comb_ci[0] > 0, min(pw1, pw2) < 0.05, min(pp1, pp2) < 0.05], nfull)
+    if comb <= 0:
+        ex_plain = ("Interview and Role Play rankings do not line up more closely with each other than with Presentation, "
+                    "so Presentation does not look like it measures something different.")
+    else:
+        ex_plain = (f"Interview and Role Play rankings line up more closely with each other ({rho_ir:.2f}) than either does "
+                    f"with Presentation ({min(rho_ip, rho_rp):.2f} to {max(rho_ip, rho_rp):.2f}), where 1 would mean identical "
+                    "rankings. "
+                    + ("So Presentation seems to measure something partly different." if strength != "weak" else
+                       "Presentation may measure something different, but with so few candidates the gap is not reliable "
+                       "and could be chance."))
     doc.finding(
         f"Interview and Role Play ranks agree with each other (rho {rho_ir:.2f}) more than either agrees with Presentation "
         f"(Interview-Presentation {rho_ip:.2f}, Role Play-Presentation {rho_rp:.2f}), "
@@ -929,18 +1066,31 @@ def build_structure(c: pd.DataFrame, long: pd.DataFrame, ex: pd.DataFrame) -> Do
         strength,
         f"n={nfull}; Int-RP minus mean of the two Presentation pairs = {comb:.2f} (bootstrap CI {comb_ci[0]:.2f} to {comb_ci[1]:.2f}); "
         f"rho difference {d1:.2f} (CI {ci1[0]:.2f} to {ci1[1]:.2f}) and {d2:.2f} (CI {ci2[0]:.2f} to {ci2[1]:.2f}); "
-        f"Williams p={pw1:.3g} / {pw2:.3g}; exchange-permutation p={pp1:.4f} / {pp2:.4f}")
+        f"Williams p={pw1:.3g} / {pw2:.3g}; exchange-permutation p={pp1:.4f} / {pp2:.4f}",
+        plain=ex_plain + (caveat(strength) if strength == "suggestive" else ""))
 
     rho_ti = {e: R.loc["TI score", EXERCISE_TOTAL_LABEL[e]] for e in EXERCISES}
     ti_ci = {e: np.percentile(boot[:, idx["TI score"], idx[EXERCISE_TOTAL_LABEL[e]]], [2.5, 97.5]) for e in EXERCISES}
     best_e = max(EXERCISES, key=lambda e: abs(rho_ti[e]))
+    ti_strength = grade([ti_ci[best_e][0] > 0 or ti_ci[best_e][1] < 0,
+                         stats.spearmanr(Mfull["TI score"], Mfull[EXERCISE_TOTAL_LABEL[best_e]]).pvalue < 0.05], nfull)
+    rb = rho_ti[best_e]
+    if rb < 0:
+        ti_plain = (f"Technical-interview scores tend to run opposite to the {best_e} ranking among people who reached the "
+                    f"assessment center ({rb:.2f}, where 1 would mean identical rankings).")
+    else:
+        ti_link = ("barely track" if rb < 0.1 else "only slightly track" if rb < 0.3 else "loosely track" if rb < 0.5
+                   else "fairly closely track")
+        ti_plain = (f"Technical-interview scores {ti_link} how people ranked in the exercises (closest link: {best_e}, {rb:.2f}, "
+                    "where 1 would mean identical rankings). Only people who passed screening have exercise scores, so the link "
+                    "across all applicants could be stronger.")
     doc.finding(
         "Technical-interview score is only weakly to moderately related to the exercise ranks among those who reached the assessment "
         f"center (strongest with {best_e}, rho {rho_ti[best_e]:.2f}); this is range-restricted because only people who passed screening have exercise scores.",
-        grade([ti_ci[best_e][0] > 0 or ti_ci[best_e][1] < 0,
-               stats.spearmanr(Mfull["TI score"], Mfull[EXERCISE_TOTAL_LABEL[best_e]]).pvalue < 0.05], nfull),
+        ti_strength,
         f"n={nfull}; rho(TI, Int/RP/Pres) = {rho_ti['Interview']:.2f}/{rho_ti['Role Play']:.2f}/{rho_ti['Presentation']:.2f}; "
-        f"CI for {best_e} {ti_ci[best_e][0]:.2f} to {ti_ci[best_e][1]:.2f}; TI spread among attendees = {sd_ratio:.0%} of spread among all TI takers")
+        f"CI for {best_e} {ti_ci[best_e][0]:.2f} to {ti_ci[best_e][1]:.2f}; TI spread among attendees = {sd_ratio:.0%} of spread among all TI takers",
+        plain=ti_plain + caveat(ti_strength))
 
     # ---- competency recurrence and shared-competency agreement
     ci_idx = {lab: idx[lab] for lab in comp_labels}
@@ -1013,13 +1163,25 @@ def build_structure(c: pd.DataFrame, long: pd.DataFrame, ex: pd.DataFrame) -> Do
         wvs = block_point(within) - block_point(shared)
         wlo, whi = np.percentile(bb["Different competencies within one exercise"] - bb["Same competency in different exercises"], [2.5, 97.5])
         spearman_pvals = [stats.spearmanr(Mfull[a], Mfull[b]).pvalue for a, b in shared]
+        sh_pt, df_pt, wi_pt = block_point(shared), block_point(different), block_point(within)
+        sh_strength = grade([dlo > 0, max(spearman_pvals) < 0.05, wlo > 0], len(shared))
+        if sh_pt > df_pt:
+            sh_plain = (f"The same competency scored in different exercises agrees a little more ({sh_pt:.2f}) than unrelated "
+                        f"competencies do ({df_pt:.2f}), where 1 would mean identical rankings. ")
+        else:
+            sh_plain = (f"The same competency scored in different exercises does not agree more ({sh_pt:.2f}) than unrelated "
+                        f"competencies do ({df_pt:.2f}), where 1 would mean identical rankings. ")
+        if wi_pt > sh_pt:
+            sh_plain += (f"Competencies scored within one exercise agree most ({wi_pt:.2f}), so the exercise or assessor seems "
+                         "to shape scores as well.")
         doc.finding(
             f"Shared competencies agree across exercises more than unrelated competencies do (mean rho {block_point(shared):.2f} vs "
             f"{block_point(different):.2f}).{ep_txt} Agreement within a single exercise is higher still ({block_point(within):.2f}), "
             "which points to an exercise or assessor effect on top of the competency itself.",
-            grade([dlo > 0, max(spearman_pvals) < 0.05, wlo > 0], len(shared)),
+            sh_strength,
             f"n={nfull} candidates, {len(shared)} shared pairs; shared minus unrelated = {pt:.2f} (bootstrap CI {dlo:.2f} to {dhi:.2f}); "
-            f"within-exercise minus shared = {wvs:.2f} (CI {wlo:.2f} to {whi:.2f}); all shared-pair Spearman p<{max(spearman_pvals):.2g}")
+            f"within-exercise minus shared = {wvs:.2f} (CI {wlo:.2f} to {whi:.2f}); all shared-pair Spearman p<{max(spearman_pvals):.2g}",
+            plain=sh_plain.rstrip() + caveat(sh_strength))
 
     # ---- PCA / factor structure of the 12 competencies
     comp_idx = [idx[l] for l in comp_labels]
@@ -1075,13 +1237,20 @@ def build_structure(c: pd.DataFrame, long: pd.DataFrame, ex: pd.DataFrame) -> Do
         Lb = varimax(vb[:, ob] * np.sqrt(np.clip(eb_[ob], 0, None)))
         pur_boot.append(exercise_purity(Lb, ex_arr))
     plo, phi = np.percentile(pur_boot, [2.5, 97.5])
+    pca_strength = grade([k_ret >= 1, p_pur < 0.05, plo > np.mean(null_pur)], nfull)
+    pca_plain = (f"The {p_} competency scores overlap heavily instead of measuring {p_} separate skills: one general pattern "
+                 f"explains {rate(share_obs[0])} of the differences between candidates. "
+                 f"{round(pur * p_)} of {p_} competencies group more with other scores from the same exercise than with the "
+                 + ("same competency elsewhere, which is more than chance would give." if p_pur < 0.05 else
+                    "same competency elsewhere, which is not clearly more than chance would give."))
     doc.finding(
         f"The 12 competency scores are not 12 independent signals: {k_ret} component(s) rise above chance (first component "
         f"{share_obs[0]:.0%} of variance, bootstrap CI {ev_lo[0]:.0%}-{ev_hi[0]:.0%}). After rotation, {pur:.0%} of competencies load on a "
         f"component dominated by their own exercise, which is {'more' if p_pur < 0.05 else 'not clearly more'} than expected if exercise did not matter.",
-        grade([k_ret >= 1, p_pur < 0.05, plo > np.mean(null_pur)], nfull),
+        pca_strength,
         f"n={nfull}; exercise purity {pur:.2f} (bootstrap CI {plo:.2f}-{phi:.2f}) vs label-shuffle mean {null_pur.mean():.2f}, permutation p={p_pur:.4f}; "
-        f"parallel analysis retains {k_ret}")
+        f"parallel analysis retains {k_ret}",
+        plain=pca_plain + caveat(pca_strength))
 
     # ---- divergence
     pr = V[[EXERCISE_TOTAL_LABEL[e] for e in EXERCISES]].dropna()
@@ -1127,12 +1296,18 @@ def build_structure(c: pd.DataFrame, long: pd.DataFrame, ex: pd.DataFrame) -> Do
     dmean = boots_gap[top_e] - np.mean([boots_gap[o] for o in others], axis=0)
     dl, dh = np.percentile(dmean, [2.5, 97.5])
     perm_stat = abs_gap[top_e].mean() - np.mean([abs_gap[o].mean() for o in others])
+    div_strength = grade([dl > 0, rho_diag.pvalue < 0.05], n_g) if top_e == "Presentation" else "weak"
+    div_plain = (f"{top_e} stands out most: a candidate's ranking on it typically differs by about {abs_gap[top_e].mean():.0f} "
+                 f"points (on a 0-100 scale) from their ranking on the other two exercises, versus about "
+                 f"{np.mean([abs_gap[o].mean() for o in others]):.0f} for the others. The most different cases are listed in "
+                 "the local copy.")
     doc.finding(
         f"{top_e} is the exercise whose rank diverges most from the other two (mean absolute gap {abs_gap[top_e].mean():.1f} percentile points vs "
         f"{np.mean([abs_gap[o].mean() for o in others]):.1f} for the others). Presentation rank vs mean of Interview and Role Play rank has rho {rho_diag.statistic:.2f}; "
         "the most divergent candidates are listed in the local copy.",
-        grade([dl > 0, rho_diag.pvalue < 0.05], n_g) if top_e == "Presentation" else "weak",
-        f"n={n_g}; gap difference {perm_stat:.1f} points (bootstrap CI {dl:.1f} to {dh:.1f}); Presentation vs mean(Int, RP) rho={rho_diag.statistic:.2f}, p={rho_diag.pvalue:.2g}")
+        div_strength,
+        f"n={n_g}; gap difference {perm_stat:.1f} points (bootstrap CI {dl:.1f} to {dh:.1f}); Presentation vs mean(Int, RP) rho={rho_diag.statistic:.2f}, p={rho_diag.pvalue:.2g}",
+        plain=div_plain + caveat(div_strength))
 
     # ---- clustering of rank profiles
     prof = pd.DataFrame({"TI": pct_rank(cm["screen_score"].reindex(pr.index)) * 100,
@@ -1197,8 +1372,21 @@ def build_structure(c: pd.DataFrame, long: pd.DataFrame, ex: pd.DataFrame) -> Do
     else:
         txt = (f"Rank profiles split into {k_best} data-derived clusters (silhouette {sil[k_best]:.2f} vs {null95_sil:.2f} for shuffled profiles). "
                + "; ".join(f"{name_map[c_]} (n={int((lab == c_).sum())}): {r[-2]}" for c_, r in zip(cl_order, crow)) + ".")
+    if sil[k_best] <= null95_sil:
+        cl_plain = ("Candidates do not fall into clearly separate types: their rankings across the technical interview and the "
+                    "three exercises form a continuous spread, so any grouping is just a convenient way to slice it.")
+        cl_share_plain = None
+    else:
+        cl_top, cl_bot = (float(cl_means.loc[cl_order[j]].mean()) for j in (0, -1))
+        cl_head = f"Candidates fall into {k_best} fairly distinct groups by their overall ranking"
+        cl_plain = (cl_head + f", from a top group averaging about {cl_top:.0f} out of 100 to a bottom group averaging about "
+                    f"{cl_bot:.0f}. The groups were found in the data, not set in advance." + caveat(st_cl))
+        cl_share_plain = None if min_cl >= MIN_GROUP else (
+            cl_head + f"; the smallest group has fewer than {MIN_GROUP} people, so group averages are left out. "
+            "The groups were found in the data, not set in advance." + caveat(st_cl))
     doc.finding(txt, st_cl, f"n={n_p}; silhouette {sil[k_best]:.2f}, bootstrap stability ARI {stab[k_best][0]:.2f} (5th pct {stab[k_best][1]:.2f}), "
-                            f"chance silhouette 95th pct {null95_sil:.2f}; smallest cluster n={min_cl}")
+                            f"chance silhouette 95th pct {null95_sil:.2f}; smallest cluster n={min_cl}",
+                plain=cl_plain, share_plain=cl_share_plain)
 
     # ---- decision vs score (no cutoffs)
     D = cm[cm["attended_ac"] & cm["decision"].notna() & cm["ac_total"].notna()].copy()
@@ -1289,12 +1477,29 @@ def build_structure(c: pd.DataFrame, long: pd.DataFrame, ex: pd.DataFrame) -> Do
 
     ok_pairs = [pres[k_] for k_ in keys]
     tau_checks = [tlo > 0, tau_obs.pvalue < 0.05, om_ok]
+    dec_strength = grade(tau_checks, min(len(g) for g in grp.values()))
+    tau_v = tau_obs.statistic
+
+    def decision_plain(suppress: bool) -> str:
+        adj = [pres[k_]["auc"] for k_ in (("Hire", "Standby"), ("Standby", "No Hire")) if pres[k_]
+               and not (suppress and min(pres[k_]["n_pos"], pres[k_]["n_neg"]) < MIN_GROUP)]
+        if tau_v <= 0:
+            s = "Final decisions do not follow assessment-center scores: higher scorers were not more likely to be hired."
+        else:
+            how = "closely" if tau_v >= 0.6 else "partly" if tau_v >= 0.3 else "only loosely"
+            s = f"Final decisions follow assessment-center scores {how}, but not perfectly."
+            if adj:
+                s += (f" Comparing two candidates with neighboring decisions, the one with the better decision had the higher "
+                      f"score in {rate_range(min(adj), max(adj))} comparisons.")
+        return s + caveat(dec_strength)
+
     doc.finding(
         f"Decisions follow assessment-center score rank (Kendall tau {tau_obs.statistic:.2f}) but the groups overlap: "
         + "; ".join(f"a random {a} candidate outranked a random {b} candidate in {pres[(a, b)]['auc']:.0%} of pairs" for a, b in pair_defs if pres[(a, b)])
         + ". No score cutoff is assumed; overlap is read from the full percentile distributions.",
-        grade(tau_checks, min(len(g) for g in grp.values())),
-        f"n={n_d} ({', '.join(f'{d} {len(grp[d])}' for d in DECISIONS)}); tau {tau_obs.statistic:.2f} (bootstrap CI {tlo:.2f} to {thi:.2f}, p={tau_obs.pvalue:.2g}); {om_txt}")
+        dec_strength,
+        f"n={n_d} ({', '.join(f'{d} {len(grp[d])}' for d in DECISIONS)}); tau {tau_obs.statistic:.2f} (bootstrap CI {tlo:.2f} to {thi:.2f}, p={tau_obs.pvalue:.2g}); {om_txt}",
+        plain=decision_plain(False), share_plain=decision_plain(True))
     if flag_rows or om_txt:
         nf = len(flagged_ids)
         doc.chart("decision-flags", "table", "Decisions far out of line with within-cohort score rank (local only)",
@@ -1312,11 +1517,22 @@ def build_structure(c: pd.DataFrame, long: pd.DataFrame, ex: pd.DataFrame) -> Do
                     n_pairs_cmp += 1
                     if (ycode[i] - ycode[j]) * (sc_[i] - sc_[j]) < 0:
                         n_disc_pairs += 1
+        if nf == 0:
+            flag_plain = "No final decision stood far out of line with the candidate's score ranking."
+            flag_share_plain = None
+        else:
+            pair_plain = (f" Also, in {n_disc_pairs} of {n_pairs_cmp} comparisons between candidates with different decisions, "
+                          "the higher scorer got the worse decision." if n_pairs_cmp else "")
+            flag_plain = (f"{cand_have(nf)} a final decision that looks out of step with their score ranking." + pair_plain
+                          + " Worth a look, not a verdict. Names are in the local copy only.")
+            flag_share_plain = (f"{cand_have(share_count(nf))} a final decision that looks out of step with their score ranking."
+                                + pair_plain + " Worth a look, not a verdict. Names are in the local copy only.")
         doc.finding(
             f"{nf} candidate(s) have a decision far out of line with their within-cohort score rank (flagged by an ordinal-logit residual fence); "
             f"in total {n_disc_pairs} of {n_pairs_cmp} comparable candidate pairs are in the opposite order on decision and score. Candidate ids are in the local copy only.",
             "suggestive", f"n={n_d}; fence on -log P(observed) = {thr_d:.2f}; discordant pair share {n_disc_pairs / max(n_pairs_cmp, 1):.1%}; "
                           f"flags are single outliers, so strength is limited to suggestive",
+            plain=flag_plain, share_plain=flag_share_plain,
             share_text=f"{share_count(nf)} candidate(s) have a decision far out of line with their within-cohort score rank; "
                        f"{n_disc_pairs} of {n_pairs_cmp} comparable candidate pairs are in the opposite order on decision and score. Ids are in the local copy only.",
             share_evidence=f"n={n_d}; model-simulated 95% fence; discordant pair share {n_disc_pairs / max(n_pairs_cmp, 1):.1%}")

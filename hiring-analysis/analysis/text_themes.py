@@ -902,8 +902,81 @@ def _shareable_box(g):
     return g
 
 
-def _find(text, strength, evidence):
-    return {"text": text, "strength": strength, "evidence": evidence}
+def _find(text, strength, evidence, plain):
+    return {"text": text, "plain": plain, "strength": strength, "evidence": evidence}
+
+
+_SIZE_WORD = {"negligible": "very slight", "small": "small", "moderate": "moderate", "large": "strong"}
+_LINK_WORD = {"negligible": "almost no link", "small": "a small link", "moderate": "a moderate link", "large": "a strong link"}
+_SRC_PLAIN = {"Technical interview": "technical interview notes", "Interview": "interview notes", "Role Play": "role-play notes",
+              "Presentation": "presentation notes", "Overall": "overall assessment notes"}
+_OUTCOME_PLAIN = {"Reached TI": ("being more likely to reach the technical interview", "being less likely to reach the technical interview"),
+                  "TI score rank": ("higher technical-interview scores", "lower technical-interview scores"),
+                  "Attended AC (given TI)": ("being more likely to attend the assessment center", "being less likely to attend the assessment center"),
+                  "AC total rank": ("higher assessment-center scores", "lower assessment-center scores"),
+                  "Interview rank": ("higher interview scores", "lower interview scores"),
+                  "Role Play rank": ("higher role-play scores", "lower role-play scores"),
+                  "Presentation rank": ("higher presentation scores", "lower presentation scores"),
+                  "Decision (No Hire<Standby<Hire)": ("better final decisions", "worse final decisions")}
+_GENERIC_WORDS = {"candidate", "candidates"}
+
+
+def _cap(s):
+    return s[:1].upper() + s[1:]
+
+
+def _in(source):
+    if source == "All sources":
+        return "Across all notes,"
+    if source == "AC exercises pooled":
+        return "Across the assessment-center exercise notes,"
+    return f"In {_SRC_PLAIN.get(source, str(source).lower() + ' notes')},"
+
+
+def _label_terms(label):
+    return [t.strip() for t in str(label).split(": ", 1)[-1].split(",")]
+
+
+def _words(terms, n=3, avoid=()):
+    """A few readable example words from a list of terms/bigrams (never more than n)."""
+    sw = _stop_words()
+    out = []
+    for t in terms:
+        for w in str(t).split():
+            if w not in out and w not in avoid and w not in _GENERIC_WORDS and w not in sw:
+                out.append(w)
+            if len(out) >= n:
+                return out
+    return out
+
+
+def _say(words):
+    q = [f"'{w}'" for w in words]
+    return q[0] if len(q) == 1 else ", ".join(q[:-1]) + " and " + q[-1] if q else "certain words"
+
+
+def _conf(strength, effect=None, short=False):
+    """One closing sentence that matches how reliable the finding is."""
+    size = _SIZE_WORD.get(effect, "clear")
+    if short:
+        return {"robust": "It is a consistent pattern.", "suggestive": "It is a possible pattern, not a certain one."}.get(
+            strength, "It is not reliable and could be chance.")
+    if strength == "robust":
+        return f"This is a {size}, consistent pattern."
+    if strength == "suggestive":
+        return f"This looks like a {size} pattern, but it is not certain."
+    return "This is not reliable and could be chance."
+
+
+def _outcome_phrase(outcome, rho):
+    up, down = _OUTCOME_PLAIN.get(outcome, ("better results", "worse results"))
+    return up if rho > 0 else down
+
+
+def _pair_chance(rho):
+    """Chance that ordering two people by a score that correlates rho (rank) with the target gets them right, as 'N times in 10'."""
+    k = int(round((0.5 + np.arcsin(np.clip(rho, -1, 1)) / np.pi) * 10))
+    return "almost every time" if k >= 10 else f"about {max(k, 5)} times in 10"
 
 
 def _ev(r):
@@ -928,7 +1001,8 @@ def render_resume(R: dict, shareable: bool) -> dict:
     small = shareable and 0 < R["n_no_resume"] < MIN_GROUP
     no_txt = "fewer than 5" if small else str(R["n_no_resume"])
     F.append(_find(f"{no_txt} of {R['n_candidates']} candidates have no resume and are excluded from all resume-topic analyses; they are reported separately below.",
-                   "robust", f"n={R['n_candidates']}, no resume={'<5' if small else R['n_no_resume']}, resumes analysed={R['n_resumes']}"))
+                   "robust", f"n={R['n_candidates']}, no resume={'<5' if small else R['n_no_resume']}, resumes analysed={R['n_resumes']}",
+                   f"{_cap(no_txt)} of {R['n_candidates']} candidates have no resume on file, so they are left out of the resume analysis."))
     cov = R["coverage"]
     C.append(_table("resume-coverage", "Candidates with and without a resume",
                     ["group", "n", "share reached TI", "share attended AC (of group)", "share hired (of group)", "suppressed"],
@@ -938,19 +1012,30 @@ def render_resume(R: dict, shareable: bool) -> dict:
                       None if shareable and _supp(c["n"]) else _f(c["hired_of_all"]), _supp(c["n"])] for c in cov]))
     ct = R.get("coverage_test")
     if ct and min(c["n"] for c in cov) >= MIN_GROUP:
+        cs = strength_label(ct["p"], ct["p"], ct["ci"], ct["second_p"], ct["stab"])
+        if cs == "weak":
+            cov_plain = "Having a resume on file does not clearly go with reaching the technical interview. Any small difference could be chance."
+        else:
+            cov_plain = (f"Candidates with a resume on file are {'more' if ct['rho'] > 0 else 'less'} likely to reach the technical interview. "
+                         + _conf(cs, effect_label(ct["rho"])))
         F.append(_find("Whether a candidate has a resume on file is associated with reaching TI only to the degree shown; missing resumes are not imputed.",
-                       strength_label(ct["p"], ct["p"], ct["ci"], ct["second_p"], ct["stab"]),
-                       f"n={ct['n']}, rho={ct['rho']:+.2f} [{ct['ci'][0]:+.2f}, {ct['ci'][1]:+.2f}], perm p={ct['p']:.4f}"))
+                       cs, f"n={ct['n']}, rho={ct['rho']:+.2f} [{ct['ci'][0]:+.2f}, {ct['ci'][1]:+.2f}], perm p={ct['p']:.4f}", cov_plain))
 
     tp = R["topics"]
     if tp is None:
-        F.append(_find("Too few resumes for a topic model.", "weak", f"n={R['n_resumes']}"))
+        F.append(_find("Too few resumes for a topic model.", "weak", f"n={R['n_resumes']}",
+                       "There are too few resumes to look for common types of resume, so we did not try."))
         doc["meta"]["n_topics"] = 0
         return doc
     doc["meta"].update({"n_topics": tp["k"], "stability": _f(tp["stability"]), "coherence": _f(tp["coherence"])})
     F.append(_find(f"Bottom-up resume themes: {tp['k']} topics chosen from the data (coherence {tp['coherence']:.2f}, matched-topic stability {tp['stability']:.2f} across seeds/80% subsamples). Topics: " + "; ".join(tp["labels"]) + ".",
                    "robust" if tp["stability"] >= 0.9 else "suggestive" if tp["stability"] >= 0.75 else "weak",
-                   f"n={tp['n_docs']} resumes, {tp['n_terms']} terms, k searched {tp['selection'][0]['k']}-{tp['selection'][-1]['k']}"))
+                   f"n={tp['n_docs']} resumes, {tp['n_terms']} terms, k searched {tp['selection'][0]['k']}-{tp['selection'][-1]['k']}",
+                   f"We found {tp['k']} common types of resume, for example ones "
+                   + ", and others ".join(f"mentioning {_say(_words(_label_terms(l), 3))}" for l in tp["labels"][:2]) + ". "
+                   + ("The same groups came back each time we re-ran the analysis." if tp["stability"] >= 0.9 else
+                      "The groups were mostly steady when we re-ran the analysis." if tp["stability"] >= 0.75 else
+                      "The groups shifted when we re-ran the analysis, so treat them loosely.")))
     C.append(_chart("resume-k-selection", "bar", "Topic count selection", {
         "labels": [f"k={s['k']}" for s in tp["selection"]],
         "series": [{"name": "coherence (NPMI)", "values": [_f(s["coherence"]) for s in tp["selection"]]},
@@ -979,10 +1064,13 @@ def render_resume(R: dict, shareable: bool) -> dict:
     if sig:
         for r in sorted(sig, key=lambda r: -abs(r["rho"]))[:4]:
             F.append(_find(f"Resume theme '{r['topic']}' share tracks {r['outcome']} ({r['effect']} effect, {'positive' if r['rho'] > 0 else 'negative'}): what the process rewarded.",
-                           r["strength"], _ev(r)))
+                           r["strength"], _ev(r),
+                           f"Resumes that mention words like {_say(_words(_label_terms(r['topic']), 3))} go with {_outcome_phrase(r['outcome'], r['rho'])}. "
+                           + _conf(r["strength"], r["effect"])))
     elif ranked:
         r = ranked[0]
-        F.append(_find(f"No resume theme is clearly associated with any process outcome; the largest is '{r['topic']}' vs {r['outcome']}.", "weak", _ev(r)))
+        F.append(_find(f"No resume theme is clearly associated with any process outcome; the largest is '{r['topic']}' vs {r['outcome']}.", "weak", _ev(r),
+                       "We did not find any type of resume that clearly goes with a better or worse outcome. Any small differences could be chance."))
 
     # hypothesis
     H = R["hyp"]
@@ -996,12 +1084,23 @@ def render_resume(R: dict, shareable: bool) -> dict:
         txt = (f"Hypothesis 'interviews favour a certain resume type': after controlling for Role Play and Presentation ranks, the resume theme "
                f"'{best['topic']}' shows a {best['effect']} partial association with the Interview percentile rank "
                f"({'positive' if best['rho'] > 0 else 'negative'}) - what this process rewarded in interviews, range-restricted to AC attendees.")
-        F.append(_find(txt, best["strength"], _ev(best)))
+        if best["strength"] == "weak":
+            hyp_plain = ("After accounting for how people did in the role play and presentation, we found no reliable sign that interviews favored "
+                         "a certain type of resume. Any small difference could be chance.")
+        else:
+            hyp_plain = (f"After accounting for role play and presentation results, interviews gave {'higher' if best['rho'] > 0 else 'lower'} scores to resumes "
+                         f"mentioning {_say(_words(_label_terms(best['topic']), 3))}. Only people who got to the assessment center were scored. "
+                         + _conf(best["strength"], best["effect"]))
+        F.append(_find(txt, best["strength"], _ev(best), hyp_plain))
     if om:
         omstrength = "suggestive" if om["p"] < 0.05 else "weak"
         F.append(_find(f"All resume themes together add {om['delta_r2']:.3f} to R-squared of Interview rank beyond Role Play + Presentation ranks "
                        f"({'a detectable' if om['p'] < 0.05 else 'no detectable'} gain).", omstrength,
-                       f"n={om['n']}, delta R2={om['delta_r2']:.3f}, Freedman-Lane perm p={om['p']:.4f}, {om['k']} topic columns"))
+                       f"n={om['n']}, delta R2={om['delta_r2']:.3f}, Freedman-Lane perm p={om['p']:.4f}, {om['k']} topic columns",
+                       "Looking at all resume types together adds "
+                       + ("less than 1%" if om["delta_r2"] < 0.005 else f"about {om['delta_r2'] * 100:.0f}%")
+                       + " to what we can explain about interview ranking beyond role play and presentation results. "
+                       + ("This is a small but possible pattern, not a certain one." if om["p"] < 0.05 else "That is not reliable and could be chance.")))
     contrast = {t: max([r for r in H["recs"] if r["target"] == t], key=lambda r: abs(r["rho"]), default=None) for t in ("Role Play", "Presentation")}
     C.append(_table("resume-hypothesis-contrast", "Largest partial association per exercise (is the Interview special?)",
                     ["exercise", "topic", *REC_COLS], [_rec_row(r, (t, r["topic"])) for t, r in
@@ -1045,15 +1144,20 @@ def render_resume(R: dict, shareable: bool) -> dict:
         t_, k_, q_, a_ = min(hit, key=lambda h: h[2])
         nm = {"city": "home city", "skills": "skills tag", "grad": "graduation date"}[k_]
         F.append(_find(f"Even with employer/school/city lines held out, theme '{t_}' still varies with {nm}: treat resume themes as potential proxy carriers.",
-                       "suggestive", f"n={a_['n']}, {'eps2=%.3f' % a_['stat'] if 'stat' in a_ else 'rho=%+.2f' % a_['rho']}, perm p={a_['p']:.4f}, BH q={q_:.3f}"))
+                       "suggestive", f"n={a_['n']}, {'eps2=%.3f' % a_['stat'] if 'stat' in a_ else 'rho=%+.2f' % a_['rho']}, perm p={a_['p']:.4f}, BH q={q_:.3f}",
+                       f"Even with school, employer and city lines removed, resumes mentioning {_say(_words(_label_terms(t_), 3))} still differ by {nm}, "
+                       "so resume themes may still reflect background. This is a check, and a flag is worth a look, not proof of unfair treatment."))
     else:
         F.append(_find("With employer/school/city lines held out, no resume theme is clearly tied to home city, skills tag or graduation date.", "weak",
-                       f"n={len(R['df'])}, {len(px) * 3} topic x proxy tests, smallest BH q={np.nanmin([x[f'q_{k}'] for x in px for k in ('city', 'skills', 'grad')]):.3f}"))
+                       f"n={len(R['df'])}, {len(px) * 3} topic x proxy tests, smallest BH q={np.nanmin([x[f'q_{k}'] for x in px for k in ('city', 'skills', 'grad')]):.3f}",
+                       "After removing school, employer and city lines, we found no type of resume that clearly goes with home city, skills tag or graduation date. "
+                       "Any small differences could be chance."))
     if R.get("full"):
         fu = R["full"]
         F.append(_find(f"For contrast, topics fitted on the full resume text (proxy lines kept) reach city epsilon-squared up to {fu['max_city_eps2']:.2f}, "
                        f"versus {np.nanmax([x['city']['stat'] for x in px if x['city']] or [np.nan]):.2f} after holding proxy lines out; this shows how much a topic model would otherwise lean on location.",
-                       "suggestive" if fu["city_p_min"] < 0.05 else "weak", f"n={len(R['df'])}, k={fu['k']}, smallest perm p={fu['city_p_min']:.4f}"))
+                       "suggestive" if fu["city_p_min"] < 0.05 else "weak", f"n={len(R['df'])}, k={fu['k']}, smallest perm p={fu['city_p_min']:.4f}",
+                       _full_contrast_plain(fu, px)))
     ent = R.get("entity")
     if ent:
         et = ent["topics"]
@@ -1068,10 +1172,13 @@ def render_resume(R: dict, shareable: bool) -> dict:
         if es:
             r = max(es, key=lambda r: abs(r["rho"]))
             F.append(_find(f"Proxy-line content (schools, employers, cities) is associated with {r['outcome']} ({r['effect']}); the process may be rewarding background rather than demonstrated skill. Review before using resumes in screening.",
-                           r["strength"], _ev(r)))
+                           r["strength"], _ev(r),
+                           f"Resume details like schools, employers and cities go with {_outcome_phrase(r['outcome'], r['rho'])}. "
+                           "This is a bias check, and a flag is worth a look, not proof of unfair treatment. " + _conf(r["strength"], short=True)))
         elif er:
             r = max(er, key=lambda r: abs(r["rho"]))
-            F.append(_find("Proxy-line content (schools, employers, cities) shows no clear association with process outcomes.", "weak", _ev(r)))
+            F.append(_find("Proxy-line content (schools, employers, cities) shows no clear association with process outcomes.", "weak", _ev(r),
+                           "In this bias check, schools, employers and cities on resumes did not clearly go with better or worse outcomes. Any small differences could be chance."))
     pv = R.get("proxy_vs_outcome")
     if pv:
         C.append(_table("resume-proxy-field-outcome", "Proxy fields vs outcomes directly",
@@ -1080,6 +1187,43 @@ def render_resume(R: dict, shareable: bool) -> dict:
                           _f(r["q_city"], 4) if r["city"] else None, _f(r["grad"]["rho"]) if r["grad"] else None,
                           _f(r["grad"]["p"], 4) if r["grad"] else None, _f(r["q_grad"], 4) if r["grad"] else None] for r in pv]))
     return doc
+
+
+def _full_contrast_plain(fu, px):
+    after = np.nanmax([x["city"]["stat"] for x in px if x["city"]] or [np.nan])
+    before = fu["max_city_eps2"]
+    if fu["city_p_min"] >= 0.05:
+        return ("When we let the analysis see schools, employers and cities, resume groups did not clearly line up with home city either. "
+                "Any small difference could be chance.")
+    if np.isfinite(after) and after > 0 and before / after >= 1.5:
+        return (f"When we let the analysis see schools, employers and cities, resume groups lined up with home city about {before / after:.0f} times as strongly "
+                "as after removing them. That is why those lines are held out.")
+    return "Letting the analysis see schools, employers and cities made little difference to how resume groups line up with home city."
+
+
+def _model_plain(src, m):
+    where = _in(src)
+    if m["rho"] <= 0:
+        return f"{where} the wording does not line up with the scores the same reviewers gave."
+    if m["rho"] > 0.3:
+        txt = (f"{where} the wording lines up with the scores the same reviewers gave. Reading only the words, we could tell which of two "
+               f"people scored higher {_pair_chance(m['rho'])}.")
+    else:
+        txt = f"{where} the wording only loosely lines up with the scores the same reviewers gave."
+    if m["strength"] == "weak":
+        return txt + " This is not reliable and could be chance."
+    if m["strength"] == "suggestive":
+        return txt + " This is a possible pattern, not a certain one."
+    return txt
+
+
+def _style_plain(s):
+    tone, subj = effect_label(s["rho_tone"]["rho"]), effect_label(s["rho_subj"]["rho"])
+    if s["diff"] > 0:
+        txt = (f"{_in(s['source'])} wording tied to specific evidence has {_LINK_WORD[tone]} to scores, while general-impression wording has {_LINK_WORD[subj]}. ")
+        return txt + ("This looks like a real difference, but it is not certain." if s["strength"] == "suggestive" else "The difference is not reliable and could be chance.")
+    return (f"{_in(s['source'])} general-impression wording lines up with scores about as closely as evidence-based wording does. "
+            + ("" if s["strength"] == "suggestive" else "This is not reliable and could be chance."))
 
 
 def _fmt_terms(ts):
@@ -1100,7 +1244,8 @@ def render_notes(N: dict, shareable: bool) -> dict:
     F, C = doc["findings"], doc["charts"]
     notes = N["notes"]
     F.append(_find(f"{len(notes)} notes across {notes['source'].nunique()} sources were analysed (counts per source in the length chart).", "robust",
-                   "n=%d notes, sources=%s" % (len(notes), ", ".join(f"{s}:{(notes['source'] == s).sum()}" for s in SOURCES if (notes['source'] == s).any()))))
+                   "n=%d notes, sources=%s" % (len(notes), ", ".join(f"{s}:{(notes['source'] == s).sum()}" for s in SOURCES if (notes['source'] == s).any())),
+                   f"We read {len(notes)} reviewer notes from {notes['source'].nunique()} stages of the process."))
 
     groups = [(_shareable_box(g) if shareable else g) for g in (_box(s, v) for s, v in N["length"].items())]
     C.append(_chart("notes-length", "boxplot", "Note length (words) by source", {"groups": groups}, y="words"))
@@ -1132,10 +1277,13 @@ def render_notes(N: dict, shareable: bool) -> dict:
         sig = [r for r in tp["assoc"] if r["strength"] != "weak"]
         if sig:
             r = max(sig, key=lambda r: abs(r["rho"]))
-            F.append(_find(f"{name} notes: theme '{r['topic']}' co-varies with score rank ({'higher' if r['rho'] > 0 else 'lower'} scores, {r['effect']}).", r["strength"], _ev(r)))
+            F.append(_find(f"{name} notes: theme '{r['topic']}' co-varies with score rank ({'higher' if r['rho'] > 0 else 'lower'} scores, {r['effect']}).", r["strength"], _ev(r),
+                           f"{_in(name)} a common theme built around words like {_say(_words(_label_terms(r['topic']), 3))} goes with "
+                           f"{'higher' if r['rho'] > 0 else 'lower'} scores. " + _conf(r["strength"], r["effect"])))
         else:
             F.append(_find(f"{name} notes: {tp['k']} themes found, none clearly tied to score rank.", "weak",
-                           f"n={tp['n_docs']}, k={tp['k']}, stability={tp['stability']:.2f}"))
+                           f"n={tp['n_docs']}, k={tp['k']}, stability={tp['stability']:.2f}",
+                           f"{_in(name)} we found {tp['k']} common themes, but none clearly goes with higher or lower scores. Any small differences could be chance."))
 
     # terms
     trs = []
@@ -1149,11 +1297,16 @@ def render_notes(N: dict, shareable: bool) -> dict:
         lo = [r["term"] for r in sorted([r for r in sig if r["rho"] < 0], key=lambda r: r["rho"])[:5]]
         if hi or lo:
             best = max(sig, key=lambda r: abs(r["rho"]))
+            hi_w = _words(hi, 3)
+            lo_w = _words(lo, 3, avoid=hi_w)
+            parts = ([f"words like {_say(hi_w)} go with higher scores"] if hi_w else []) + ([f"words like {_say(lo_w)} go with lower scores"] if lo_w else [])
             F.append(_find(f"{name}: wording linked to higher rank: {_fmt_terms(hi) or 'none'}; to lower rank: {_fmt_terms(lo) or 'none'}.",
-                           best["strength"], f"n={best['n']}, {tr['n_terms']} terms scanned, top term rho={best['rho']:+.2f} [{best['ci'][0]:+.2f}, {best['ci'][1]:+.2f}], BH q={best['q']:.4f}"))
+                           best["strength"], f"n={best['n']}, {tr['n_terms']} terms scanned, top term rho={best['rho']:+.2f} [{best['ci'][0]:+.2f}, {best['ci'][1]:+.2f}], BH q={best['q']:.4f}",
+                           f"{_in(name)} " + " and ".join(parts) + ". " + _conf(best["strength"], best["effect"])))
         else:
             F.append(_find(f"{name}: no term or bigram is reliably tied to score rank after correction.", "weak",
-                           f"{tr['n_terms']} terms scanned, smallest BH q={tr['min_q']:.3f}"))
+                           f"{tr['n_terms']} terms scanned, smallest BH q={tr['min_q']:.3f}",
+                           f"{_in(name)} no particular words reliably go with higher or lower scores. Any small differences could be chance."))
     C.append(_table("notes-rank-terms", "Terms and bigrams most associated with higher vs lower rank (continuous, no cutoff)",
                     ["scope", "direction", "term", "n notes with term", "rho", "ci_low", "ci_high", "bh_q", "strength"], trs,
                     subtitle="Top 10 each direction per scope; strength shows whether the association survives correction."))
@@ -1169,7 +1322,8 @@ def render_notes(N: dict, shareable: bool) -> dict:
             continue
         mrows.append([s, m["n"], _f(m["rho"]), _f(m["ci"][0]), _f(m["ci"][1]), _f(m["p"], 4), m["strength"], m["effect"]])
         F.append(_find(f"{s}: a text-only cross-validated model recovers score rank with Spearman {m['rho']:+.2f}; notes {'agree' if m['rho'] > 0.3 else 'only weakly agree'} with the scores their authors gave.",
-                       m["strength"], f"n={m['n']}, CV rho={m['rho']:+.2f} [{m['ci'][0]:+.2f}, {m['ci'][1]:+.2f}], perm p={m['p']:.4f}, ridge alpha={m['alpha']:.2g}"))
+                       m["strength"], f"n={m['n']}, CV rho={m['rho']:+.2f} [{m['ci'][0]:+.2f}, {m['ci'][1]:+.2f}], perm p={m['p']:.4f}, ridge alpha={m['alpha']:.2g}",
+                       _model_plain(s, m)))
         order = np.argsort(-np.abs(m["gap"]))[:10]
         for i in order:
             dis.append([s, m["cand"][i], _f(m["pred_rank"][i]), _f(m["pred_rank"][i] + m["gap"][i]), _f(m["gap"][i])])
@@ -1184,7 +1338,8 @@ def render_notes(N: dict, shareable: bool) -> dict:
         C.append(_table("notes-discordant", "Candidates whose note tone disagrees most with their score rank (ids only; ranked, no cutoff)",
                         ["source", "candidate_id", "tone-implied rank", "score rank", "gap (score - tone)"], dis))
     elif dis:
-        F.append(_find("A ranked list of candidates whose note tone disagrees with their score rank is available in the local copy only.", "weak", f"{len(dis)} listed across sources"))
+        F.append(_find("A ranked list of candidates whose note tone disagrees with their score rank is available in the local copy only.", "weak", f"{len(dis)} listed across sources",
+                       "A list of cases where the notes read very differently from the scores is kept in the private copy only, so it is not shown here."))
 
     # style
     si = N.get("style")
@@ -1201,7 +1356,8 @@ def render_notes(N: dict, shareable: bool) -> dict:
             srows.append([s["source"], s["n"], _f(s["mean_subj"]), _f(a_s["rho"]), _f(a_t["rho"]), _f(s["diff"]), _f(s["diff_ci"][0]), _f(s["diff_ci"][1]), s["strength"]])
             F.append(_find(f"{s['source']}: score-independent wording intensity averages {s['mean_subj']:.2f}; it tracks score rank (rho {a_s['rho']:+.2f}) "
                            f"{'less' if s['diff'] > 0 else 'no less'} than rubric-style tone (rho {a_t['rho']:+.2f}).", s["strength"],
-                           f"n={s['n']}, |rho_tone|-|rho_indep|={s['diff']:+.2f} [{s['diff_ci'][0]:+.2f}, {s['diff_ci'][1]:+.2f}]"))
+                           f"n={s['n']}, |rho_tone|-|rho_indep|={s['diff']:+.2f} [{s['diff_ci'][0]:+.2f}, {s['diff_ci'][1]:+.2f}]",
+                           _style_plain(s)))
         C.append(_table("notes-style-source", "Score-independent language intensity vs rubric tone, per source",
                         ["source", "n", "mean score-independent intensity", "rho(intensity, rank)", "rho(rubric tone, rank)", "|tone|-|intensity|", "ci_low", "ci_high", "strength"], srows))
         st = N.get("style_theme")
@@ -1224,10 +1380,14 @@ def render_notes(N: dict, shareable: bool) -> dict:
             if sig:
                 for r in sorted(sig, key=lambda r: -abs(r["rho"]))[:3]:
                     F.append(_find(f"Bias check: in {r['source']} notes, resume theme '{r['topic']}' goes with {'more' if r['rho'] > 0 else 'less'} score-independent (impression-style) wording at equal score rank ({r['effect']}).",
-                                   r["strength"], _ev(r)))
+                                   r["strength"], _ev(r),
+                                   f"This is a bias check. {_in(r['source'])} people whose resume mentions {_say(_words(_label_terms(r['topic']), 3))} get "
+                                   f"{'more' if r['rho'] > 0 else 'less'} general-impression wording than others with the same scores. "
+                                   "A flag is worth a look, not proof of unfair treatment. " + _conf(r["strength"], short=True)))
             elif recs:
                 r = max(recs, key=lambda r: abs(r["rho"]))
-                F.append(_find("Bias check: no resume theme clearly goes with more impression-style wording once score rank is held fixed.", "weak", _ev(r)))
+                F.append(_find("Bias check: no resume theme clearly goes with more impression-style wording once score rank is held fixed.", "weak", _ev(r),
+                               "In this bias check, no type of resume clearly goes with more general-impression wording once scores are the same. Any small differences could be chance."))
     return doc
 
 

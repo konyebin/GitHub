@@ -37,3 +37,18 @@ def test_every_chart_has_a_description():
                 if c["id"] not in described and not c["id"].startswith("signal-scatter-"):
                     missing.append(c["id"])
     assert not missing, f"charts without a description: {missing}"
+
+
+def test_every_chart_has_a_plain_title_and_findings_have_plain_text():
+    template = (ROOT / "dashboard" / "template.html").read_text()
+    block = template[template.index("const CHART_TITLE={"):template.index("function chartTitle")]
+    titled = set(re.findall(r"^'([^']+)':", block, re.M))
+    sys.path.insert(0, str(ROOT / "tests"))
+    import plain_check
+    for mode in ("local", "shareable"):
+        for f in (RESULTS / mode).glob("*.json"):
+            d = json.loads(f.read_text())
+            for c in d["charts"]:
+                assert c["id"] in titled or c["id"].startswith("signal-scatter-"), c["id"]
+            for x in d["findings"]:
+                assert x.get("plain") and not plain_check.problems(x["plain"]), (f.name, x.get("plain"))
