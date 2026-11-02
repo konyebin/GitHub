@@ -4,3 +4,5 @@ data/
 *.pptx
 *.pdf
 .env
+!testdata/
+!testdata/*.xlsx
