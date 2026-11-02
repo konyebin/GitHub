@@ -126,6 +126,13 @@ def _build_ratings(cands: pd.DataFrame, ex: pd.DataFrame, sl: pd.DataFrame) -> p
     r["rank"] = r.groupby("role")["value"].transform(_pct_rank)
     num = r["candidate_id"].astype(str).str.extract(r"(\d+)\s*$")[0]
     r["order"] = pd.to_numeric(num, errors="coerce")
+    r.attrs["time_basis"] = "candidate number"
+    if "ac_date" in cands.columns:
+        when = pd.to_datetime(cands.drop_duplicates("candidate_id").set_index("candidate_id")["ac_date"], errors="coerce")
+        days = r["candidate_id"].map(when).map(lambda d: d.toordinal() if pd.notna(d) else np.nan)
+        if days.notna().mean() >= 0.5 and days.nunique() >= 3:
+            r["order"] = days
+            r.attrs["time_basis"] = "assessment date"
     return r
 
 
@@ -443,8 +450,10 @@ def analyze(processed_dir: Path) -> dict:
     notes = pd.read_csv(processed_dir / "notes.csv")
     resumes = pd.read_csv(processed_dir / "resumes.csv")
 
-    ratings = _add_signal(_build_ratings(cands, ex, sl), cands)
-    R: dict = {"ratings": ratings}
+    base = _build_ratings(cands, ex, sl)
+    time_basis = base.attrs.get("time_basis", "candidate number")
+    ratings = _add_signal(base, cands)
+    R: dict = {"ratings": ratings, "time_basis": time_basis}
     R["rev_n"] = ratings.groupby("reviewer")["candidate_id"].nunique().to_dict()
 
     # (1) volume, spread, consistency
@@ -489,7 +498,7 @@ def analyze(processed_dir: Path) -> dict:
         ratings["resid"] = np.nan
     R["ratings"] = ratings
 
-    # (3) drift over candidate-number order
+    # (3) drift over time (assessment date when the data has it, otherwise candidate number as a rough proxy)
     drift = []
     rng = np.random.default_rng(SEED + 100)
     for (role, rv), d in ratings.dropna(subset=["resid", "order"]).groupby(["role", "reviewer"]):
@@ -730,11 +739,14 @@ def _render(R: dict, share: bool) -> dict:
                                                for p in d.itertuples() if not hide(p.reviewer)]}})
 
     # (3) drift
+    tb = R["time_basis"]
+    dated = tb == "assessment date"
+    tb_note = "Assessment date, so it follows real time across AC days and cohorts" if dated else "Candidate number is only a rough proxy for time order"
     if len(drift):
         tested = drift[np.isfinite(drift["rho"])]
-        charts.append({"id": "drift-hbar", "type": "hbar", "title": "Trend of reviewer deviation across candidate-number order (Spearman rho, 95% CI)",
-                       "subtitle": "Candidate number is only a rough proxy for time order; units with fewer than 8 ratings are not tested",
-                       "x_label": "Spearman rho (deviation vs candidate number)", "y_label": "Reviewer | exercise",
+        charts.append({"id": "drift-hbar", "type": "hbar", "title": f"Trend of reviewer deviation across {tb} order (Spearman rho, 95% CI)",
+                       "subtitle": tb_note + "; units with fewer than 8 ratings are not tested",
+                       "x_label": f"Spearman rho (deviation vs {tb})", "y_label": "Reviewer | exercise",
                        "data": {"labels": [f"{r.reviewer} | {r.role}" for r in tested.itertuples()],
                                 "suppressed": [hide(r.reviewer, r.n) for r in tested.itertuples()],
                                 "series": [{"name": "rho", "values": [val(r.reviewer, r.n, r.rho) for r in tested.itertuples()]},
@@ -751,14 +763,15 @@ def _render(R: dict, share: bool) -> dict:
         flagged = drift[drift["strength"] != "weak"]
         for r in flagged.sort_values("p_adj").itertuples():
             more = r.rho > 0
-            rplain = (f"{r.reviewer} became {'more generous' if more else 'stricter'} when scoring {r.role} for later candidate numbers, "
+            rplain = (f"{r.reviewer} became {'more generous' if more else 'stricter'} when scoring {r.role} for {'later assessment dates' if dated else 'later candidate numbers'}, "
                       f"compared with the same candidates' other results ({int(r.n)} ratings). "
                       + ("This is a clear pattern worth a look" if r.strength == "robust" else "This is a possible pattern, not a firm one")
-                      + "; candidate number is only a rough stand-in for time, so it may reflect who applied rather than the reviewer.")
-            add(f"{r.reviewer}'s {r.role} scores relative to other signals trend {'upward' if r.rho > 0 else 'downward'} with candidate number.", r.strength,
+                      + ("; a later date may also mean a different group of candidates, so check before drawing conclusions about the reviewer." if dated else
+                         "; candidate number is only a rough stand-in for time, so it may reflect who applied rather than the reviewer."))
+            add(f"{r.reviewer}'s {r.role} scores relative to other signals trend {'upward' if r.rho > 0 else 'downward'} with {tb}.", r.strength,
                 f"n={int(r.n)}, Spearman rho={r.rho:+.2f} [{r.lo:+.2f}, {r.hi:+.2f}], adjusted p={r.p_adj:.3f} (Kendall adjusted {r.p_tau_adj:.3f})", [r.reviewer], plain=rplain)
         if flagged.empty and len(tested):
-            add("No reviewer shows a trend in scoring across candidate-number order beyond chance (candidate number is a rough time proxy).", "weak",
+            add(f"No reviewer shows a trend in scoring across {tb} order beyond chance." + ("" if dated else " (candidate number is a rough time proxy)"), "weak",
                 f"n={int(tested['n'].sum())} ratings in {len(tested)} units tested (>=8 each), smallest adjusted p={tested['p_adj'].min():.3f}",
                 plain=(f"We found no sign that any reviewer got stricter or more generous as the process went on "
                        f"({int(tested['n'].sum())} ratings checked across {len(tested)} reviewer-and-exercise groups)."))
@@ -773,9 +786,9 @@ def _render(R: dict, share: bool) -> dict:
                 vals.append(None if m.empty or (hide(rv, int(m["size"].iloc[0])) or (not share and int(m["size"].iloc[0]) < 2))
                             else round(float(m["mean"].iloc[0]) * 100, 2))
             series.append({"name": rv, "values": vals})
-        charts.append({"id": "drift-line", "type": "line", "title": "Mean deviation by candidate-number third",
-                       "subtitle": "Thirds of candidate number (data-derived, display only); percentile-rank points of residual vs independent signals, pooled over exercises",
-                       "x_label": "Candidate-number third", "y_label": "Mean residual (pts)", "data": {"labels": bins, "series": series}})
+        charts.append({"id": "drift-line", "type": "line", "title": f"Mean deviation by {tb} third",
+                       "subtitle": f"Thirds of {tb} (data-derived, display only); percentile-rank points of residual vs independent signals, pooled over exercises",
+                       "x_label": f"{tb.capitalize()} third", "y_label": "Mean residual (pts)", "data": {"labels": bins, "series": series}})
 
     # (4) notes vs scores
     cons, glob, nt = R["cons"], R["cons_global"], R["nt_cons"]
@@ -1026,8 +1039,8 @@ def run(processed_dir: Path, results_dir: Path) -> None:
 
 if __name__ == "__main__":
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-    from settings import load_settings
+    from settings import load_settings, resolve_target
 
-    out_dir = load_settings()["out_dir"]
-    run(out_dir, out_dir / "results")
-    print(f"wrote {SECTION} results to {out_dir / 'results'}")
+    target = resolve_target(load_settings()["out_dir"], sys.argv[1] if len(sys.argv) > 1 else None)
+    run(target / "processed", target / "results")
+    print(f"wrote {target / 'results'}")

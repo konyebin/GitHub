@@ -3,17 +3,18 @@
 Every analysis module lives in `hiring-analysis/analysis/<name>.py` and exposes
 `run(processed_dir: Path, results_dir: Path) -> None`, plus a `__main__` that reads `HIRING_OUT_DIR` the way
 `pipeline/loader.py` does. It reads only the CSVs below and writes JSON files to `results_dir`.
-Run the pipeline first: `python hiring-analysis/pipeline/loader.py` (writes `data/synthetic/processed/`).
+Run the pipeline first: `python hiring-analysis/pipeline/run_all.py` (writes `data/synthetic/processed/<target>/processed/` for "All cohorts" and each analysed cohort; the modules run once per target, so everything below is that target's data).
 
 ## Inputs (`processed_dir`)
 
-- `candidates.csv`: candidate_id, in_screen, reached_ti, attended_ac, hired, has_resume, screen_score (TI score, NaN if none),
+- `candidates.csv`: candidate_id, cohort (hiring cycle, e.g. AMER FY27Q1), ac_day (AC day sheet name), ac_date (ISO date, may be empty), in_screen, reached_ti, attended_ac, hired, has_resume, screen_score (TI score, NaN if none),
   screen_passfail, screen_invited, screen_status, screen_recruiter, ac_total (0-48), ac_pct, decision (Hire/Standby/No Hire, NaN if never in AC),
   proxy_graduation, proxy_skills_tag, proxy_home_city.
 - `scores_long.csv`: candidate_id, exercise (Interview / Role Play / Presentation), competency, score (1-4).
 - `exercises.csv`: candidate_id, exercise, total (0-16), recommendation (Yes/Standby/No), assessor.
 - `notes.csv`: candidate_id, source (Technical interview / Interview / Role Play / Presentation / Overall), reviewer, text.
 - `resumes.csv`: candidate_id, text (redaction tags already stripped).
+- `exercises.csv` and `notes.csv` assessor/reviewer labels are linked across cohorts by label (or by interviewer_map.csv).
 - `audit_only.csv`: country, salutation. Never use these as features or in any analysis. Only the optional audit step may read them.
 
 ## Rules (all modules)
@@ -64,7 +65,7 @@ in any chart or table).
 - `table`: `{"columns": [..], "rows": [[..]]}`.
 - `boxplot`: `{"groups": [{"name": "..", "n": 12, "min": 0, "q1": 0, "median": 0, "q3": 0, "max": 0}]}`.
 
-Sections and owners: `funnel`, `structure` (analysis/funnel_structure.py); `resume_themes`, `notes_themes`
+Sections and owners: `cohorts` (analysis/cohorts.py; pooled "All cohorts" results only), `funnel`, `structure` (analysis/funnel_structure.py); `resume_themes`, `notes_themes`
 (analysis/text_themes.py); `interviewers` (analysis/interviewers.py).
 Each module also ships a pytest file in `hiring-analysis/tests/` that checks (a) the JSON validates against this schema and
 (b) the module recovers the planted effects in `data/synthetic/_truth.json` (the test may read the truth file).

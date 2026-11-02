@@ -1,10 +1,12 @@
 """Generate a fully synthetic, already-redacted candidate dataset for developing the analysis.
 
-Nothing here is real. Output goes to hiring-analysis/data/synthetic/ (git-ignored):
-  resumes/candidateN.docx      redacted-style resumes ([NAME], [EMAIL], [PHONE] tags; school and city kept)
-  screen_review.xlsx           resume screening stage (columns mirror the real screening sheet)
-  assessment_center.xlsx       three exercises, 4 competencies each scored 1-4, per-exercise notes, assessor, decision
-  _truth.json                  the effects planted below, so we can check the pipeline recovers them
+Nothing here is real. Output goes to hiring-analysis/data/synthetic/ (git-ignored), laid out like real data:
+  resumes/candidateN.docx                    one shared folder; candidate numbers are unique across cohorts
+  AMER FY27Q1/FY27Q1_AMER_ASE_Candidate_Screen_Review.xlsx   resume screening stage, one sheet
+  AMER FY27Q1/FY27Q1_AMER_ASE_Scores.xlsx   three exercises, 4 competencies each scored 1-4, notes, assessor, decision;
+                                             one sheet per AC day (e.g. "AMER Oct 15")
+  AMER FY27Q2/ ...  AMER FY27Q3/ ...         the other cohorts (default 3)
+  _truth.json                                the effects planted below, so we can check the pipeline recovers them
 
 Planted effects (the analysis should find these without being told):
   1. Assessor 4 scores the Interview exercise about one point per competency higher than the others.
@@ -13,11 +15,13 @@ Planted effects (the analysis should find these without being told):
   3. Interview and Role Play ranks agree strongly; Presentation partly diverges (it reflects a separate skill).
   4. Screening Pass/Fail and Status track the TI score, but a few candidates are advanced or stopped against it.
   5. The final Decision follows total score loosely and disagrees for a handful of candidates.
+  7. Later cohorts draw somewhat stronger candidates (a planted cohort-over-cohort trend). Assessor labels are reused
+     across cohorts, so Assessor 4 stays lenient in every cohort.
   6. Layout mirrors the real scores workbook (header on row 9, an "Example 1" row, no Buddy column), with one
      sheet per assessment center day (6 sheets, e.g. "AMER Oct 15"). The screening workbook has a single sheet.
      Blanks in the test files were filled with generated values, so nothing is left empty.
 
-Run: python hiring-analysis/synthetic/make_synthetic.py [--n 150] [--seed 7]
+Run: python hiring-analysis/synthetic/make_synthetic.py [--n 360] [--cohorts 3] [--seed 7]
 Requires: openpyxl, python-docx
 """
 
@@ -84,7 +88,7 @@ def score4(latent: float, rng: random.Random, bias: float = 0.0) -> int:
 
 
 def long_note(stage: str, avg: float, cand: dict, reviewer: str, rng: random.Random) -> tuple[str, bool]:
-    subj_rate = 0.65 if reviewer == "Assessor 5" and cand["path"] in ("career_changer", "intern") else 0.15
+    subj_rate = 0.9 if reviewer == "Assessor 5" and cand["path"] in ("career_changer", "intern") else 0.1
     subjective = rng.random() < subj_rate
     parts = [f"{stage} summary."]
     strong = avg >= 3.0
@@ -124,9 +128,15 @@ def write_resume(c: dict, folder: Path) -> None:
     d.save(folder / f"candidate{c['n']}.docx")
 
 
-def cohort_sheet_names(rng: random.Random) -> list[str]:
-    """Six sheet names such as 'AMER Oct 15': three random weekdays in each of two consecutive weeks."""
-    monday = date(2026, 10, 5)
+COHORT_STARTS = [date(2026, 10, 5), date(2026, 12, 7), date(2027, 3, 8), date(2027, 6, 7), date(2027, 10, 4)]
+
+
+def cohort_name(i: int) -> str:
+    return f"AMER FY{27 + i // 4}Q{i % 4 + 1}"
+
+
+def cohort_sheet_names(rng: random.Random, monday: date) -> list[str]:
+    """Six AC day sheet names such as 'AMER Oct 15': three random weekdays in each of two consecutive weeks."""
     days = []
     for week in range(2):
         days += [monday + timedelta(weeks=week, days=d) for d in sorted(rng.sample(range(5), 3))]
@@ -135,15 +145,25 @@ def cohort_sheet_names(rng: random.Random) -> list[str]:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--n", type=int, default=150)
+    ap.add_argument("--n", type=int, default=360, help="candidates across all cohorts")
+    ap.add_argument("--cohorts", type=int, default=3)
     ap.add_argument("--seed", type=int, default=7)
     args = ap.parse_args()
     rng = random.Random(args.seed)
     (OUT / "resumes").mkdir(parents=True, exist_ok=True)
     for old in (OUT / "resumes").glob("*.docx"):
         old.unlink()
+    import shutil
+    for old in OUT.glob("AMER FY*"):
+        shutil.rmtree(old)
+    for old in ("screen_review.xlsx", "assessment_center.xlsx"):
+        (OUT / old).unlink(missing_ok=True)
 
     cands = [make_candidate(i, rng) for i in range(1, args.n + 1)]
+    per = -(-args.n // args.cohorts)
+    for c in cands:
+        c["cohort"] = (c["n"] - 1) // per
+        c["skill"] += 0.5 * c["cohort"]
     screen_rows, ac_rows, truth = [], [], {"planted": __doc__.split("Planted effects")[1].split("Run:")[0].strip(),
                                              "subjective_notes": {}}
 
@@ -190,17 +210,6 @@ def main() -> None:
         row += [rows[st][1] for st in ("Interview", "Role Play", "Presentation")]
         ac_rows.append(row)
 
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "Screen"
-    ws.append(["Person ID", "Full name", "Graduation Date or Expected Graduation Date", "Skills and Technologies",
-               "Home cities", "Recruiter", "TI Date", "Confirmed Yes/No", "Score (Passing Score 21)",
-               "Additional Comments", "Pass/Fail", "Notes (Summary of the TI call)",
-               "Recommended to be Invited to Insight Day Yes/No", "Status"])
-    for r in screen_rows:
-        ws.append(r)
-    wb.save(OUT / "screen_review.xlsx")
-
     head = ["Country", "Candidate Name"]
     for comps, tail in ((INTERVIEW_COMP, "TOTAL - Interview"), (ROLEPLAY_COMP, "TOTAL -  Role Play (weighted to 16)"),
                         (PRESENT_COMP, "TOTAL - Presentation")):
@@ -209,31 +218,51 @@ def main() -> None:
              "Assessor - Interview", "Assessor - Role Play", "Assessor - Presentation"]
     example = ["", "Example 1"] + [4, 4, 4, 4, 16, "Yes", "", 4, 4, 4, 4, 16, "Yes", "", 4, 4, 4, 4, 16, "Yes", "",
                                       48, 1.0, "Hire", "", "", "", ""]
+    cohort_of = {f"candidate{c['n']}": c["cohort"] for c in cands}
 
-    # Two weeks of three assessment center days each: one cohort sheet per day, like the real workbook.
-    cohorts = cohort_sheet_names(rng)
-    wb = openpyxl.Workbook()
-    wb.remove(wb.active)
-    for ci, name in enumerate(cohorts):
-        ws = wb.create_sheet(name)
-        ws["A1"] = "Notes:"
-        ws["B1"] = "Interview; max points is 16. Assessors will score candidates based on the competencies."
-        ws["B2"] = "Role Play; max points is 16. Assessors will score candidates based on the competencies."
-        ws["B3"] = "Presentation; max points is 16. Assessors will score candidates based on the competencies."
-        ws["A5"] = "Total Score = sum of Interview + Role Play + Presentation (max total score is 48)"
-        ws["A6"] = "Overall % = sum of Total Score divided by 48"
-        ws["A7"] = "MS Form"
-        for col, h in enumerate(head, 1):
-            ws.cell(row=9, column=col, value=h)
-        for col, v in enumerate(example, 1):
-            ws.cell(row=10, column=col, value=v)
-        for r, row in enumerate(ac_rows[ci::len(cohorts)], 11):
-            for col, v in enumerate(row, 1):
-                ws.cell(row=r, column=col, value=v)
-    wb.save(OUT / "assessment_center.xlsx")
+    for k in range(args.cohorts):
+        name = cohort_name(k)
+        folder = OUT / name
+        folder.mkdir(parents=True, exist_ok=True)
+        stem = f"FY{27 + k // 4}Q{k % 4 + 1}_AMER_ASE"
+
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Screen"
+        ws.append(["Person ID", "Full name", "Graduation Date or Expected Graduation Date", "Skills and Technologies",
+                   "Home cities", "Recruiter", "TI Date", "Confirmed Yes/No", "Score (Passing Score 21)",
+                   "Additional Comments", "Pass/Fail", "Notes (Summary of the TI call)",
+                   "Recommended to be Invited to Insight Day Yes/No", "Status"])
+        for r in screen_rows:
+            if cohort_of[r[0]] == k:
+                ws.append(r)
+        wb.save(folder / f"{stem}_Candidate_Screen_Review.xlsx")
+
+        # Two weeks of three assessment center days each: one sheet per AC day, like the real workbook.
+        days = cohort_sheet_names(rng, COHORT_STARTS[k])
+        mine = [row for row in ac_rows if cohort_of[row[1]] == k]
+        wb = openpyxl.Workbook()
+        wb.remove(wb.active)
+        for ci, day in enumerate(days):
+            ws = wb.create_sheet(day)
+            ws["A1"] = "Notes:"
+            ws["B1"] = "Interview; max points is 16. Assessors will score candidates based on the competencies."
+            ws["B2"] = "Role Play; max points is 16. Assessors will score candidates based on the competencies."
+            ws["B3"] = "Presentation; max points is 16. Assessors will score candidates based on the competencies."
+            ws["A5"] = "Total Score = sum of Interview + Role Play + Presentation (max total score is 48)"
+            ws["A6"] = "Overall % = sum of Total Score divided by 48"
+            ws["A7"] = "MS Form"
+            for col, h in enumerate(head, 1):
+                ws.cell(row=9, column=col, value=h)
+            for col, v in enumerate(example, 1):
+                ws.cell(row=10, column=col, value=v)
+            for r, row in enumerate(mine[ci::len(days)], 11):
+                for col, v in enumerate(row, 1):
+                    ws.cell(row=r, column=col, value=v)
+        wb.save(folder / f"{stem}_Scores.xlsx")
 
     (OUT / "_truth.json").write_text(json.dumps(truth, indent=2))
-    print(f"wrote {args.n} candidates ({len(ac_rows)} in assessment center) to {OUT}")
+    print(f"wrote {args.n} candidates in {args.cohorts} cohorts ({len(ac_rows)} in assessment center) to {OUT}")
 
 
 if __name__ == "__main__":

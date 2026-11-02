@@ -8,7 +8,7 @@ sys.path.insert(0, str(ROOT / "dashboard"))
 sys.path.insert(0, str(ROOT / "pipeline"))
 import build_dashboard  # noqa: E402
 
-RESULTS = ROOT / "data" / "synthetic" / "processed" / "results"
+RESULTS = ROOT / "data" / "synthetic" / "processed" / "All cohorts" / "results"
 
 
 def test_builds_both_modes_without_network_references(tmp_path):

@@ -1559,8 +1559,8 @@ def run(processed_dir: Path, results_dir: Path) -> None:
 
 if __name__ == "__main__":
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-    from settings import load_settings
+    from settings import load_settings, resolve_target
 
-    out_dir = load_settings()["out_dir"]
-    run(out_dir, out_dir / "results")
-    print(f"wrote {out_dir / 'results'}")
+    target = resolve_target(load_settings()["out_dir"], sys.argv[1] if len(sys.argv) > 1 else None)
+    run(target / "processed", target / "results")
+    print(f"wrote {target / 'results'}")

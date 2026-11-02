@@ -7,7 +7,7 @@ cutoffs, no external models, no free text in any output (top terms and aggregate
 Outcomes are past human decisions, not job performance. Later-stage scores exist only for candidates who passed earlier
 gates and are never imputed.
 
-Run: python hiring-analysis/analysis/text_themes.py   (reads HIRING_OUT_DIR like pipeline/loader.py)
+Run: python hiring-analysis/analysis/text_themes.py [target]   (reads HIRING_OUT_DIR; target defaults to "All cohorts")
 """
 
 from __future__ import annotations
@@ -1440,8 +1440,8 @@ def _clean(o):
 
 if __name__ == "__main__":
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-    from settings import load_settings
+    from settings import load_settings, resolve_target
 
-    out_dir = load_settings()["out_dir"]
-    run(out_dir, out_dir / "results")
-    print(f"wrote {out_dir / 'results'}")
+    target = resolve_target(load_settings()["out_dir"], sys.argv[1] if len(sys.argv) > 1 else None)
+    run(target / "processed", target / "results")
+    print(f"wrote {target / 'results'}")

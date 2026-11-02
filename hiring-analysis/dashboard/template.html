@@ -38,6 +38,7 @@ button:focus-visible,summary:focus-visible,a:focus-visible,textarea:focus-visibl
 .drop.trail{transition-duration:.7s;transition-timing-function:var(--ease)}
 .on .drop{opacity:1}
 .spacer{flex:1}
+.cohortbox[hidden]{display:none}.cohortbox{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--muted)}.cohortbox select{font:inherit;font-weight:600;color:var(--ink);background:var(--chip);border:1px solid var(--cb);border-radius:999px;padding:6px 14px;max-width:190px}
 .mode{font-size:12px;padding:3px 12px;border-radius:999px;background:rgba(251,171,24,.9);color:#3a2800;font-weight:700;white-space:nowrap}
 .mode.share{background:rgba(110,190,74,.92);color:#10300a}
 .chipnote{font-size:12px;color:var(--muted);white-space:nowrap}
@@ -130,6 +131,7 @@ html[data-vt=rise]::view-transition-old(view),html[data-vt=rise]::view-transitio
   <div class="brand"><svg viewBox="0 0 216 114" role="img" aria-label="Cisco"><use href="#cisco"/></svg><i></i><h1>Hiring themes and trends</h1></div>
   <nav class="pill" id="topnav" role="tablist" aria-label="Main pages"><div class="goo"><span class="drop lead"></span><span class="drop trail"></span></div></nav>
   <span class="spacer"></span>
+  <label class="cohortbox" id="cohortbox" hidden><span>Cohort</span><select id="cohortsel" aria-label="Cohort"></select></label>
   <span id="mode" class="mode"></span><span class="chipnote" id="gen"></span>
   <button class="gear" id="gear" aria-expanded="false" aria-controls="lab">Appearance</button>
 </header>
@@ -152,6 +154,7 @@ html[data-vt=rise]::view-transition-old(view),html[data-vt=rise]::view-transitio
 const P = JSON.parse(document.getElementById('payload').textContent);
 const SECTIONS = [
  ["overview","Overview","The strongest findings from every section, in one place."],
+ ["cohorts","Cohort trends","How hiring cycles (cohorts) compare: how many reach each stage, how scores are spread, how decisions are split, and which reviewers worked in more than one cohort."],
  ["funnel","Funnel","How many candidates make it through each stage, and whether scores line up with who moved forward."],
  ["structure","Score structure","How the scores relate to each other. Do the exercises measure the same thing? Who scored very differently across them? Do final decisions match the scores?"],
  ["resume_themes","Resume themes","Groups resumes by common themes, then checks whether any theme goes with who advanced or how they scored. Also a bias check."],
@@ -171,6 +174,8 @@ const nice = (lo,hi) => { if(lo===hi){hi=lo+1} const span=hi-lo, step=Math.pow(1
 
 const G = [
  {c:'Stages and components',k:'TI',re:/\bTI\b/,d:'Technical interview. The screening-stage call a recruiter holds before the assessment center. It produces a score (the sheet\'s passing score is 21, but this analysis never uses it as a cutoff) plus Pass/Fail, notes and an invitation decision.'},
+ {c:'Stages and components',k:'Cohort',re:/\bcohorts?\b/i,d:'One hiring cycle, named like AMER FY27Q1 (region, fiscal year and quarter). Each cohort has its own screening and scores workbooks. The cohort switcher at the top moves between cohorts and the combined view.'},
+ {c:'Stages and components',k:'AC day',re:/\bAC days?\b/,d:'One day of assessment center interviews. In the scores workbook each AC day is its own sheet, named like AMER Oct 15. A cohort usually has several.'},
  {c:'Stages and components',k:'AC',re:/\bAC\b/,d:'Assessment center. The second stage, made up of three exercises: Interview, Role Play and Presentation. Only people invited after the TI take part.'},
  {c:'Stages and components',k:'Interview (exercise)',re:/\bInterview\b/,d:'First assessment center exercise. Four competencies scored 1 to 4 (maximum 16): Growth Mindset, Resilience and Learning Agility; Executive Presence and Communication; Collaboration and Teamwork; Business Acumen and Technical Insights.'},
  {c:'Stages and components',k:'Role Play',re:/\bRole Play\b/,d:'Second exercise. Four competencies scored 1 to 4 (maximum 16): Builds Trust / Trusted Advisor; Executive Presence and Communication; Coachability; Explains Concepts Simply.'},
@@ -301,6 +306,11 @@ const CHART_DESC={
 'drift-hbar':'Whether a reviewer scored higher or lower as the process went on. Lines show the uncertainty.',
 'drift-table':'The numbers behind the drift chart for each reviewer and exercise.',
 'drift-line':'The average reviewer deviation early, middle and late in the process.',
+'cohort-funnel':'For each cohort, the share of its candidates who got to each stage, so cohorts of different sizes can be compared fairly.',
+'cohort-scores':'The spread of assessment center total scores for each cohort. The box is the middle half of attendees and the line is the typical score.',
+'cohort-decisions':'For each cohort, how attendees were split between Hire, Standby and No Hire.',
+'cohort-summary':'The headline counts for every cohort, side by side.',
+'cohort-reviewers':'How many candidates each assessment center reviewer scored in each cohort. Reviewers who appear in several cohorts are what let us follow them over time.',
 'notes-consistency-table':'For each reviewer, how often the tone of their notes agrees with the score they gave.',
 'notes-consistency-hbar':'The same agreement rates as a bar chart. Lower bars mean notes and scores disagree more often.',
 'notes-mismatches':'How many notes read very differently from the score. Details are hidden in the shareable copy.',
@@ -389,6 +399,11 @@ const CHART_TITLE={
 'drift-hbar':'Did reviewers get stricter or more generous over time?',
 'drift-table':'Change over time: all numbers',
 'drift-line':'Reviewer scoring early, middle and late',
+'cohort-funnel':'How far candidates get, cohort by cohort',
+'cohort-scores':'Assessment center scores, cohort by cohort',
+'cohort-decisions':'Final decisions, cohort by cohort',
+'cohort-summary':'Cohorts side by side: all numbers',
+'cohort-reviewers':'Which reviewers scored in which cohort',
 'notes-consistency-table':'Do each reviewer\'s notes match their scores?',
 'notes-consistency-hbar':'How often each reviewer\'s notes match their scores',
 'notes-mismatches':'Notes that do not match the score',
@@ -599,6 +614,7 @@ function render(id){
       el('p',{},'Past decisions, not job performance. Who advanced or was hired is what people decided, not proof of who would do the job well. Use patterns here to start a conversation, not to reject anyone.'),
       el('p',{},'Later stages only include people who got that far, so comparisons there cover a narrower group. Missing scores are never filled in.'),
       el('p',{},'Fields that can stand in for protected traits (graduation date, home city, school, skills tags) are checked for bias and are not used as selection signals. Country, salutation and any buddy field are excluded entirely.'),
+      P.cohorts?el('p',{},'You are looking at '+P.cohorts.current+(P.cohorts.current==='All cohorts'?', which pools every cohort. Interviewer results here follow the same reviewer across cohorts.':'. Use the Cohort switcher at the top to move to another cohort or to the pooled view.')):'',
       el('p',{},P.mode==='shareable'?'This copy is aggregate-only: groups under 5 are hidden and no candidate IDs appear.':'This copy is local: it includes candidate IDs. Do not share or host it.')));
     m.append(el('div',{class:'card'},el('h2',{},'How sure are we?'),el('p',{class:'intro'},'Every finding carries one of three labels. They describe how much to trust the finding, not how important it is.'),
       el('dl',{class:'gl'},...Object.entries(CONF).flatMap(([k,[n,d]])=>[el('dt',{},badge(k)),el('dd',{},d)]))));
@@ -618,14 +634,16 @@ function render(id){
   const g=el('div',{class:'grid'}); s.charts.filter(c=>c.type!=='table').forEach(c=>g.append(chart(c))); m.append(g);
   s.charts.filter(c=>c.type==='table').forEach(c=>m.append(chart(c)));
 }
+if(P.cohorts){ const sel=document.getElementById('cohortsel'); P.cohorts.options.forEach(o=>sel.append(el('option',{value:o.href},o.name))); sel.value=P.cohorts.options.find(o=>o.name===P.cohorts.current).href; sel.onchange=()=>{ location.href=sel.value+location.hash; }; document.getElementById('cohortbox').hidden=false; }
 document.getElementById('mode').textContent = P.mode==='shareable' ? 'Shareable: aggregates only' : 'Local: candidate-level';
 document.getElementById('mode').classList.toggle('share',P.mode==='shareable');
 document.getElementById('gen').textContent = 'Built '+P.built;
 if (/github\.io$/i.test(location.hostname)) { const b=el('span',{class:'mode',style:'background:#ff9aa2'},'Public demo: synthetic data only'); document.getElementById('gear').before(b); }
-const TOP=['overview','about','glossary','ask'], RAIL=['funnel','structure','resume_themes','notes_themes','interviewers'];
+const TOP=['overview','about','glossary','ask'], RAIL=['funnel','structure','resume_themes','notes_themes','interviewers'].concat(P.sections.cohorts?['cohorts']:[]);
 const $=s=>document.querySelector(s), root=document.documentElement, body=document.body, main=$('#main');
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
-const labelOf=id=>SECTIONS.find(x=>x[0]===id)[1], valid=id=>SECTIONS.some(x=>x[0]===id);
+const ANALYSIS=new Set(['cohorts','funnel','structure','resume_themes','notes_themes','interviewers']);
+const labelOf=id=>SECTIONS.find(x=>x[0]===id)[1], valid=id=>SECTIONS.some(x=>x[0]===id)&&(!ANALYSIS.has(id)||!!P.sections[id]);
 let prefs={theme:'light',motion:'glide'}; try{ Object.assign(prefs,JSON.parse(localStorage.getItem('hiring-ui')||'{}')); }catch(e){}
 const savePrefs=()=>{ try{ localStorage.setItem('hiring-ui',JSON.stringify(prefs)); }catch(e){} };
 let current=null, last={x:innerWidth/2,y:innerHeight/2};

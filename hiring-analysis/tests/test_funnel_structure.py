@@ -15,14 +15,14 @@ sys.path.insert(0, str(ROOT / "analysis"))
 import funnel_structure as fs  # noqa: E402
 from schema import validate  # noqa: E402
 
-PROCESSED = ROOT / "data" / "synthetic" / "processed"
+PROCESSED = ROOT / "data" / "synthetic" / "processed" / "All cohorts" / "processed"
 TRUTH = ROOT / "data" / "synthetic" / "_truth.json"
 SECTIONS = ("funnel", "structure")
 
 
 def ensure_data() -> None:
     if not (PROCESSED / "candidates.csv").exists():
-        if not (ROOT / "data" / "synthetic" / "assessment_center.xlsx").exists():
+        if not (ROOT / "data" / "synthetic" / "_truth.json").exists():
             subprocess.run([sys.executable, str(ROOT / "synthetic" / "make_synthetic.py")], check=True)
         subprocess.run([sys.executable, str(ROOT / "pipeline" / "loader.py")], check=True)
 

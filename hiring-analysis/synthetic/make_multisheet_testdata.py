@@ -6,7 +6,7 @@ center day. Two weeks of three AC days each gives six sheets named like `AMER Oc
 workbook stays a single sheet.
 
 Outputs (hiring-analysis/testdata/, tracked because it holds only fake names):
-  FY27Q3_AMER_ASE_Scores_TEST_DATA.xlsx          6 cohort sheets, source layout minus the Salutation column
+  FY27Q3_AMER_ASE_Scores_TEST_DATA.xlsx          6 AC day sheets, source layout minus the Salutation column
   ASE_Candidate_Screen_Review_TEST_DATA.xlsx     1 sheet, columns as in the real screening workbook
 
 Run: python hiring-analysis/synthetic/make_multisheet_testdata.py --source path/to/FY27Q3_AMER_ASE_Scores_TEST_DATA.xlsx
@@ -28,7 +28,7 @@ OUT = Path(__file__).resolve().parents[1] / "testdata"
 HEADER_ROW, FIRST_ROW = 9, 11
 
 
-def cohort_sheet_names(rng: random.Random, first_monday: date, region: str = "AMER") -> list[str]:
+def ac_day_sheet_names(rng: random.Random, first_monday: date, region: str = "AMER") -> list[str]:
     days = []
     for week in range(2):
         monday = first_monday + timedelta(weeks=week)
@@ -143,7 +143,7 @@ def main() -> None:
     rng = random.Random(a.seed)
     OUT.mkdir(exist_ok=True)
 
-    sheets = cohort_sheet_names(rng, date.fromisoformat(a.first_monday))
+    sheets = ac_day_sheet_names(rng, date.fromisoformat(a.first_monday))
     scores_out = OUT / "FY27Q3_AMER_ASE_Scores_TEST_DATA.xlsx"
     counts = build_scores(a.source, sheets, scores_out)
 
