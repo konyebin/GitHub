@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hiring themes and trends</title>
+<style>
+:root{--r:24px;--font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--ease:cubic-bezier(.22,1,.36,1);--spring:cubic-bezier(.34,1.56,.64,1);--robust:#1f7a4d;--suggestive:#b7791f;--weak:#6b7686;--cisco:#049fd9}
+body[data-theme=light]{--bg:#e8f3fa;--ink:#0d274d;--ink2:#2a4262;--muted:#4b6079;--card:rgba(255,255,255,.7);--cb:rgba(255,255,255,.92);--line:rgba(13,39,77,.13);--shadow:0 10px 36px rgba(13,60,110,.13);--accent:#0b6fa4;--a1:#049fd9;--a2:#00bceb;--a3:#0a5a8f;--chip:rgba(255,255,255,.62);--chip2:rgba(4,159,217,.08);--drop:linear-gradient(135deg,#087fb5,#049fd9);--dropink:#fff;--warn:rgba(251,171,24,.16);--warnb:rgba(251,171,24,.5);--logo:#049fd9;--orb:.7}
+body[data-theme=dark]{--bg:#07142b;--ink:#eaf6fc;--ink2:#c4dcea;--muted:#93b0c4;--card:rgba(13,39,77,.62);--cb:rgba(4,159,217,.26);--line:rgba(160,205,230,.18);--shadow:0 14px 44px rgba(0,0,0,.45);--accent:#4cc3ee;--a1:#049fd9;--a2:#00bceb;--a3:#1b5fa8;--chip:rgba(13,39,77,.7);--chip2:rgba(4,159,217,.14);--drop:linear-gradient(135deg,#049fd9,#00bceb);--dropink:#04202f;--warn:rgba(251,171,24,.14);--warnb:rgba(251,171,24,.4);--logo:#fff;--orb:.38}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font:14px/1.5 var(--font);color:var(--ink);background:var(--bg);overflow-x:hidden;transition:background .6s var(--ease),color .4s}
+a{color:var(--accent)}button{font:inherit;color:inherit;cursor:pointer}
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.orb{position:absolute;border-radius:50%;filter:blur(70px);opacity:var(--orb);will-change:transform;animation:drift 24s ease-in-out infinite alternate}
+.o1{width:46vw;height:46vw;left:-10vw;top:-12vw;background:var(--a1)}
+.o2{width:36vw;height:36vw;right:-8vw;top:8vh;background:var(--a2);animation-duration:30s;animation-delay:-6s}
+.o3{width:44vw;height:44vw;left:25vw;bottom:-24vw;background:var(--a3);animation-duration:26s;animation-delay:-11s}
+.o4{width:24vw;height:24vw;right:18vw;bottom:10vh;background:var(--a1);opacity:.3;animation-duration:20s}
+@keyframes drift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(6vw,4vh) scale(1.12)}100%{transform:translate(-4vw,8vh) scale(.94)}}
+.waves{position:absolute;left:0;right:0;bottom:0;height:30vh;opacity:.9}
+.waves svg{position:absolute;left:0;bottom:0;width:200%;height:100%}
+.waves .w1{animation:wave 18s linear infinite}.waves .w2{animation:wave 28s linear infinite reverse;opacity:.7}
+@keyframes wave{to{transform:translateX(-50%)}}
+body[data-theme=light] .waves path{fill:#049fd9}
+.top{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:18px;padding:12px 28px;backdrop-filter:blur(22px) saturate(1.5);background:linear-gradient(var(--card),transparent)}
+.brand{display:flex;align-items:center;gap:12px;white-space:nowrap}
+.brand svg{width:64px;height:34px;fill:var(--logo);flex:none;transition:fill .4s}
+.brand i{width:1px;height:26px;background:var(--line)}
+.brand h1{font-size:16px;margin:0;font-weight:700;letter-spacing:-.01em}
+.pill{position:relative;display:flex;padding:6px;border-radius:999px;background:var(--chip);border:1px solid var(--cb);backdrop-filter:blur(14px);box-shadow:var(--shadow)}
+.pill button{position:relative;z-index:2;background:none;border:0;padding:8px 18px;border-radius:999px;font-weight:600;color:var(--muted);white-space:nowrap;transition:color .3s}
+.pill button[aria-selected=true],.pill button[aria-selected=true]:hover{color:var(--dropink)}
+.pill button:hover{color:var(--ink)}
+button:focus-visible,summary:focus-visible,a:focus-visible,textarea:focus-visible{outline:2px solid var(--a1);outline-offset:2px}
+.goo{position:absolute;inset:6px;z-index:1;filter:url(#goo);pointer-events:none}
+.drop{position:absolute;background:var(--drop);border-radius:999px;opacity:0;transition:left .38s var(--spring),top .38s var(--spring),width .38s var(--spring),height .38s var(--spring),opacity .3s}
+.drop.trail{transition-duration:.7s;transition-timing-function:var(--ease)}
+.on .drop{opacity:1}
+.spacer{flex:1}
+.cohortbox[hidden]{display:none}.cohortbox{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--muted)}.cohortbox select{font:inherit;font-weight:600;color:var(--ink);background:var(--chip);border:1px solid var(--cb);border-radius:999px;padding:6px 14px;max-width:190px}
+.mode{font-size:12px;padding:3px 12px;border-radius:999px;background:rgba(251,171,24,.9);color:#3a2800;font-weight:700;white-space:nowrap}
+.mode.share{background:rgba(110,190,74,.92);color:#10300a}
+.chipnote{font-size:12px;color:var(--muted);white-space:nowrap}
+.gear{border:1px solid var(--cb);background:var(--chip);border-radius:999px;padding:6px 14px;font-size:13px;font-weight:600}
+.gear:hover{background:var(--chip2)}
+.layout{position:relative;z-index:5;display:grid;grid-template-columns:240px minmax(0,1fr);gap:26px;max-width:1320px;margin:0 auto;padding:10px 28px 90px}
+.rail{min-width:0;position:sticky;top:84px;align-self:start}
+.rail h4{margin:6px 14px 10px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.vpill{flex-direction:column;border-radius:22px;padding:8px}
+.vpill button{text-align:left;padding:12px 16px;border-radius:16px;display:flex;align-items:center;gap:12px}
+.vpill .goo{inset:8px}.vpill .drop{border-radius:16px}
+.ico{width:22px;height:22px;flex:none;display:grid;place-items:center;border-radius:50%;font-size:11px;font-weight:800;background:var(--chip2);border:1px solid var(--line)}
+.vpill button[aria-selected=true] .ico{background:rgba(255,255,255,.3);border-color:transparent}
+main{min-width:0;view-transition-name:view;min-height:70vh}
+.banner{background:var(--warn);border:1px solid var(--warnb);border-radius:16px;padding:10px 16px;margin-bottom:18px;font-size:13px}
+.card{position:relative;background:var(--card);border:1px solid var(--cb);border-radius:var(--r);backdrop-filter:blur(14px) saturate(1.4);box-shadow:var(--shadow);padding:18px 22px;margin-bottom:18px;overflow:hidden;transition:transform .5s var(--ease),box-shadow .5s}
+.card::before{content:"";position:absolute;inset:0;background:radial-gradient(420px circle at var(--mx,50%) var(--my,-40%),rgba(4,159,217,.12),transparent 60%);opacity:0;transition:opacity .4s;pointer-events:none}
+.card:hover::before{opacity:1}
+.card h2{margin:0 0 4px;font-size:17px;letter-spacing:-.015em}.card .sub{color:var(--muted);font-size:12px;margin-bottom:10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(440px,1fr));gap:18px;margin-bottom:18px}
+.grid .card{margin-bottom:0}
+.finding{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--line)}.finding:first-child{border-top:0}
+.badge{flex:none;white-space:nowrap;min-width:116px;text-align:center;height:22px;font-size:11px;font-weight:700;color:#fff;border-radius:999px;padding:0 11px;line-height:22px;margin-top:1px}
+.badge.robust{background:var(--robust)}.badge.suggestive{background:var(--suggestive)}.badge.weak{background:var(--weak)}
+.finding .plain{font-size:15px;line-height:1.5}.finding details.tech{margin-top:4px}
+.finding details.tech summary,.techname summary{font-size:12px;color:var(--muted)}
+.finding .ev{color:var(--muted);font-size:12px;margin-top:2px}
+.ask .q{font-weight:700;margin-bottom:6px}.ask .ans{font-size:15px;line-height:1.5}
+.badge-ai{display:inline-block;background:#0d274d;color:#fff;border-radius:999px;font-size:11px;font-weight:700;padding:2px 11px;margin-bottom:4px}
+body[data-theme=dark] .badge-ai{background:#049fd9;color:#04202f}.badge-ai.plain,body[data-theme=dark] .badge-ai.plain{background:var(--weak);color:#fff}
+.srcs{margin-top:10px;border-top:1px solid var(--line);padding-top:8px}.srcs>b{font-size:12px;color:var(--muted)}
+textarea{width:100%;font:inherit;padding:12px 16px;border:1px solid var(--cb);border-radius:18px;background:var(--chip);color:var(--ink);resize:vertical}
+.askbar{margin:8px 0}.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--cb);background:var(--chip);border-radius:999px;padding:6px 14px;font-size:12.5px;transition:transform .4s var(--spring)}
+.chip:hover{transform:translateY(-2px) scale(1.03);background:var(--chip2)}
+button.primary{background:var(--drop);color:var(--dropink);border:0;border-radius:999px;padding:9px 26px;font-weight:700}button.primary:disabled{opacity:.6}
+table{border-collapse:collapse;width:100%;font-size:12px}th,td{border-bottom:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+th{background:var(--chip2);position:sticky;top:0;backdrop-filter:blur(8px)}.tbl{max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:14px}
+details>summary{cursor:pointer;color:var(--accent);margin:6px 0}
+ul.cav{margin:6px 0 0 18px;padding:0;color:var(--muted)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:4px 0}.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px}
+svg text{font:11px system-ui,sans-serif;fill:var(--ink2)}
+.small{font-size:12px;color:var(--muted)}.intro{margin:2px 0 10px;color:var(--ink2)}
+.tour{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin-top:8px}
+.tour a{display:block;border:1px solid var(--cb);border-radius:18px;padding:12px 16px;color:inherit;text-decoration:none;background:var(--chip);transition:transform .5s var(--spring)}
+.tour a:hover{transform:translateY(-4px) scale(1.015);border-color:var(--a1)}.tour b{display:block;color:var(--accent)}
+abbr.g{text-decoration:underline dotted var(--muted);cursor:help}
+.hint{font-size:12px;color:var(--muted);background:var(--chip2);border-radius:12px;padding:7px 12px;margin:8px 0 0}
+.gl dt{font-weight:700;margin-top:10px}.gl dd{margin:2px 0 0 0;color:var(--ink2)}
+.terms{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.terms span{background:var(--chip2);border-radius:999px;padding:2px 10px;font-size:12px}
+.pipe{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch;margin:8px 0}
+.pipe div{flex:1;min-width:150px;background:var(--chip);border:1px solid var(--cb);border-radius:16px;padding:10px 12px;font-size:12px}.pipe b{display:block;font-size:13px;margin-bottom:2px}
+.lab{position:fixed;z-index:60;right:18px;top:70px;width:min(310px,calc(100vw - 36px));padding:16px;border-radius:22px;background:var(--card);border:1px solid var(--cb);backdrop-filter:blur(24px) saturate(1.6);box-shadow:var(--shadow)}
+.lab[hidden]{display:none}.lab h5{margin:0 0 8px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.seg{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.seg button{flex:1;border:1px solid var(--cb);background:var(--chip);border-radius:14px;padding:8px 8px;font-size:13px;font-weight:600;transition:transform .35s var(--spring)}
+.seg button[aria-pressed=true]{background:var(--drop);color:var(--dropink);border-color:transparent}.seg button:hover{transform:translateY(-2px)}
+.lab p{margin:0;font-size:12px;color:var(--muted)}
+::view-transition-group(root){animation-duration:.8s}
+html[data-vt=glide]::view-transition-old(root),html[data-vt=glide]::view-transition-new(root),html[data-vt=rise]::view-transition-old(root),html[data-vt=rise]::view-transition-new(root){animation:none;mix-blend-mode:normal}
+html[data-vt=glide]::view-transition-old(view){animation:vout .32s var(--ease) both}
+html[data-vt=glide]::view-transition-new(view){animation:vin .62s var(--ease) both}
+@keyframes vout{to{opacity:0;transform:translateX(-36px) scale(.985);filter:blur(8px)}}
+@keyframes vin{from{opacity:0;transform:translateX(44px) scale(.985);filter:blur(10px)}}
+html[data-vt=liquid]::view-transition-old(root){animation:none;mix-blend-mode:normal}
+html[data-vt=liquid]::view-transition-new(root){animation:reveal .95s cubic-bezier(.65,0,.2,1) both;mix-blend-mode:normal}
+html[data-vt=liquid] main{view-transition-name:none}
+@keyframes reveal{from{clip-path:circle(0 at var(--vx,50%) var(--vy,50%))}to{clip-path:circle(150% at var(--vx,50%) var(--vy,50%))}}
+html[data-vt=rise]::view-transition-old(view),html[data-vt=rise]::view-transition-new(view){animation:none}
+.rise>*{animation:rise .8s var(--ease) both;animation-delay:calc(var(--k,0)*80ms)}
+@keyframes rise{from{opacity:0;transform:translateY(30px) scale(.97);filter:blur(6px)}}
+.fb-in{animation:vin .6s var(--ease) both}
+@media(max-width:900px){.layout{grid-template-columns:minmax(0,1fr);padding:6px 14px 80px}.rail{position:static}.vpill{flex-direction:row;overflow-x:auto;border-radius:999px}.vpill button{white-space:nowrap}.rail h4{display:none}.top{flex-wrap:wrap;padding:10px 14px;gap:10px}.spacer,.chipnote{display:none}.pill{overflow-x:auto;max-width:100%}.grid{grid-template-columns:minmax(0,1fr)}.brand h1{font-size:14px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+@media print{.bg,.top,.rail,.lab{display:none}.layout{display:block}.card{backdrop-filter:none;box-shadow:none}}
+</style>
+</head>
+<body data-theme="light">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<filter id="goo"><feGaussianBlur in="SourceGraphic" stdDeviation="7" result="b"/><feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9"/></filter>
+<symbol id="cisco" viewBox="0 0 216 114"><path d="m 106.48,76.238 c -0.282,-0.077 -4.621,-1.196 -9.232,-1.196 -8.73,0 -13.986,4.714 -13.986,11.734 0,6.214 4.397,9.313 9.674,10.98 0.585,0.193 1.447,0.463 2.021,0.653 2.349,0.739 4.224,1.837 4.224,3.739 0,2.127 -2.167,3.504 -6.878,3.504 -4.14,0 -8.109,-1.184 -8.945,-1.395 v 8.637 c 0.466,0.099 5.183,1.025 10.222,1.025 7.248,0 15.539,-3.167 15.539,-12.595 0,-4.573 -2.8,-8.783 -8.947,-10.737 L 97.559,89.755 C 96,89.263 93.217,88.466 93.217,86.181 c 0,-1.805 2.062,-3.076 5.859,-3.076 3.276,0 7.263,1.101 7.404,1.145 z m 80.041,18.243 c 0,5.461 -4.183,9.879 -9.796,9.879 -5.619,0 -9.791,-4.418 -9.791,-9.879 0,-5.45 4.172,-9.87 9.791,-9.87 5.613,0 9.796,4.42 9.796,9.87 m -9.796,-19.427 c -11.544,0 -19.823,8.707 -19.823,19.427 0,10.737 8.279,19.438 19.823,19.438 11.543,0 19.834,-8.701 19.834,-19.438 0,-10.72 -8.291,-19.427 -19.834,-19.427 M 70.561,113.251 H 61.089 V 75.719 h 9.472"/><path id="cisco-c" d="m 48.07,76.399 c -0.89,-0.264 -4.18,-1.345 -8.636,-1.345 -11.526,0 -19.987,8.218 -19.987,19.427 0,12.093 9.34,19.438 19.987,19.438 4.23,0 7.459,-1.002 8.636,-1.336 v -10.075 c -0.407,0.226 -3.503,1.992 -7.957,1.992 -6.31,0 -10.38,-4.441 -10.38,-10.019 0,-5.748 4.246,-10.011 10.38,-10.011 4.53,0 7.576,1.805 7.957,2.004"/><use href="#cisco-c" transform="translate(98.86)"/><g id="cisco-bars"><path id="cisco-b" d="m 61.061,4.759 c 0,-2.587 -2.113,-4.685 -4.703,-4.685 -2.589,0 -4.702,2.098 -4.702,4.685 v 49.84 c 0,2.602 2.113,4.699 4.702,4.699 2.59,0 4.703,-2.097 4.703,-4.699 z M 35.232,22.451 c 0,-2.586 -2.112,-4.687 -4.702,-4.687 -2.59,0 -4.702,2.101 -4.702,4.687 v 22.785 c 0,2.601 2.112,4.699 4.702,4.699 2.59,0 4.702,-2.098 4.702,-4.699 z M 9.404,35.383 C 9.404,32.796 7.292,30.699 4.702,30.699 2.115,30.699 0,32.796 0,35.383 v 9.853 c 0,2.601 2.115,4.699 4.702,4.699 2.59,0 4.702,-2.098 4.702,-4.699"/><use href="#cisco-b" transform="matrix(-1,0,0,1,112.717,0)"/></g><use href="#cisco-bars" transform="matrix(-1,0,0,1,216,0)"/></symbol></defs></svg>
+<div class="bg" aria-hidden="true">
+  <span class="orb o1"></span><span class="orb o2"></span><span class="orb o3"></span><span class="orb o4"></span>
+  <div class="waves">
+    <svg class="w2" viewBox="0 0 2880 300" preserveAspectRatio="none"><path fill="#00bceb" fill-opacity=".14" d="M0 190 Q360 110 720 190 T1440 190 T2160 190 T2880 190 V300 H0Z"/></svg>
+    <svg class="w1" viewBox="0 0 2880 300" preserveAspectRatio="none"><path fill="#049fd9" fill-opacity=".18" d="M0 225 Q360 160 720 225 T1440 225 T2160 225 T2880 225 V300 H0Z"/></svg>
+  </div>
+</div>
+<header class="top">
+  <div class="brand"><svg viewBox="0 0 216 114" role="img" aria-label="Cisco"><use href="#cisco"/></svg><i></i><h1>Hiring themes and trends</h1></div>
+  <nav class="pill" id="topnav" role="tablist" aria-label="Main pages"><div class="goo"><span class="drop lead"></span><span class="drop trail"></span></div></nav>
+  <span class="spacer"></span>
+  <label class="cohortbox" id="cohortbox" hidden><span>Cohort</span><select id="cohortsel" aria-label="Cohort"></select></label>
+  <span id="mode" class="mode"></span><span class="chipnote" id="gen"></span>
+  <button class="gear" id="gear" aria-expanded="false" aria-controls="lab">Appearance</button>
+</header>
+<aside class="lab" id="lab" hidden aria-label="Appearance">
+  <h5>Theme</h5>
+  <div class="seg" id="themes"><button data-v="light">Light</button><button data-v="dark">Dark</button></div>
+  <h5>Page transition</h5>
+  <div class="seg" id="motions"><button data-v="glide">Glide</button><button data-v="liquid">Liquid reveal</button><button data-v="rise">Rise</button><button data-v="off">None</button></div>
+  <p>Saved in this browser only.</p>
+</aside>
+<div class="layout">
+  <aside class="rail">
+    <h4>Analysis</h4>
+    <nav class="pill vpill" id="rail" role="tablist" aria-orientation="vertical" aria-label="Analysis sections"><div class="goo"><span class="drop lead"></span><span class="drop trail"></span></div></nav>
+  </aside>
+  <main id="main" aria-live="polite"></main>
+</div>
+<script id="payload" type="application/json">__PAYLOAD__</script>
+<script>
+const P = JSON.parse(document.getElementById('payload').textContent);
+const SECTIONS = [
+ ["overview","Overview","The strongest findings from every section, in one place."],
+ ["cohorts","Cohort trends","How hiring cycles (cohorts) compare: how many reach each stage, how scores are spread, how decisions are split, and which reviewers worked in more than one cohort."],
+ ["funnel","Funnel","How many candidates make it through each stage, and whether scores line up with who moved forward."],
+ ["structure","Score structure","How the scores relate to each other. Do the exercises measure the same thing? Who scored very differently across them? Do final decisions match the scores?"],
+ ["resume_themes","Resume themes","Groups resumes by common themes, then checks whether any theme goes with who advanced or how they scored. Also a bias check."],
+ ["notes_themes","Notes themes","What reviewers wrote. Which words and themes go with higher or lower scores, and does the tone of a note match the score given?"],
+ ["interviewers","Interviewer trends","How reviewers compare. Do some score higher or lower than other scores would predict, or write in a different style? These are flags to review, not verdicts on people."],
+ ["about","How to read this","How findings are rated and what this analysis can and cannot tell you."],
+ ["glossary","Legend and glossary","Plain-language meanings for every term and abbreviation used here."],
+ ["ask","Ask the data","Type a question about the data and get an answer drawn from the findings above, with links to the evidence."]];
+const COLORS = ["#049fd9","#fbab18","#6ebe4a","#0a5a8f","#cf2030","#00bceb","#7a8aa0","#0d274d"];
+const el = (t, a={}, ...k) => { const e=document.createElement(t); for (const [x,y] of Object.entries(a)) { if (x==='class') e.className=y; else if (x==='html') e.innerHTML=y; else e.setAttribute(x,y); } k.flat().forEach(c=>e.append(c&&c.nodeType?c:document.createTextNode(c??''))); return e; };
+const NS = 'http://www.w3.org/2000/svg';
+const sv = (t, a={}, ...k) => { const e=document.createElementNS(NS,t); for (const [x,y] of Object.entries(a)) e.setAttribute(x,y); k.flat().forEach(c=>e.append(c&&c.nodeType?c:document.createTextNode(c))); return e; };
+const fmt = v => v===null||v===undefined ? 'suppressed' : (typeof v==='number' ? (Math.abs(v)>=100? Math.round(v).toString() : (Math.round(v*1000)/1000).toString()) : String(v));
+const num = v => typeof v==='number' && isFinite(v);
+const nice = (lo,hi) => { if(lo===hi){hi=lo+1} const span=hi-lo, step=Math.pow(10,Math.floor(Math.log10(span/5))); const m=[1,2,5,10].find(x=>span/(step*x)<=6)*step; const a=Math.floor(lo/m)*m, b=Math.ceil(hi/m)*m; const t=[]; for(let v=a; v<=b+m/1000; v+=m) t.push(+v.toPrecision(10)); return [a,b,t]; };
+
+
+const G = [
+ {c:'Stages and components',k:'TI',re:/\bTI\b/,d:'Technical interview. The screening-stage call a recruiter holds before the assessment center. It produces a score (the sheet\'s passing score is 21, but this analysis never uses it as a cutoff) plus Pass/Fail, notes and an invitation decision.'},
+ {c:'Stages and components',k:'Cohort',re:/\bcohorts?\b/i,d:'One hiring cycle, named like AMER FY27Q1 (region, fiscal year and quarter). Each cohort has its own screening and scores workbooks. The cohort switcher at the top moves between cohorts and the combined view.'},
+ {c:'Stages and components',k:'AC day',re:/\bAC days?\b/,d:'One day of assessment center interviews. In the scores workbook each AC day is its own sheet, named like AMER Oct 15. A cohort usually has several.'},
+ {c:'Stages and components',k:'AC',re:/\bAC\b/,d:'Assessment center. The second stage, made up of three exercises: Interview, Role Play and Presentation. Only people invited after the TI take part.'},
+ {c:'Stages and components',k:'Interview (exercise)',re:/\bInterview\b/,d:'First assessment center exercise. Four competencies scored 1 to 4 (maximum 16): Growth Mindset, Resilience and Learning Agility; Executive Presence and Communication; Collaboration and Teamwork; Business Acumen and Technical Insights.'},
+ {c:'Stages and components',k:'Role Play',re:/\bRole Play\b/,d:'Second exercise. Four competencies scored 1 to 4 (maximum 16): Builds Trust / Trusted Advisor; Executive Presence and Communication; Coachability; Explains Concepts Simply.'},
+ {c:'Stages and components',k:'Presentation',re:/\bPresentation\b/,d:'Third exercise. Four competencies scored 1 to 4 (maximum 16): AI Fluency and Orchestration; Executive Presence and Communication; Coachability; Goes Deep (Technical Acumen).'},
+ {c:'Stages and components',k:'RP / Pres / Int',re:/\b(?:RP|Pres|Int)\b/,d:'Short labels for Role Play, Presentation and Interview in chart labels.'},
+ {c:'Stages and components',k:'Total score (AC)',re:/\bAC total\b/,d:'Sum of the three exercise totals, out of 48. Turned into a within-group percentile rank for analysis.'},
+ {c:'Stages and components',k:'Decision (Hire / Standby / No Hire)',re:/\b(?:Standby|No Hire)\b/,d:'The final decision recorded after the assessment center. Recorded live by people, so it is a past human decision, not a measure of job performance.'},
+ {c:'Stages and components',k:'Recruiter / Assessor',re:/\b(?:Recruiter|Assessor) \d\b/,d:'Redacted reviewer labels. Recruiters run the TI. Assessors score the three exercises. One reviewer scores each candidate per exercise.'},
+ {c:'Stages and components',k:'Proxy-risk fields',re:/\bproxy[- ](?:risk )?(?:fields?|check|line)s?\b/i,d:'Fields that can stand in for protected traits, such as graduation date, home city, school and skills tags. They are checked for bias, never used as selection signals.'},
+ {c:'Reading the numbers',k:'Percentile rank',re:/\bpercentile(?: rank)?s?\b/i,d:'A candidate\'s position within their group, from 0 (lowest) to 100 (highest). Using ranks means no hand-picked pass mark decides who counts as good.'},
+ {c:'Reading the numbers',k:'n',re:/\bn=\d+/,d:'Number of candidates (or notes) behind an estimate. Small n means wide uncertainty.'},
+ {c:'Reading the numbers',k:'Range-restricted',re:/\brange-restricted\b/i,d:'Only people who passed earlier stages have later scores, so later comparisons cover a narrower group and can understate real links.'},
+ {c:'Reading the numbers',k:'Suppressed',re:/\bsuppressed\b/i,d:'Hidden because fewer than 5 candidates are in the group, to avoid identifying anyone.'},
+ {c:'Reading the numbers',k:'Robust / suggestive / weak',re:/\b(?:robust|suggestive)\b/,d:'How much to trust a finding. High confidence (robust): it held up across several checks. Possible pattern (suggestive): worth a look but not proven. Not reliable (weak): could easily be chance.'},
+ {c:'Statistics',k:'rho (Spearman)',re:/\brho\b|\bSpearman\b/,d:'A score from -1 to +1 for how closely two lineups match. +1 means the same order, 0 means no link, -1 means opposite order.'},
+ {c:'Statistics',k:'tau (Kendall)',re:/\btau\b|\bKendall\b/,d:'Another way to measure how closely two lineups match: how often two candidates are in the same order in both.'},
+ {c:'Statistics',k:'CI',re:/\bCI\b|\bconfidence interval\b/i,d:'Margin of error: the range the true value probably falls in. If the range includes zero, the real effect could be nothing.'},
+ {c:'Statistics',k:'Bootstrap',re:/\bbootstrap(?:ped)?\b/i,d:'Re-drawing the candidates at random many times to see how much the answer moves. Used to work out the margin of error.'},
+ {c:'Statistics',k:'perm. p (permutation test)',re:/\bperm(?:utation)?\.? ?p\b|\bpermutation\b|\bperm\./i,d:'Shuffles the data at random many times to see how often luck alone gives a result this big. A small number means it is unlikely to be luck.'},
+ {c:'Statistics',k:'BH q',re:/\bBH q\b|\bBH\b/,d:'A p-value adjusted for testing many things at once, so a few do not look special by luck. Below 0.05 is the usual bar.'},
+ {c:'Statistics',k:'AUC difference',re:/\bAUC difference\b/i,d:'The gap between two AUC values, for example how much more one step follows scores than another. It matters because if the gap is smaller than the margin of error, we cannot say one step really follows scores more than the other.'},
+ {c:'Statistics',k:'AUC',re:/\bAUC\b/,d:'How often a candidate who moved on had the higher score than one who did not, when you compare them in pairs. 0.5 is a coin flip, 1.0 means scores fully explain who moved on.'},
+ {c:'Statistics',k:'ICC / variance share',re:/\bICC\b|\bvariance share\b/i,d:'How much of the difference in rankings is down to who the reviewer was rather than the candidate. Higher means the reviewer matters more.'},
+ {c:'Statistics',k:'Shrunken estimate',re:/\bshrunken\b|\bshrinkage\b/i,d:"A reviewer's result pulled toward the average, more so when they scored few candidates, so a small sample cannot look extreme."},
+ {c:'Statistics',k:'PCA / principal component',re:/\bPCA\b|\bprincipal components?\b/i,d:'Finds how many separate things a set of scores really measures. One dominant pattern means the scores mostly measure the same thing.'},
+ {c:'Statistics',k:'Silhouette',re:/\bsilhouette\b/i,d:'How clearly separated the groups are, from -1 to 1. Higher means more distinct groups.'},
+ {c:'Statistics',k:"Cramer's V",re:/\bCramer\W?s V\b|\bCramer V\b/i,d:'Strength of association between two categories, from 0 (none) to 1 (perfect).'},
+ {c:'Statistics',k:'epsilon-squared',re:/\bepsilon(?:-squared)?\b/i,d:'Share of variation in a measure explained by group membership, from 0 to 1.'},
+ {c:'Statistics',k:'R-squared / delta R-squared',re:/\bdelta R2\b|\bR2\b|R²|ΔR²/,d:'Share of variation a model explains. Delta R-squared is what a set of variables adds on top of the others.'},
+ {c:'Statistics',k:'CV (cross-validated)',re:/\bCV\b|\bcross-validated\b/i,d:'Tested on candidates the model had not seen, to avoid overstating accuracy.'},
+ {c:'Statistics',k:'TF-IDF / topic model / NMF',re:/\bTF-?IDF\b|\bNMF\b|\btopics?\b/i,d:'Text methods. TF-IDF weights words by how distinctive they are. A topic model groups words that appear together into themes. Themes are described by their top terms.'},
+ {c:'Statistics',k:'Mann-Whitney / Wilson',re:/\bMann-Whitney\b|\bWilson\b/,d:'Standard tests: Mann-Whitney compares two groups by rank; Wilson gives an interval for a proportion.'},
+ {c:'Statistics',k:'SD',re:/\bSD\b/,d:'Standard deviation. How spread out scores are.'},
+];
+const HINT = {
+ bar:'Each bar is a count or value for the category below it. Hover a bar for the exact figure. "suppressed" means the group has fewer than 5 people.',
+ hbar:'Each bar is a value for the row at its left. Thin lines on a bar, where shown, are 95% confidence intervals: if a line crosses 0, the effect could be zero.',
+ line:'Each line follows one series across the x-axis. Hover points for exact values.',
+ scatter:'Each dot is one candidate (or one rating). Dots that rise from left to right mean the two measures agree. Colors show groups when a legend is present.',
+ heatmap:'Colors show strength of relationship: blue is positive, red is negative, near-white is close to none. The number in each cell is the value.',
+ boxplot:'Each box covers the middle 50% of the group, the black line is the median, and the thin line shows the full range. n is the group size.',
+ table:'Hover underlined terms for definitions. Sort order follows the analysis, not a ranking of people.'
+};
+const GRE = new RegExp(G.map(g=>g.re.source).join('|'),'gi');
+function rich(text){
+  text = text==null ? '' : String(text); const out=[]; let last=0, m; GRE.lastIndex=0;
+  while((m=GRE.exec(text))){ if(m[0]==='') {GRE.lastIndex++; continue;}
+    const g=G.find(x=>new RegExp('^(?:'+x.re.source+')$',x.re.flags.replace('g','')).test(m[0])); if(!g) continue;
+    if(m.index>last) out.push(text.slice(last,m.index)); out.push(el('abbr',{class:'g',title:g.k+': '+g.d},m[0])); last=m.index+m[0].length; }
+  if(last<text.length) out.push(text.slice(last)); return out;
+}
+function termsUsed(sec){
+  const t=JSON.stringify([sec.findings,sec.charts.map(c=>[c.title,c.subtitle,c.x_label,c.y_label,c.type==='table'?c.data.columns:null,c.type==='heatmap'?[c.data.row_labels,c.data.col_labels]:null,(c.data.labels||[])])]);
+  return G.filter(g=>new RegExp(g.re.source,g.re.flags.replace('g','')).test(t));
+}
+function termStrip(sec){
+  const used=termsUsed(sec); if(!used.length) return '';
+  return el('details',{},el('summary',{},`Key terms on this page (${used.length})`),el('dl',{class:'gl'},used.flatMap(g=>[el('dt',{},g.k),el('dd',{},g.d)])));
+}
+function typesHint(sec){ const ts=[...new Set(sec.charts.map(c=>c.type))].filter(t=>t!=='table'); return ts.length? el('details',{},el('summary',{},'How to read the charts on this page'),el('ul',{class:'cav'},ts.map(t=>el('li',{},t+': '+HINT[t])))):''; }
+
+const CHART_DESC={
+'funnel-stages':'How many candidates are still in the process at each stage, from resume screen to decision.',
+'funnel-decisions':'How many assessment-center attendees ended up Hire, Standby or No Hire.',
+'gate-table':'For each step, how many candidates moved on, and how closely moving on followed score order.',
+'gate-selection':'How much each step favoured higher scorers. 0.5 means scores made no difference, 1.0 means the top scorers always moved on.',
+'ti-rank-by-advance':'Where TI scores sit for candidates who were invited on versus those who were not. The box is the middle half of candidates.',
+'ti-score-by-advance':'The same comparison using the raw TI score instead of the rank.',
+'ti-rank-by-decision':'Where TI scores sit for each final decision. Only people who reached the assessment center are shown.',
+'screen-agreement':'Whether the Pass/Fail and Status columns agree with the TI score order.',
+'proxy-tests':'Checks whether fields that can stand in for protected traits (like graduation date or home city) go with who advanced or how they scored.',
+'proxy-effects':'The same bias check as a bar chart. Longer bars mean a stronger link between the field and the outcome.',
+'proxy-rates':'Invitation rate and TI rank for each group of a proxy field, so you can see the gap directly.',
+'instrument-ranks':'How each score was converted to a percentile rank so different scales can be compared.',
+'spearman-heatmap':'How closely each pair of scores moves together. Blue means they rise together, red means they move opposite, pale means little link.',
+'exercise-rank-correlations':'How well the TI score lines up with each of the three exercises.',
+'competency-recurrence':'Which competencies are scored in more than one exercise.',
+'correlation-blocks':'Whether the same competency across exercises agrees more than different competencies within one exercise.',
+'shared-competency-agreement':'For competencies scored in several exercises, whether candidates rank the same way in each.',
+'shared-competency-bars':'The same agreement as a bar chart. Longer bars mean candidates rank more consistently across exercises.',
+'pca-variance':'How much of the variation in the 12 competency scores is captured by each underlying pattern. A tall first bar means one general factor dominates.',
+'pca-loadings':'Which competencies make up each underlying pattern.',
+'divergence-scatter':'Each dot is a candidate. Presentation rank on one axis, the average of Interview and Role Play on the other. Dots far from the diagonal scored differently in the presentation.',
+'divergence-by-exercise':'How far each exercise sits from the other two, on average.',
+'cluster-selection':'How the number of score-profile groups was chosen. Higher means cleaner separation.',
+'cluster-profiles':'The groups of candidates with similar score patterns, with their size and typical decision.',
+'cluster-heatmap':'The average rank each group gets on each score. Darker blue means higher.',
+'decision-score-overlap':'Assessment-center score ranks for each final decision. Overlapping boxes mean scores do not cleanly separate decisions.',
+'decision-overlap-table':'How much the score ranges of different decision groups overlap.',
+'decision-vs-rank':'Each dot is a candidate: decision level against assessment-center rank. Shows where decisions and scores disagree.',
+'resume-coverage':'How many candidates have a resume and how many do not.',
+'resume-k-selection':'How the number of resume themes was chosen. Higher means the themes hold together better.',
+'resume-topics':'The themes found in the resumes, with the words that define each and how many candidates fit.',
+'resume-topic-outcome-heatmap':'How strongly each resume theme goes with each outcome. Blue is positive, red is negative, pale is little link.',
+'resume-topic-outcome':'The same theme-to-outcome links with uncertainty ranges and a correction for testing many themes at once.',
+'resume-hypothesis':'Tests whether interview scores favour a resume type, after allowing for how the candidate did in the other exercises.',
+'resume-hypothesis-contrast':'Compares the Interview result with the other exercises, to see if the Interview stands out.',
+'resume-hypothesis-sensitivity':'Repeats the Interview test while also allowing for graduation date, to see if the result holds.',
+'resume-interview-rank-by-theme':'Interview ranks for each resume theme with no adjustments. A rough first look.',
+'resume-hypothesis-scatter':'Each dot is a candidate. A slope would mean the Interview favours or penalises this resume theme after allowing for other scores.',
+'resume-proxy-check':'Checks whether the resume themes secretly track home city, skills tag or graduation date.',
+'resume-proxy-topics':'Themes built only from school, employer, city and date lines, to see what those details alone pick up.',
+'resume-proxy-outcome':'Whether those school, employer, city and date themes go with outcomes.',
+'resume-proxy-field-outcome':'Whether the proxy fields themselves go with outcomes.',
+'notes-length':'How long the notes are for each note source.',
+'notes-length-rank':'Whether longer notes go with higher or lower scores.',
+'notes-reviewer-counts':'How many notes each reviewer wrote. Small counts are hidden.',
+'notes-topics':'The themes found in the notes and whether each goes with higher or lower scores.',
+'notes-rank-terms':'Words and phrases that show up more in notes for higher or lower scores.',
+'notes-rank-terms-bar':'The same words and phrases as a bar chart. Right of zero goes with higher scores, left with lower.',
+'notes-consistency':'Whether the tone of a note can predict the score the reviewer gave. A mismatch can mean unclear notes or inconsistent scoring.',
+'notes-consistency-scatter':'Each dot is a note. Rank predicted from the text against the actual score rank. Dots near the diagonal agree.',
+'notes-style-terms':'The words used to measure how strong or subjective the language in a note is.',
+'notes-style-source':'How intense the language is for each note source, compared with its tone.',
+'notes-style-by-theme':'How intense the note language is for candidates in each resume theme.',
+'notes-style-by-theme-bar':'The same language-intensity comparison as a bar chart.',
+'notes-style-theme-bias':'Checks whether language style differs by resume theme once the score is taken into account. A link here would suggest different treatment.',
+'rank-boxplot':'The ranks of the scores each reviewer gave. A box sitting higher means that reviewer scored more generously.',
+'volume-table':'How many scores each reviewer gave, how widely they spread them, and how consistent they were.',
+'spread-table':'Whether some reviewers use a wider range of scores than others.',
+'deviation-hbar':'How far each reviewer scores above or below what other signals predict. Lines show the uncertainty. Bars crossing zero are not clearly different.',
+'deviation-table':'The numbers behind the reviewer deviation chart, for every reviewer and exercise.',
+'variance-table':'How much of the score differences is linked to who the reviewer was.',
+'signal-scatter-interview':'Each dot is a candidate. Their other scores against the rank the Interview reviewer gave. Shows where a reviewer scores off the pattern.',
+'signal-scatter-presentation':'Same view for Presentation.',
+'signal-scatter-role-play':'Same view for Role Play.',
+'signal-scatter-technical-interview':'Same view for the technical interview (TI).',
+'drift-hbar':'Whether a reviewer scored higher or lower as the process went on. Lines show the uncertainty.',
+'drift-table':'The numbers behind the drift chart for each reviewer and exercise.',
+'drift-line':'The average reviewer deviation early, middle and late in the process.',
+'cohort-funnel':'For each cohort, the share of its candidates who got to each stage, so cohorts of different sizes can be compared fairly.',
+'cohort-scores':'The spread of assessment center total scores for each cohort. The box is the middle half of attendees and the line is the typical score.',
+'cohort-decisions':'For each cohort, how attendees were split between Hire, Standby and No Hire.',
+'cohort-summary':'The headline counts for every cohort, side by side.',
+'cohort-reviewers':'How many candidates each assessment center reviewer scored in each cohort. Reviewers who appear in several cohorts are what let us follow them over time.',
+'notes-consistency-table':'For each reviewer, how often the tone of their notes agrees with the score they gave.',
+'notes-consistency-hbar':'The same agreement rates as a bar chart. Lower bars mean notes and scores disagree more often.',
+'notes-mismatches':'How many notes read very differently from the score. Details are hidden in the shareable copy.',
+'style-hbar':'How much of each reviewer\'s note language is subjective or strongly worded.',
+'style-table':'The same language-style measure per reviewer, using two ways of defining the vocabulary.',
+'style-lexicon-table':'The words used to measure language style, taken from the data itself.',
+'resume-groups-table':'The resume groups used to check whether reviewers treat candidates differently.',
+'bias-table':'Whether a reviewer\'s language or scoring differs for candidates from different resume groups.',
+'bias-heatmap-style':'Language style by reviewer and resume group. Darker cells mean more subjective language than the score explains.',
+'bias-heatmap-deviation':'Scoring deviation by reviewer and resume group. Darker blue means scored higher than expected, red lower.',
+'agreement-pairs-table':'Where two assessors scored the same candidate, how well they agreed.',
+'agreement-reviewer-hbar':'How well each reviewer\'s ranking matches an independent view of the candidates. Longer bars mean more agreement.',
+'agreement-ti-table':'Whether each recruiter\'s TI scores predict how candidates did later in the assessment center.',
+'divergent-candidates':'Candidates whose Presentation rank is far from their Interview and Role Play ranks. Worth a second look.',
+'decision-flags':'Candidates whose final decision does not match where their scores rank. Worth a second look.',
+'screen-disagreements':'Candidates where the Pass/Fail or Status does not match the TI score order.',
+'notes-discordant':'Candidates whose note tone does not match the score given.',
+'testability-table':'What this data can and cannot show, given each candidate has only one reviewer per exercise.'
+};
+const CHART_TITLE={
+'funnel-stages':'How many candidates are left at each stage',
+'funnel-decisions':'Final decisions for assessment-center attendees',
+'gate-table':'How many moved on at each step, and how much scores mattered',
+'gate-selection':'How much each step follows the scores',
+'ti-rank-by-advance':'Technical interview results: invited vs not invited',
+'ti-score-by-advance':'Technical interview scores: invited vs not invited',
+'ti-rank-by-decision':'Technical interview results by final decision',
+'screen-agreement':'Does Pass/Fail match the technical interview score?',
+'proxy-tests':'Background details vs who advanced: bias check',
+'proxy-effects':'How strongly background details line up with outcomes',
+'proxy-rates':'Invitation rate for each background group',
+'instrument-ranks':'How each score was put on a common scale',
+'spearman-heatmap':'How closely the scores move together',
+'exercise-rank-correlations':'Technical interview vs the three exercises',
+'competency-recurrence':'Skills scored in more than one exercise',
+'correlation-blocks':'Do the same skills agree across exercises?',
+'shared-competency-agreement':'Shared skills: do exercises rank people the same way?',
+'shared-competency-bars':'How much exercises agree on shared skills',
+'pca-variance':'How many separate things the 12 skill scores measure',
+'pca-loadings':'Which skills group together',
+'divergence-scatter':'Presentation vs the other two exercises',
+'divergence-by-exercise':'Which exercise stands apart from the others',
+'cluster-selection':'How many candidate groups the data supports',
+'cluster-profiles':'Groups of candidates with similar score patterns',
+'cluster-heatmap':'Average ranking for each candidate group',
+'decision-score-overlap':'Assessment-center ranking for each final decision',
+'decision-overlap-table':'How much decision groups overlap on scores',
+'decision-vs-rank':'Final decision vs assessment-center ranking',
+'resume-coverage':'Candidates with and without a resume',
+'resume-k-selection':'How many resume types the data supports',
+'resume-topics':'Common types of resume',
+'resume-topic-outcome-heatmap':'Do any resume types go with better outcomes?',
+'resume-topic-outcome':'Resume types vs outcomes, with margin of error',
+'resume-hypothesis':'Do interviews favor a type of resume?',
+'resume-hypothesis-contrast':'Is the Interview different from the other exercises?',
+'resume-hypothesis-sensitivity':'Does the answer change when graduation date is considered?',
+'resume-interview-rank-by-theme':'Interview ranking for each resume type (simple view)',
+'resume-hypothesis-scatter':'Interview ranking vs how much a resume fits one type',
+'resume-proxy-check':'Do resume types just reflect city, skills tag or graduation date?',
+'resume-proxy-topics':'What schools, employers and cities alone pick up',
+'resume-proxy-outcome':'Do schools, employers and cities go with outcomes?',
+'resume-proxy-field-outcome':'Background fields vs outcomes',
+'notes-length':'How long the notes are',
+'notes-length-rank':'Do longer notes go with higher or lower scores?',
+'notes-reviewer-counts':'Number of notes per reviewer',
+'notes-topics':'What the notes talk about',
+'notes-rank-terms':'Words that show up with higher or lower scores',
+'notes-rank-terms-bar':'Words linked to higher or lower scores',
+'notes-consistency':'Do the notes match the scores given?',
+'notes-consistency-scatter':'Score implied by the note vs actual score',
+'notes-style-terms':'Words used to spot general-impression language',
+'notes-style-source':'General-impression language in each type of note',
+'notes-style-by-theme':'General-impression language by resume type',
+'notes-style-by-theme-bar':'General-impression language by resume type (chart)',
+'notes-style-theme-bias':'Does note language differ by resume type at the same score?',
+'rank-boxplot':'Rankings each reviewer gave, by exercise',
+'volume-table':'Reviewer workload and scoring spread',
+'spread-table':'Do some reviewers use a wider range of scores?',
+'deviation-hbar':'Which reviewers score higher or lower than expected',
+'deviation-table':'Reviewer scoring vs expectation: all numbers',
+'variance-table':'How much the reviewer affects the ranking',
+'signal-scatter-interview':'Interview: other results vs ranking given',
+'signal-scatter-presentation':'Presentation: other results vs ranking given',
+'signal-scatter-role-play':'Role Play: other results vs ranking given',
+'signal-scatter-technical-interview':'Technical interview: other results vs ranking given',
+'drift-hbar':'Did reviewers get stricter or more generous over time?',
+'drift-table':'Change over time: all numbers',
+'drift-line':'Reviewer scoring early, middle and late',
+'cohort-funnel':'How far candidates get, cohort by cohort',
+'cohort-scores':'Assessment center scores, cohort by cohort',
+'cohort-decisions':'Final decisions, cohort by cohort',
+'cohort-summary':'Cohorts side by side: all numbers',
+'cohort-reviewers':'Which reviewers scored in which cohort',
+'notes-consistency-table':'Do each reviewer\'s notes match their scores?',
+'notes-consistency-hbar':'How often each reviewer\'s notes match their scores',
+'notes-mismatches':'Notes that do not match the score',
+'style-hbar':'General-impression language by reviewer',
+'style-table':'General-impression language by reviewer: numbers',
+'style-lexicon-table':'Words used to measure language style',
+'resume-groups-table':'Resume groups used for the fairness check',
+'bias-table':'Does reviewer behavior differ by resume group?',
+'bias-heatmap-style':'Language style by reviewer and resume group',
+'bias-heatmap-deviation':'Scoring vs expectation by reviewer and resume group',
+'agreement-pairs-table':'Do two assessors agree on the same candidate?',
+'agreement-reviewer-hbar':'How well each reviewer agrees with other signals',
+'agreement-ti-table':'Do technical interview scores predict later results?',
+'testability-table':'What this data can and cannot tell us',
+'divergent-candidates':'Candidates whose Presentation differs most',
+'decision-flags':'Decisions that do not match the scores',
+'screen-disagreements':'Screening records that do not match the TI score',
+'notes-discordant':'Candidates whose notes and scores disagree'
+};
+function chartTitle(c){ if(CHART_TITLE[c.id]) return CHART_TITLE[c.id]; const m=/^signal-scatter-(.+)$/.exec(c.id); return m? m[1].replace(/-/g,' ')+': other results vs ranking given' : ''; }
+function chartDesc(c){ if(CHART_DESC[c.id]) return CHART_DESC[c.id]; if(/^signal-scatter-/.test(c.id)) return 'Each dot is a candidate. Their other scores against the rank this exercise reviewer gave.'; return ''; }
+function legend(names){ return el('div',{class:'legend'}, names.map((n,i)=>el('span',{},el('i',{style:'background:'+COLORS[i%COLORS.length]}),n))); }
+function wrap(c, body){
+  const pt=chartTitle(c), tech=(pt&&pt!==c.title)||(pt&&c.subtitle);
+  return el('div',{class:'card'}, el('h2',{},pt?pt:rich(c.title)), chartDesc(c)?el('p',{class:'intro'},chartDesc(c)):'',
+    pt? (tech? el('details',{class:'techname'},el('summary',{},'Technical name and notes'),el('div',{class:'sub'},rich(c.title)),c.subtitle?el('div',{class:'sub'},rich(c.subtitle)):''):'') : (c.subtitle?el('div',{class:'sub'},rich(c.subtitle)):''),
+    body, el('div',{class:'hint'},HINT[c.type]));
+}
+function barChart(c, horizontal){
+  const {labels, series} = c.data, W=720, ml = horizontal? 190 : 50, mb = horizontal? 30 : 70, mt=10, mr=20;
+  const rowH = horizontal ? Math.max(18, 12+series.length*10) : 0, H = horizontal ? mt+mb+labels.length*rowH : 300;
+  const vals = series.flatMap(s=>s.values.filter(num)); let lo=Math.min(0,...vals), hi=Math.max(0,...vals); if(!vals.length){lo=0;hi=1}
+  const [a,b,ticks]=nice(lo,hi); const svg=sv('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%'});
+  const pw=W-ml-mr, ph=H-mt-mb;
+  if(horizontal){
+    const x=v=>ml+(v-a)/(b-a)*pw; ticks.forEach(t=>{svg.append(sv('line',{x1:x(t),x2:x(t),y1:mt,y2:H-mb,stroke:'rgba(128,142,165,.24)'}),sv('text',{x:x(t),y:H-mb+14,'text-anchor':'middle'},fmt(t)))});
+    svg.append(sv('line',{x1:x(0),x2:x(0),y1:mt,y2:H-mb,stroke:'rgba(128,142,165,.8)'}));
+    labels.forEach((l,i)=>{ const y0=mt+i*rowH, bh=(rowH-6)/series.length; svg.append(sv('text',{x:ml-6,y:y0+rowH/2+3,'text-anchor':'end'},String(l).slice(0,34)));
+      series.forEach((s,j)=>{ const v=s.values[i]; if(!num(v)) { svg.append(sv('text',{x:x(0)+4,y:y0+3+bh*(j+.7),fill:'#999'},'suppressed')); return; }
+        const lo2=s.lower&&s.lower[i], hi2=s.upper&&s.upper[i];
+        svg.append(sv('rect',{x:Math.min(x(0),x(v)),y:y0+3+bh*j,width:Math.abs(x(v)-x(0)),height:bh-1,fill:COLORS[j%COLORS.length]},sv('title',{},`${l}: ${fmt(v)}`)));
+        if(num(lo2)&&num(hi2)) svg.append(sv('line',{x1:x(lo2),x2:x(hi2),y1:y0+3+bh*(j+.5),y2:y0+3+bh*(j+.5),stroke:'#7f8da3'}));
+      });});
+  } else {
+    const y=v=>mt+ph-(v-a)/(b-a)*ph, gw=pw/labels.length;
+    ticks.forEach(t=>{svg.append(sv('line',{x1:ml,x2:W-mr,y1:y(t),y2:y(t),stroke:'rgba(128,142,165,.24)'}),sv('text',{x:ml-6,y:y(t)+3,'text-anchor':'end'},fmt(t)))});
+    labels.forEach((l,i)=>{ const bw=(gw*.8)/series.length; series.forEach((s,j)=>{ const v=s.values[i]; const x0=ml+i*gw+gw*.1+bw*j;
+      if(num(v)) svg.append(sv('rect',{x:x0,y:Math.min(y(0),y(v)),width:bw-1,height:Math.abs(y(v)-y(0)),fill:COLORS[j%COLORS.length]},sv('title',{},`${l}: ${fmt(v)}`)));
+      }); const t=sv('text',{x:ml+i*gw+gw/2,y:H-mb+14,'text-anchor':'end',transform:`rotate(-30 ${ml+i*gw+gw/2} ${H-mb+14})`},String(l).slice(0,26)); svg.append(t); });
+  }
+  const body=[svg]; if(series.length>1) body.unshift(legend(series.map(s=>s.name)));
+  if(c.y_label||c.x_label) body.push(el('div',{class:'small'},[c.x_label,c.y_label].filter(Boolean).join(' / ')));
+  return wrap(c, body);
+}
+function lineChart(c){
+  const {labels,series}=c.data, W=720,H=300,ml=50,mr=20,mt=10,mb=40; const vals=series.flatMap(s=>s.values.filter(num)); const [a,b,ticks]=nice(Math.min(...vals,0>Math.min(...vals)?Math.min(...vals):Math.min(...vals)),Math.max(...vals));
+  const svg=sv('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%'}); const x=i=>ml+(labels.length>1?i/(labels.length-1):.5)*(W-ml-mr), y=v=>mt+(H-mt-mb)-(v-a)/(b-a)*(H-mt-mb);
+  ticks.forEach(t=>svg.append(sv('line',{x1:ml,x2:W-mr,y1:y(t),y2:y(t),stroke:'rgba(128,142,165,.24)'}),sv('text',{x:ml-6,y:y(t)+3,'text-anchor':'end'},fmt(t))));
+  labels.forEach((l,i)=>{ if(labels.length<=14||i%Math.ceil(labels.length/14)===0) svg.append(sv('text',{x:x(i),y:H-mb+14,'text-anchor':'middle'},String(l).slice(0,10)))});
+  series.forEach((s,j)=>{ const pts=s.values.map((v,i)=>num(v)?`${x(i)},${y(v)}`:null).filter(Boolean); svg.append(sv('polyline',{points:pts.join(' '),fill:'none',stroke:COLORS[j%COLORS.length],'stroke-width':2}));});
+  return wrap(c,[series.length>1?legend(series.map(s=>s.name)):'',svg,el('div',{class:'small'},[c.x_label,c.y_label].filter(Boolean).join(' / '))]);
+}
+function scatterChart(c){
+  const pts=c.data.points.filter(p=>num(p.x)&&num(p.y)); const W=720,H=360,ml=50,mr=20,mt=10,mb=40;
+  const [ax,bx,tx]=nice(Math.min(...pts.map(p=>p.x)),Math.max(...pts.map(p=>p.x))), [ay,by,ty]=nice(Math.min(...pts.map(p=>p.y)),Math.max(...pts.map(p=>p.y)));
+  const x=v=>ml+(v-ax)/(bx-ax)*(W-ml-mr), y=v=>H-mb-(v-ay)/(by-ay)*(H-mt-mb); const svg=sv('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%'});
+  tx.forEach(t=>svg.append(sv('line',{x1:x(t),x2:x(t),y1:mt,y2:H-mb,stroke:'rgba(128,142,165,.2)'}),sv('text',{x:x(t),y:H-mb+14,'text-anchor':'middle'},fmt(t))));
+  ty.forEach(t=>svg.append(sv('line',{x1:ml,x2:W-mr,y1:y(t),y2:y(t),stroke:'rgba(128,142,165,.2)'}),sv('text',{x:ml-6,y:y(t)+3,'text-anchor':'end'},fmt(t))));
+  const groups=[...new Set(pts.map(p=>p.group||''))];
+  pts.forEach(p=>svg.append(sv('circle',{cx:x(p.x),cy:y(p.y),r:3.5,fill:COLORS[groups.indexOf(p.group||'')%COLORS.length],'fill-opacity':.65},sv('title',{},`${p.label?p.label+': ':''}${fmt(p.x)}, ${fmt(p.y)}${p.group?' ('+p.group+')':''}`))));
+  svg.append(sv('text',{x:W/2,y:H-4,'text-anchor':'middle'},c.x_label||''),sv('text',{x:12,y:H/2,'text-anchor':'middle',transform:`rotate(-90 12 ${H/2})`},c.y_label||''));
+  return wrap(c,[groups.length>1?legend(groups):'',svg]);
+}
+function heatmap(c){
+  const {row_labels:R,col_labels:C,values:V}=c.data, cs=Math.max(22,Math.min(44,Math.floor(640/C.length))), ml=190,mt=120, W=ml+C.length*cs+20, H=mt+R.length*cs+10;
+  const lo=c.data.min??-1, hi=c.data.max??1, mid=(lo+hi)/2, svg=sv('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%'});
+  const col=v=>{ if(!num(v)) return 'rgba(128,142,165,.15)'; const t=(v-mid)/((hi-lo)/2); const a=Math.min(1,Math.abs(t)); return t>=0?`rgba(4,159,217,${.08+a*.85})`:`rgba(214,40,57,${.08+a*.85})`; };
+  C.forEach((l,j)=>svg.append(sv('text',{x:ml+j*cs+cs/2,y:mt-6,'text-anchor':'start',transform:`rotate(-60 ${ml+j*cs+cs/2} ${mt-6})`},String(l).slice(0,30))));
+  R.forEach((l,i)=>{ svg.append(sv('text',{x:ml-6,y:mt+i*cs+cs/2+3,'text-anchor':'end'},String(l).slice(0,32)));
+    C.forEach((_,j)=>{ const v=V[i][j]; svg.append(sv('rect',{x:ml+j*cs,y:mt+i*cs,width:cs-1,height:cs-1,fill:col(v)},sv('title',{},`${l} / ${C[j]}: ${fmt(v)}`)));
+      if(num(v)&&cs>=28) svg.append(sv('text',{x:ml+j*cs+cs/2,y:mt+i*cs+cs/2+3,'text-anchor':'middle',style:'font-size:9px'},(Math.round(v*100)/100).toString())); }); });
+  return wrap(c,[svg]);
+}
+function boxplot(c){
+  const gs=c.data.groups, W=720, rowH=26, ml=190, mt=10, mb=30, H=mt+mb+gs.length*rowH; const all=gs.flatMap(g=>[g.min,g.max]).filter(num);
+  const [a,b,ticks]=nice(Math.min(...all),Math.max(...all)); const x=v=>ml+(v-a)/(b-a)*(W-ml-20); const svg=sv('svg',{viewBox:`0 0 ${W} ${H}`,width:'100%'});
+  ticks.forEach(t=>svg.append(sv('line',{x1:x(t),x2:x(t),y1:mt,y2:H-mb,stroke:'rgba(128,142,165,.2)'}),sv('text',{x:x(t),y:H-mb+14,'text-anchor':'middle'},fmt(t))));
+  gs.forEach((g,i)=>{ const y=mt+i*rowH+rowH/2; svg.append(sv('text',{x:ml-6,y:y+3,'text-anchor':'end'},`${String(g.name).slice(0,30)} (n=${g.n??'?'})`));
+    if(!num(g.median)){ svg.append(sv('text',{x:ml+4,y:y+3,fill:'#999'},'suppressed')); return; }
+    svg.append(sv('line',{x1:x(g.min),x2:x(g.max),y1:y,y2:y,stroke:'#8a94a3'}),sv('rect',{x:x(g.q1),y:y-7,width:Math.max(1,x(g.q3)-x(g.q1)),height:14,fill:COLORS[i%COLORS.length],'fill-opacity':.55,stroke:COLORS[i%COLORS.length]}),sv('line',{x1:x(g.median),x2:x(g.median),y1:y-7,y2:y+7,stroke:'#111','stroke-width':2})); });
+  return wrap(c,[svg,el('div',{class:'small'},[c.x_label,c.y_label].filter(Boolean).join(' / '))]);
+}
+function table(c){
+  const {columns,rows}=c.data; const t=el('table',{},el('thead',{},el('tr',{},columns.map(h=>el('th',{},rich(h))))),el('tbody',{},rows.map(r=>el('tr',{},r.map(v=>el('td',{},typeof v==='string'&&v.length<48?rich(v):fmt(v)))))));
+  const box=el('div',{class:'tbl'},t);
+  const card=wrap(c, el('details',{},el('summary',{},`Show the numbers (${rows.length} rows)`),box));
+  return card;
+}
+function chart(c){ return ({bar:x=>barChart(x,false),hbar:x=>barChart(x,true),line:lineChart,scatter:scatterChart,heatmap:heatmap,boxplot:boxplot,table:table})[c.type](c); }
+const CONF={robust:['High confidence','Held up across several different checks.'],suggestive:['Possible pattern','Worth a look, but not proven. It showed up in one check or the margin of error is wide.'],weak:['Not reliable','Could easily be chance, usually because there are too few candidates.']};
+function badge(s){ return el('span',{class:'badge '+s,title:CONF[s][1]},CONF[s][0]); }
+function finding(f,extra){ return el('div',{class:'finding'},badge(f.strength),el('div',{},el('div',{class:'plain'},f.plain||rich(f.text)),
+  extra||'', f.plain? el('details',{class:'tech'},el('summary',{},'Show the statistics'),el('div',{},rich(f.text)),el('div',{class:'ev'},rich(f.evidence))) : el('div',{class:'ev'},rich(f.evidence)))); }
+function findings(list){ return list.map(f=>finding(f)); }
+function caveats(list){ return el('details',{},el('summary',{},'Limits of this analysis'),el('ul',{class:'cav'},list.map(x=>el('li',{},x)))); }
+
+const ASK_STOP=new Set('a an the of to in on for and or is are was were be been do does did how what which who why when where with without by from at as it its this that these those there any our we you your i about between among than then so if can could should would will not no yes more most less least per much many some tell show me us them they their have has had get got'.split(' '));
+const ASK_SYN={interviewer:['reviewer','assessor','recruiter'],reviewer:['assessor','recruiter','interviewer'],assessor:['reviewer'],recruiter:['reviewer'],
+  bias:['proxy','fair','group','flag'],fair:['bias','proxy'],unfair:['bias','proxy'],lenient:['higher','deviation','generous'],generous:['higher','deviation'],strict:['lower','deviation','severe'],harsh:['lower','deviation'],easy:['higher','deviation'],
+  drop:['narrow','loss','conversion'],lose:['narrow','loss','conversion'],lost:['narrow','loss','conversion'],attrition:['narrow','loss'],bottleneck:['narrow','conversion','loss'],funnel:['stage','conversion'],
+  hire:['decision','hire'],hired:['decision','hire'],reject:['fail','decision','invited'],rejected:['fail','decision','invited'],advance:['invited','moved','reached'],pass:['pass','fail','screening'],
+  cv:['resume'],resume:['theme','resume'],note:['notes','wording'],comment:['notes','wording'],written:['notes','wording'],language:['wording','style','notes'],
+  consistent:['agree','agreement'],consistency:['agree','agreement'],agree:['agreement','consistent'],time:['drift','over'],trend:['drift','pattern'],predict:['agree','link','follow'],
+  score:['rank','score'],different:['higher','lower','deviation'],differently:['higher','lower','deviation'],differ:['higher','lower','deviation'],exercise:['interview','presentation','role','play'],presentation:['exercise'],interview:['exercise'],unusual:['divergence','differs','flag'],outlier:['divergence','flag','differs']};
+const askStem=w=>w.length>4?w.replace(/(ing|ed|es|s)$/,''):w;
+const askTok=s=>(String(s).toLowerCase().match(/[a-z]+/g)||[]).filter(w=>w.length>2&&!ASK_STOP.has(w)).map(askStem);
+const noIds=s=>String(s).replace(/candidate\s*\d+/gi,'[candidate]');
+let ASK_DOCS=null;
+function askDocs(){
+  if(ASK_DOCS) return ASK_DOCS; const docs=[];
+  Object.entries(P.sections).forEach(([k,s])=>{
+    const lab=SECTIONS.find(x=>x[0]===k)[1];
+    s.findings.forEach((f,i)=>docs.push({kind:'finding',sec:k,lab,f,n:docs.filter(d=>d.kind==='finding').length+1,text:[f.plain,f.text,f.evidence,lab].join(' ')}));
+    s.charts.forEach(c=>docs.push({kind:'chart',sec:k,lab,c,text:[chartTitle(c),c.title,chartDesc(c),lab].join(' ')}));
+  });
+  const df={}; docs.forEach(d=>{d.tf={}; askTok(d.text).forEach(t=>{d.tf[t]=(d.tf[t]||0)+1}); Object.keys(d.tf).forEach(t=>df[t]=(df[t]||0)+1)});
+  docs.forEach(d=>d.idf=df); docs.N=docs.length; docs.df=df; return ASK_DOCS=docs;
+}
+function askSearch(q,k){
+  const docs=askDocs(), base=askTok(q), w={};
+  base.forEach(t=>{w[t]=1});
+  (q.toLowerCase().match(/[a-z]+/g)||[]).forEach(r=>(ASK_SYN[r]||[]).forEach(s=>{const t=askStem(s); if(!(t in w)) w[t]=.5}));
+  const scored=docs.map(d=>{let sc=0; for(const [t,wt] of Object.entries(w)){ if(d.tf[t]) sc+=wt*Math.log(1+docs.N/docs.df[t])*(1+Math.log(d.tf[t])); } if(d.kind==='finding') sc*=1.3; return [sc,d]; }).filter(x=>x[0]>0).sort((a,b)=>b[0]-a[0]);
+  return scored.slice(0,k).map(x=>x[1]);
+}
+const ASK_RULES='You help non-technical leaders understand an analysis of a hiring process. Answer only from the RESULTS provided. If the results do not answer the question, say so plainly and say what the data cannot tell. Use short paragraphs and everyday words, no statistics jargon. Say how sure the analysis is (High confidence, Possible pattern or Not reliable) and cite the findings you used by their F-number. Outcomes such as who advanced or was hired are past human decisions, not proof of job performance. Never recommend hiring or rejecting a specific person; flags about reviewers or bias are for review, not verdicts. Never try to identify a candidate.';
+function askContext(hits){
+  const docs=askDocs(), fs=docs.filter(d=>d.kind==='finding'), first=new Set(hits.filter(h=>h.kind==='finding').map(h=>h.n));
+  const ordered=[...fs.filter(d=>first.has(d.n)),...fs.filter(d=>!first.has(d.n))];
+  const lines=ordered.map(d=>`F${d.n} [${d.lab}] [${CONF[d.f.strength][0]}] ${d.f.plain||d.f.text} | Technical: ${d.f.text} | ${d.f.evidence}`);
+  const caveats=Object.entries(P.sections).map(([k,s])=>`${SECTIONS.find(x=>x[0]===k)[1]} limits: ${s.caveats.join(' ')}`);
+  const charts=docs.filter(d=>d.kind==='chart').map(d=>`${d.lab}: ${chartTitle(d.c)||d.c.title} - ${chartDesc(d.c)}`);
+  return noIds(['FINDINGS',...lines,'','LIMITS',...caveats,'','CHARTS AVAILABLE',...charts].join('\n')).slice(0,58000);
+}
+const ASK_EXAMPLES=['Where do we lose the most candidates?','Do any interviewers score differently from others?','Is there any sign of bias in the process?','Do interviews favor a type of resume?','Do reviewers\' notes match the scores they gave?','How consistent are the three exercises with each other?','Do final decisions follow the scores?'];
+function askAnswerCard(q,hits,answer,err){
+  const fs=hits.filter(h=>h.kind==='finding').slice(0,3), cs=hits.filter(h=>h.kind==='chart').slice(0,3);
+  const body=[el('div',{class:'q'},q)];
+  if(answer){ body.push(el('div',{class:'badge-ai'},'AI answer'),...answer.split(/\n{2,}/).map(p=>el('p',{class:'ans'},p.trim())),el('p',{class:'small'},'Written by an AI model from the findings in this dashboard only. Check the sources below, and open Show the statistics for the detail.')); }
+  else { body.push(el('div',{class:'badge-ai plain'},'Search result'),el('p',{class:'ans'},fs.length?'Here is what the analysis says that is closest to your question.':'Nothing in the analysis matches that question. This dashboard only covers the funnel, score structure, resume themes, notes themes and interviewer trends. Try one of the example questions.')); if(err) body.push(el('p',{class:'small'},'The AI service did not respond ('+err+'), so this is a plain search instead.')); }
+  if(fs.length) body.push(el('div',{class:'srcs'},el('b',{},'Based on'),fs.map(h=>finding(h.f,el('div',{class:'ev'},el('a',{href:'#'+h.sec},'F'+h.n+' · '+h.lab))))));
+  if(cs.length) body.push(el('div',{class:'srcs'},el('b',{},'Charts to look at'),el('ul',{class:'cav'},cs.map(h=>el('li',{},el('a',{href:'#'+h.sec},h.lab),': ',chartTitle(h.c)||h.c.title)))));
+  return el('div',{class:'card ask'},body);
+}
+function renderAsk(m){
+  const aiOn=!!P.ask_endpoint;
+  m.append(el('div',{class:'card'},el('h2',{},'Ask the data'),el('p',{class:'intro'},SECTIONS.find(x=>x[0]==='ask')[2]),
+    el('p',{},el('span',{class:'mode '+(aiOn?'share':'')},aiOn?'AI answers on':'Search mode, no AI'),' ',aiOn?'Questions are answered by an AI model that sees only the findings and limits shown in this dashboard (aggregates, no candidate IDs).':'Your question is matched against the findings and charts in this dashboard. Nothing leaves your browser. To get written answers, use the copy button below with your own AI tool.')));
+  const out=el('div',{id:'askout'}), inp=el('textarea',{rows:'2',maxlength:'500',placeholder:'Ask a question about the hiring data, for example: Which interviewers score differently from others?'});
+  const btn=el('button',{class:'primary'},'Ask');
+  async function go(q){
+    q=(q||inp.value).trim(); if(!q) return; inp.value=q; btn.disabled=true; btn.textContent=aiOn?'Thinking...':'Searching...';
+    const hits=askSearch(q,8); let answer=null,err=null;
+    if(aiOn){ try{ const r=await fetch(P.ask_endpoint,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({question:q,context:askContext(hits)})});
+      const j=await r.json().catch(()=>({})); if(!r.ok) throw new Error(j.error||('status '+r.status)); answer=String(j.answer||'').trim(); if(!answer) throw new Error('empty answer'); }catch(e){ err=e.message; } }
+    out.prepend(askAnswerCard(q,hits,answer,err)); btn.disabled=false; btn.textContent='Ask';
+  }
+  btn.onclick=()=>go(); inp.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); go(); } });
+  m.append(el('div',{class:'card'},inp,el('div',{class:'askbar'},btn),el('div',{class:'chips'},ASK_EXAMPLES.map(x=>{ const b=el('button',{class:'chip'},x); b.onclick=()=>go(x); return b; }))));
+  m.append(out);
+  const cp=el('button',{},'Copy question and data for my own AI'), msg=el('span',{class:'small'},'');
+  cp.onclick=async()=>{ const q=inp.value.trim()||'(write your question here)'; const txt=ASK_RULES+'\n\nRESULTS\n'+askContext(askSearch(q,8))+'\n\nQUESTION\n'+q;
+    try{ await navigator.clipboard.writeText(txt); msg.textContent=' Copied. Paste it into your AI tool.'; }catch(e){ const ta=el('textarea',{rows:'8'}); ta.value=txt; cp.after(ta); ta.select(); msg.textContent=' Copy the text below.'; } };
+  m.append(el('div',{class:'card'},el('details',{},el('summary',{},'Use your own AI tool'),el('p',{},'This copies the dashboard findings, their limits and your question, with rules that keep the AI to the facts here. Candidate IDs are removed. Only paste it into a tool your organization approves.'),cp,msg)));
+  m.append(el('div',{class:'card'},el('details',{},el('summary',{},'What this can and cannot do'),el('ul',{class:'cav'},
+    el('li',{},'It only knows what is in this dashboard: the findings, their limits and chart titles. It cannot look at individual candidates or re-run the numbers.'),
+    el('li',{},'Answers are only as good as the analysis. Check the confidence label on each source finding.'),
+    el('li',{},'It will not recommend hiring or rejecting a person. Flags about reviewers or bias are for review, not verdicts.'),
+    el('li',{},'Outcomes here are past decisions, not job performance.')))));
+}
+function render(id){
+  const m=document.getElementById('main'); m.replaceChildren();
+  if(id==='overview'){
+    m.append(el('div',{class:'banner'},'Outcomes in this data (who advanced, who was hired) are past human decisions, not job performance. Patterns show what the process rewarded. Use them to prompt review, not as standalone reasons to reject anyone. Check with HR or counsel before any use in selection decisions.'));
+    m.append(el('div',{class:'card'},el('h2',{},'What is in this dashboard'),el('div',{class:'tour'},SECTIONS.filter(x=>x[0]!=='overview').map(x=>el('a',{href:'#'+x[0]},el('b',{},x[1]),x[2])))));
+    const counts={robust:0,suggestive:0,weak:0}; Object.values(P.sections).forEach(s=>s.findings.forEach(f=>counts[f.strength]++));
+    m.append(el('div',{class:'card'},el('h2',{},'Headline findings'),el('div',{class:'sub'},`${Object.values(counts).reduce((a,b)=>a+b,0)} findings across ${Object.keys(P.sections).length} sections: ${counts.robust} with high confidence, ${counts.suggestive} possible patterns, ${counts.weak} not reliable. The top four high-confidence findings per section are shown here; open each section for the rest. Click Show the statistics under any finding for the technical detail.`),
+      Object.entries(P.sections).flatMap(([k,s])=>s.findings.filter(f=>f.strength==='robust').slice(0,4).map(f=>finding(f,el('div',{class:'ev'},'From: '+SECTIONS.find(x=>x[0]===k)[1]))))));
+    return;
+  }
+  if(id==='ask'){ renderAsk(m); return; }
+  if(id==='glossary'){
+    m.append(el('div',{class:'card'},el('h2',{},'How the hiring process maps to this dashboard'),el('p',{class:'intro'},SECTIONS.find(x=>x[0]==='glossary')[2]),
+      el('div',{class:'pipe'},
+        el('div',{},el('b',{},'1. Resume screen'),'Resumes reviewed. Redacted before analysis.'),
+        el('div',{},el('b',{},'2. TI'),'Technical interview by a recruiter. Score, Pass/Fail, notes, invitation.'),
+        el('div',{},el('b',{},'3. AC'),'Assessment center: Interview, Role Play, Presentation, each scored on 4 competencies (1 to 4).'),
+        el('div',{},el('b',{},'4. Decision'),'Hire, Standby or No Hire, recorded by people after the AC.')),
+      el('p',{class:'small'},'Rejected candidates are included, so later-stage scores are missing for them by design. Nothing is filled in.')));
+    const cats=[...new Set(G.map(g=>g.c))];
+    cats.forEach(cat=>m.append(el('div',{class:'card'},el('h2',{},cat),el('dl',{class:'gl'},G.filter(g=>g.c===cat).flatMap(g=>[el('dt',{},g.k),el('dd',{},g.d)])))));
+    m.append(el('div',{class:'card'},el('h2',{},'Chart types'),el('dl',{class:'gl'},Object.entries(HINT).flatMap(([t,h])=>[el('dt',{},t),el('dd',{},h)]))));
+    return;
+  }
+  if(id==='about'){
+    m.append(el('div',{class:'card'},el('h2',{},'How to read this'),el('p',{class:'intro'},SECTIONS.find(x=>x[0]==='about')[2]),
+      el('p',{},'Nothing here uses a pass mark. Everyone is lined up from highest to lowest within each score, and we look at how those lineups relate. No hand-picked cutoff decides who counts as good.'),
+      el('p',{},'Past decisions, not job performance. Who advanced or was hired is what people decided, not proof of who would do the job well. Use patterns here to start a conversation, not to reject anyone.'),
+      el('p',{},'Later stages only include people who got that far, so comparisons there cover a narrower group. Missing scores are never filled in.'),
+      el('p',{},'Fields that can stand in for protected traits (graduation date, home city, school, skills tags) are checked for bias and are not used as selection signals. Country, salutation and any buddy field are excluded entirely.'),
+      P.cohorts?el('p',{},'You are looking at '+P.cohorts.current+(P.cohorts.current==='All cohorts'?', which pools every cohort. Interviewer results here follow the same reviewer across cohorts.':'. Use the Cohort switcher at the top to move to another cohort or to the pooled view.')):'',
+      el('p',{},P.mode==='shareable'?'This copy is aggregate-only: groups under 5 are hidden and no candidate IDs appear.':'This copy is local: it includes candidate IDs. Do not share or host it.')));
+    m.append(el('div',{class:'card'},el('h2',{},'How sure are we?'),el('p',{class:'intro'},'Every finding carries one of three labels. They describe how much to trust the finding, not how important it is.'),
+      el('dl',{class:'gl'},...Object.entries(CONF).flatMap(([k,[n,d]])=>[el('dt',{},badge(k)),el('dd',{},d)]))));
+    m.append(el('div',{class:'card'},el('h2',{},'Ideas behind the numbers'),el('p',{class:'intro'},'Plain explanations of the ideas that show up under Show the statistics.'),
+      el('dl',{class:'gl'},...[
+        ['Could be chance','With a small group, numbers bounce around. If shuffling the same data at random often gives a result as big as ours, the result is probably luck. We say "could be chance" when that is the case.'],
+        ['Margin of error (CI)','Our best guess is never exact, so we also give a range it is likely to fall in. If the range runs from below zero to above zero, the true effect could be nothing at all.'],
+        ['Bootstrap','A way to get that range: re-draw the candidates at random many times and see how much the answer moves. If it barely moves, we are more sure.'],
+        ['Why compare two gaps','When we say one step follows scores more than another, we check whether the gap between them is bigger than the margin of error. If not, we say we cannot tell them apart, because a different group of candidates might flip the order.'],
+        ['Checking many things at once','If you test 20 things, one will look special by luck alone. We adjust for this, so a finding survives only if it still stands out after the adjustment.'],
+        ['Ranking, not score','Scores from different exercises use different scales. We turn each into a ranking (1st to last) so they can be compared fairly.']
+      ].flatMap(([k,d])=>[el('dt',{},k),el('dd',{},d)]))));
+    return;
+  }
+  const s=P.sections[id]; if(!s){ m.append(el('div',{class:'card'},'No results for this section yet.')); return; }
+  m.append(el('div',{class:'card'},el('h2',{},s.title),el('p',{class:'intro'},SECTIONS.find(x=>x[0]===id)[2]),findings(s.findings),caveats(s.caveats),termStrip(s),typesHint(s)));
+  const g=el('div',{class:'grid'}); s.charts.filter(c=>c.type!=='table').forEach(c=>g.append(chart(c))); m.append(g);
+  s.charts.filter(c=>c.type==='table').forEach(c=>m.append(chart(c)));
+}
+if(P.cohorts){ const sel=document.getElementById('cohortsel'); P.cohorts.options.forEach(o=>sel.append(el('option',{value:o.href},o.name))); sel.value=P.cohorts.options.find(o=>o.name===P.cohorts.current).href; sel.onchange=()=>{ location.href=sel.value+location.hash; }; document.getElementById('cohortbox').hidden=false; }
+document.getElementById('mode').textContent = P.mode==='shareable' ? 'Shareable: aggregates only' : 'Local: candidate-level';
+document.getElementById('mode').classList.toggle('share',P.mode==='shareable');
+document.getElementById('gen').textContent = 'Built '+P.built;
+if (/github\.io$/i.test(location.hostname)) { const b=el('span',{class:'mode',style:'background:#ff9aa2'},'Public demo: synthetic data only'); document.getElementById('gear').before(b); }
+const TOP=['overview','about','glossary','ask'], RAIL=['funnel','structure','resume_themes','notes_themes','interviewers'].concat(P.sections.cohorts?['cohorts']:[]);
+const $=s=>document.querySelector(s), root=document.documentElement, body=document.body, main=$('#main');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const ANALYSIS=new Set(['cohorts','funnel','structure','resume_themes','notes_themes','interviewers']);
+const labelOf=id=>SECTIONS.find(x=>x[0]===id)[1], valid=id=>SECTIONS.some(x=>x[0]===id)&&(!ANALYSIS.has(id)||!!P.sections[id]);
+let prefs={theme:'light',motion:'glide'}; try{ Object.assign(prefs,JSON.parse(localStorage.getItem('hiring-ui')||'{}')); }catch(e){}
+const savePrefs=()=>{ try{ localStorage.setItem('hiring-ui',JSON.stringify(prefs)); }catch(e){} };
+let current=null, last={x:innerWidth/2,y:innerHeight/2};
+addEventListener('pointerdown',e=>{ last={x:e.clientX,y:e.clientY}; },true);
+addEventListener('pointermove',e=>{ const c=e.target.closest&&e.target.closest('.card'); if(c){ const r=c.getBoundingClientRect(); c.style.setProperty('--mx',(e.clientX-r.left)+'px'); c.style.setProperty('--my',(e.clientY-r.top)+'px'); } },{passive:true});
+function makeTabs(nav,ids,numbered){ ids.forEach((id,i)=>{ const b=el('button',{role:'tab','data-id':id}); if(numbered) b.append(el('span',{class:'ico'},String(i+1))); b.append(labelOf(id)); b.onclick=e=>go(id,e); nav.append(b); });
+  nav.addEventListener('keydown',e=>{ const bs=[...nav.querySelectorAll('button')], i=bs.indexOf(document.activeElement); const vert=nav.getAttribute('aria-orientation')==='vertical'; const nx=e.key===(vert?'ArrowDown':'ArrowRight')?1:e.key===(vert?'ArrowUp':'ArrowLeft')?-1:0; if(nx&&i>-1){ e.preventDefault(); const t=bs[(i+nx+bs.length)%bs.length]; t.focus(); t.click(); } }); }
+function place(nav,id){ const goo=nav.querySelector('.goo'), bs=[...nav.querySelectorAll('button')], btn=bs.find(b=>b.dataset.id===id);
+  bs.forEach(b=>{ b.setAttribute('aria-selected',String(b===btn)); b.tabIndex=(b===btn||(!btn&&b===bs[0]))?0:-1; });
+  nav.classList.toggle('on',!!btn); if(!btn) return;
+  if(nav.scrollWidth>nav.clientWidth+2) nav.scrollTo({left:btn.offsetLeft-(nav.clientWidth-btn.offsetWidth)/2,behavior:'instant'});
+  const g=goo.getBoundingClientRect(), r=btn.getBoundingClientRect();
+  goo.querySelectorAll('.drop').forEach(d=>{ d.style.left=(r.left-g.left)+'px'; d.style.top=(r.top-g.top)+'px'; d.style.width=r.width+'px'; d.style.height=r.height+'px'; }); }
+const paint=id=>{ place($('#topnav'),id); place($('#rail'),id); };
+const canVT=()=>!!document.startViewTransition&&!reduce&&(prefs.motion==='glide'||prefs.motion==='liquid');
+function show(id){ render(id); [...main.children].forEach((c,i)=>c.style.setProperty('--k',Math.min(i,8)));
+  main.className=prefs.motion==='rise'&&!reduce?'rise':(prefs.motion!=='off'&&!canVT()&&current!==null?'fb-in':''); scrollTo({top:0,behavior:'instant'}); }
+function go(id,e,fromHash){ if(!valid(id)) id='overview'; if(id===current) return; const first=current===null; current=id;
+  const pt=e&&e.clientX!=null?{x:e.clientX,y:e.clientY}:last; root.style.setProperty('--vx',pt.x+'px'); root.style.setProperty('--vy',pt.y+'px');
+  const swap=()=>{ paint(id); show(id); if(!fromHash) history.pushState(null,'','#'+id); };
+  if(first||!canVT()){ swap(); return; }
+  root.dataset.vt=prefs.motion; document.startViewTransition(swap); }
+function setSeg(box,key){ box.querySelectorAll('button').forEach(b=>{ b.setAttribute('aria-pressed',String(b.dataset.v===prefs[key])); b.onclick=()=>{ prefs[key]=b.dataset.v; savePrefs(); applyPrefs(); setSeg(box,key); }; }); }
+function applyPrefs(){ body.dataset.theme=prefs.theme; root.dataset.vt=prefs.motion; root.style.colorScheme=prefs.theme; if(current) requestAnimationFrame(()=>paint(current)); }
+makeTabs($('#topnav'),TOP,false); makeTabs($('#rail'),RAIL,true);
+$('#gear').onclick=()=>{ const l=$('#lab'); l.hidden=!l.hidden; $('#gear').setAttribute('aria-expanded',String(!l.hidden)); };
+addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('#lab').hidden) $('#gear').click(); });
+setSeg($('#themes'),'theme'); setSeg($('#motions'),'motion'); applyPrefs();
+addEventListener('hashchange',()=>go(location.hash.slice(1)||'overview',null,true));
+addEventListener('resize',()=>current&&paint(current));
+document.fonts&&document.fonts.ready.then(()=>current&&paint(current));
+go(location.hash.slice(1)||'overview',null,true);
+</script>
+</body>
+</html>

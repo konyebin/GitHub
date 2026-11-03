@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "hiring-analysis-ask",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-30",
+  "upload_source_maps": true,
+  "observability": { "enabled": true },
+  "ai": { "binding": "AI" },
+  "ratelimits": [
+    { "name": "LIMITER", "namespace_id": "4821", "simple": { "limit": 10, "period": 60 } }
+  ],
+  "vars": {
+    "ALLOWED_ORIGIN": "https://konyebin.github.io",
+    "MODEL": "@cf/google/gemma-4-26b-a4b-it"
+  }
+}

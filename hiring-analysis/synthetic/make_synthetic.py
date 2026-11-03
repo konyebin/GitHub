@@ -1,0 +1,271 @@
+"""Generate a fully synthetic, already-redacted candidate dataset for developing the analysis.
+
+Nothing here is real. Output goes to hiring-analysis/data/synthetic/ (git-ignored), laid out like real data:
+  resumes/candidateN.docx                    one shared folder; candidate numbers are unique across cohorts
+  AMER FY27Q1/FY27Q1_AMER_ASE_Candidate_Screen_Review.xlsx   resume screening stage, one sheet
+  AMER FY27Q1/FY27Q1_AMER_ASE_Scores.xlsx   three exercises, 4 competencies each scored 1-4, notes, assessor, decision;
+                                             one sheet per AC day (e.g. "AMER Oct 15")
+  AMER FY27Q2/ ...  AMER FY27Q3/ ...         the other cohorts (default 3)
+  _truth.json                                the effects planted below, so we can check the pipeline recovers them
+
+Planted effects (the analysis should find these without being told):
+  1. Assessor 4 scores the Interview exercise about one point per competency higher than the others.
+  2. Assessor 5 writes subjective language ("polished", "great fit", "executive presence") far more often for
+     the "career_changer" and "intern" resume paths than for "help_desk", independent of score.
+  3. Interview and Role Play ranks agree strongly; Presentation partly diverges (it reflects a separate skill).
+  4. Screening Pass/Fail and Status track the TI score, but a few candidates are advanced or stopped against it.
+  5. The final Decision follows total score loosely and disagrees for a handful of candidates.
+  7. Later cohorts draw somewhat stronger candidates (a planted cohort-over-cohort trend). Assessor labels are reused
+     across cohorts, so Assessor 4 stays lenient in every cohort.
+  6. Layout mirrors the real scores workbook (header on row 9, an "Example 1" row, no Buddy column), with one
+     sheet per assessment center day (6 sheets, e.g. "AMER Oct 15"). The screening workbook has a single sheet, copied from synthetic/screen_template.xlsx (the real
+     layout) plus Country; Full name holds the candidateN left by the redactor.
+     Blanks in the test files were filled with generated values, so nothing is left empty.
+
+Run: python hiring-analysis/synthetic/make_synthetic.py [--n 360] [--cohorts 3] [--seed 7]
+Requires: openpyxl, python-docx
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import random
+from datetime import date, datetime, timedelta
+from pathlib import Path
+
+import openpyxl
+from docx import Document
+
+import screen_layout
+
+OUT = Path(__file__).resolve().parents[1] / "data" / "synthetic"
+
+PATHS = ["help_desk", "intern", "career_changer", "bootcamp", "experienced_se"]
+CITIES = ["Seattle, WA", "Austin, TX", "Raleigh, NC", "Denver, CO", "Phoenix, AZ", "Chicago, IL", "Atlanta, GA",
+          "Boston, MA", "Toronto, ON", "Mexico City, MX", "Sao Paulo, BR", "Bogota, CO"]
+SCHOOLS = ["Eastern Carolina University", "Puget Sound State University", "Lakeshore Technical College",
+           "University of Georgia", "Northern Plains University", "Metro City College", "Summit Online University"]
+EMPLOYERS = ["Harborlight Health", "Evergreen Outfitters", "Brightwater Logistics", "Northfield Bank", "Redwood Retail",
+             "Cascade Systems", "Lumen Analytics", "Orchard Insurance"]
+SKILLS = ["Active Directory", "Microsoft 365", "ServiceNow", "Basic networking", "Python", "AWS", "Cisco CCNA",
+          "Webex Calling", "VoIP", "Salesforce", "SQL", "Customer communication"]
+CERTS = ["CompTIA A+", "CompTIA Network+", "Cisco CCNA", "AWS Cloud Practitioner", "Security+"]
+
+INTERVIEW_COMP = ["Growth Mindset, Resilience & Learning Agility", "Executive Presence & Communication",
+                  "Collaboration & Teamwork", "Business Acumen & Technical Insights"]
+ROLEPLAY_COMP = ["Builds Trust / Trusted Advisor", "Executive Presence & Communication", "Coachability",
+                 "Explains Concepts Simply"]
+PRESENT_COMP = ["AI Fluency & Orchestration", "Executive Presence & Communication", "Coachability",
+                "Goes Deep (Technical Acumen)"]
+
+SUBJECTIVE = ["polished", "great fit", "executive presence", "natural presence", "likeable", "confident delivery",
+              "strong gut feel", "would fit the team"]
+RUBRIC = ["gave a specific example with measurable results", "walked through the troubleshooting steps in order",
+          "tied the answer to the customer's business goal", "asked a clarifying question before answering",
+          "described what they would do differently next time", "explained the protocol without jargon",
+          "struggled to go deeper than the first layer of the technology", "needed prompting to quantify impact",
+          "answered a different question than the one asked", "showed a clear plan for learning the gap",
+          "was precise about the trade-offs between two designs"]
+FILLER = ["The pace was steady.", "Camera and audio were fine.", "Started a few minutes late.",
+          "Took notes throughout the discussion.", "Followed up with a thoughtful closing question."]
+
+
+def clamp(x: float, lo: int = 1, hi: int = 4) -> int:
+    return max(lo, min(hi, int(round(x))))
+
+
+def make_candidate(i: int, rng: random.Random) -> dict:
+    path = rng.choices(PATHS, weights=[3, 2, 2, 2, 1])[0]
+    base = {"help_desk": 0.0, "intern": 0.1, "career_changer": -0.1, "bootcamp": -0.1, "experienced_se": 0.5}[path]
+    skill = rng.gauss(0, 1) + base
+    presence = rng.gauss(0, 1)
+    return {"n": i, "path": path, "skill": skill, "presence": presence,
+            "city": rng.choice(CITIES), "school": rng.choice(SCHOOLS),
+            "grad": f"{rng.choice(['May', 'Dec', 'Aug'])} {rng.choice([2024, 2025, 2026, 2027])}",
+            "employers": rng.sample(EMPLOYERS, 2), "skills": rng.sample(SKILLS, 4), "cert": rng.choice(CERTS)}
+
+
+def score4(latent: float, rng: random.Random, bias: float = 0.0) -> int:
+    return clamp(2.5 + 0.7 * latent + bias + rng.gauss(0, 0.6))
+
+
+def long_note(stage: str, avg: float, cand: dict, reviewer: str, rng: random.Random) -> tuple[str, bool]:
+    subj_rate = 0.9 if reviewer == "Assessor 5" and cand["path"] in ("career_changer", "intern") else 0.1
+    subjective = rng.random() < subj_rate
+    parts = [f"{stage} summary."]
+    strong = avg >= 3.0
+    pool = [r for r in RUBRIC if (r.startswith(("struggled", "needed", "answered a")) != strong)]
+    parts += [f"The candidate {x}." for x in rng.sample(pool, k=min(3, len(pool)))]
+    if subjective:
+        parts.append(f"Overall came across as {rng.choice(SUBJECTIVE)} and {rng.choice(SUBJECTIVE)}.")
+    parts += rng.sample(FILLER, 2)
+    verdict = "Recommend moving forward." if avg >= 3.0 else ("Borderline; hold for discussion." if avg >= 2.3
+                                                              else "Not ready for this role at this time.")
+    parts.append(verdict)
+    return " ".join(parts), subjective
+
+
+def write_resume(c: dict, folder: Path) -> None:
+    d = Document()
+    d.add_paragraph("[NAME]")
+    d.add_paragraph(f"{c['city']}  |  [PHONE]  |  [EMAIL]")
+    d.add_paragraph("SUMMARY")
+    summaries = {
+        "help_desk": "Help desk professional who enjoys learning new tools quickly and supporting end users.",
+        "intern": "Recent graduate with a summer internship in IT operations and strong interest in customer-facing roles.",
+        "career_changer": "Former operations manager moving into pre-sales engineering after self-study and certification.",
+        "bootcamp": "Bootcamp graduate with hands-on cloud and Python projects seeking a solutions role.",
+        "experienced_se": "Systems engineer with several years of customer-facing design and deployment work.",
+    }
+    d.add_paragraph(summaries[c["path"]])
+    d.add_paragraph("EXPERIENCE")
+    for e in c["employers"]:
+        d.add_paragraph(f"{e}, {c['city']}")
+    d.add_paragraph("EDUCATION")
+    d.add_paragraph(f"{c['school']}, {c['grad']}")
+    d.add_paragraph("CERTIFICATIONS")
+    d.add_paragraph(c["cert"])
+    d.add_paragraph("SKILLS")
+    d.add_paragraph("  |  ".join(c["skills"]))
+    d.save(folder / f"candidate{c['n']}.docx")
+
+
+COHORT_STARTS = [date(2026, 10, 5), date(2026, 12, 7), date(2027, 3, 8), date(2027, 6, 7), date(2027, 10, 4)]
+
+
+def cohort_name(i: int) -> str:
+    return f"AMER FY{27 + i // 4}Q{i % 4 + 1}"
+
+
+def cohort_sheet_names(rng: random.Random, monday: date) -> list[str]:
+    """Six AC day sheet names such as 'AMER Oct 15': three random weekdays in each of two consecutive weeks."""
+    days = []
+    for week in range(2):
+        days += [monday + timedelta(weeks=week, days=d) for d in sorted(rng.sample(range(5), 3))]
+    return [f"AMER {d.strftime('%b')} {d.day}" for d in days]
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--n", type=int, default=360, help="candidates across all cohorts")
+    ap.add_argument("--cohorts", type=int, default=3)
+    ap.add_argument("--seed", type=int, default=7)
+    args = ap.parse_args()
+    rng = random.Random(args.seed)
+    (OUT / "resumes").mkdir(parents=True, exist_ok=True)
+    for old in (OUT / "resumes").glob("*.docx"):
+        old.unlink()
+    import shutil
+    for old in OUT.glob("AMER FY*"):
+        shutil.rmtree(old)
+    for old in ("screen_review.xlsx", "assessment_center.xlsx"):
+        (OUT / old).unlink(missing_ok=True)
+
+    cosmetic = random.Random(args.seed + 1000)
+    cands = [make_candidate(i, rng) for i in range(1, args.n + 1)]
+    per = -(-args.n // args.cohorts)
+    for c in cands:
+        c["cohort"] = (c["n"] - 1) // per
+        c["skill"] += 0.5 * c["cohort"]
+    screen_rows, ac_rows, truth = [], [], {"planted": __doc__.split("Planted effects")[1].split("Run:")[0].strip(),
+                                             "subjective_notes": {}}
+
+    for c in cands:
+        write_resume(c, OUT / "resumes") if rng.random() < 0.85 else None
+        ti = clamp(round(21 + 4 * c["skill"] + rng.gauss(0, 3)), 8, 32)
+        had_ti = rng.random() < 0.8
+        recruiter = rng.choice(["Recruiter 1", "Recruiter 2", "Recruiter 3"])
+        passed = had_ti and ti >= 21
+        advance = passed if rng.random() > 0.1 else (not passed)
+        status = ("Interview Schedule Sent and Candidate Confirmed Attendance/Receipt of Prep Materials" if advance and rng.random() < 0.7
+                  else "Interview Schedule Sent" if advance else
+                  "Not interested in the role" if (passed and rng.random() < 0.5) else "Not moving forward after technical interview")
+        c["advance"] = bool(advance and had_ti)
+        ti_note, _ = long_note("Technical interview", ti / 8, c, recruiter, rng)
+        screen_rows.append({
+            "candidate": f"candidate{c['n']}", "graduation": c["grad"], "skills": rng.choice(
+                ["Former Intern", "Holds CCNA", "Studying for AWS", "Bachelor Computer Science", "Experience: help desk", "N/A"]),
+            "city": c["city"], "country": rng.choice(["USA", "CAN", "MEX", "BRA", "COL"]), "recruiter": recruiter,
+            "ti_date": datetime(2026, 9, cosmetic.randint(1, 26)) if had_ti else "N/A", "confirmed": "Yes" if had_ti else "N/A",
+            "score": ti if had_ti else "N/A",
+            "comments": rng.choice(["No flags", "Strong English", "Relocation question", "Needs follow-up on networking basics",
+                                    "Referred by a current employee"]) if had_ti else "N/A",
+            "passfail": ("Pass" if passed else "Fail") if had_ti else "N/A", "notes": ti_note if had_ti else "N/A",
+            "recommended": ("Yes" if advance else "No") if had_ti else "N/A", "status": status,
+            "slot": f"Oct {cosmetic.randint(5, 16)} - Slot {cosmetic.randint(1, 8)}" if advance and had_ti else "N/A",
+            "invite": bool(advance and had_ti), "sharepoint": bool(advance and had_ti), "email": "[EMAIL]"})
+
+    assessors = ["Assessor 1", "Assessor 2", "Assessor 3", "Assessor 4", "Assessor 5"]
+    for c in [x for x in cands if x["advance"]]:
+        rows = {}
+        total = 0
+        for stage, comps, latent in (("Interview", INTERVIEW_COMP, c["skill"] * 0.5 + c["presence"] * 0.5),
+                                     ("Role Play", ROLEPLAY_COMP, c["skill"] * 0.4 + c["presence"] * 0.6),
+                                     ("Presentation", PRESENT_COMP, c["skill"] * 0.8 + rng.gauss(0, 0.8))):
+            reviewer = rng.choice(assessors)
+            bias = 1.0 if (stage == "Interview" and reviewer == "Assessor 4") else 0.0
+            sc = [score4(latent, rng, bias) for _ in comps]
+            note, subj = long_note(stage, sum(sc) / 4, c, reviewer, rng)
+            truth["subjective_notes"][f"candidate{c['n']}|{stage}"] = {"reviewer": reviewer, "subjective": subj}
+            rows[stage] = (sc, reviewer, note, "Yes" if sum(sc) >= 12 else "Standby" if sum(sc) >= 9 else "No")
+            total += sum(sc)
+        noisy = total + rng.gauss(0, 3)
+        decision = "Hire" if noisy >= 36 else "Standby" if noisy >= 28 else "No Hire"
+        row = [rng.choice(["USA", "CAN", "MEX", "BRA", "COL"]), f"candidate{c['n']}"]
+        for stage in ("Interview", "Role Play", "Presentation"):
+            sc, reviewer, note, rec = rows[stage]
+            row += sc + [sum(sc), rec, note]
+        overall = f"{decision} overall. " + " ".join(rows[st][2].split(". ")[1] + "." for st in rows)
+        row += [total, round(total / 48, 3), decision, overall]
+        row += [rows[st][1] for st in ("Interview", "Role Play", "Presentation")]
+        ac_rows.append(row)
+
+    head = ["Country", "Candidate Name"]
+    for comps, tail in ((INTERVIEW_COMP, "TOTAL - Interview"), (ROLEPLAY_COMP, "TOTAL -  Role Play (weighted to 16)"),
+                        (PRESENT_COMP, "TOTAL - Presentation")):
+        head += [f"{i}. {c}" for i, c in enumerate(comps, 1)] + [tail, "Recommendation", "Comments/Notes"]
+    head += ["Total Score", "Overall %", "Hire \nNo Hire\nStandby", "Comments/Notes",
+             "Assessor - Interview", "Assessor - Role Play", "Assessor - Presentation"]
+    example = ["", "Example 1"] + [4, 4, 4, 4, 16, "Yes", "", 4, 4, 4, 4, 16, "Yes", "", 4, 4, 4, 4, 16, "Yes", "",
+                                      48, 1.0, "Hire", "", "", "", ""]
+    cohort_of = {f"candidate{c['n']}": c["cohort"] for c in cands}
+
+    for k in range(args.cohorts):
+        name = cohort_name(k)
+        folder = OUT / name
+        folder.mkdir(parents=True, exist_ok=True)
+        stem = f"FY{27 + k // 4}Q{k % 4 + 1}_AMER_ASE"
+
+        wb = screen_layout.new_workbook([r for r in screen_rows if cohort_of[r["candidate"]] == k], identify_by_id=True)
+        wb.save(folder / f"{stem}_Candidate_Screen_Review.xlsx")
+
+        # Two weeks of three assessment center days each: one sheet per AC day, like the real workbook.
+        days = cohort_sheet_names(rng, COHORT_STARTS[k])
+        mine = [row for row in ac_rows if cohort_of[row[1]] == k]
+        wb = openpyxl.Workbook()
+        wb.remove(wb.active)
+        for ci, day in enumerate(days):
+            ws = wb.create_sheet(day)
+            ws["A1"] = "Notes:"
+            ws["B1"] = "Interview; max points is 16. Assessors will score candidates based on the competencies."
+            ws["B2"] = "Role Play; max points is 16. Assessors will score candidates based on the competencies."
+            ws["B3"] = "Presentation; max points is 16. Assessors will score candidates based on the competencies."
+            ws["A5"] = "Total Score = sum of Interview + Role Play + Presentation (max total score is 48)"
+            ws["A6"] = "Overall % = sum of Total Score divided by 48"
+            ws["A7"] = "MS Form"
+            for col, h in enumerate(head, 1):
+                ws.cell(row=9, column=col, value=h)
+            for col, v in enumerate(example, 1):
+                ws.cell(row=10, column=col, value=v)
+            for r, row in enumerate(mine[ci::len(days)], 11):
+                for col, v in enumerate(row, 1):
+                    ws.cell(row=r, column=col, value=v)
+        wb.save(folder / f"{stem}_Scores.xlsx")
+
+    (OUT / "_truth.json").write_text(json.dumps(truth, indent=2))
+    print(f"wrote {args.n} candidates in {args.cohorts} cohorts ({len(ac_rows)} in assessment center) to {OUT}")
+
+
+if __name__ == "__main__":
+    main()

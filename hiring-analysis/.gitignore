@@ -1,0 +1,8 @@
+data/
+*.xlsx
+*.docx
+*.pptx
+*.pdf
+.env
+!testdata/
+!testdata/*.xlsx
