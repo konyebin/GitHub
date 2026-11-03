@@ -6,7 +6,8 @@ cards, circles, icons and text are native PowerPoint objects positioned from
 the measured browser layout. Speaker notes are carried over.
 
 Usage: python3 build_pptx.py [output.pptx]
-Needs: python-pptx, playwright (+ a Chromium/Chrome binary), lxml.
+Setup:  pip install python-pptx playwright
+        (uses your installed Google Chrome; if none is found run: playwright install chromium)
 """
 import asyncio
 import copy
@@ -24,7 +25,21 @@ from playwright.async_api import async_playwright
 HERE = os.path.dirname(os.path.abspath(__file__))
 HTML = os.path.join(HERE, "index.html")
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "Influence-Skills-Liquid.pptx")
-CHROME = os.environ.get("CHROME_PATH", "/usr/local/bin/google-chrome")
+
+
+def find_chrome():
+    """Prefer an installed Chrome; otherwise fall back to Playwright's own Chromium."""
+    candidates = [
+        os.environ.get("CHROME_PATH", ""),
+        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "/usr/local/bin/google-chrome",
+        "/usr/bin/google-chrome",
+        "C:/Program Files/Google/Chrome/Application/chrome.exe",
+    ]
+    return next((c for c in candidates if c and os.path.exists(c)), None)
+
+
+CHROME = find_chrome()
 FONT = "Arial"
 PX = 9525  # EMU per CSS px (1280x720 canvas == 13.333in x 7.5in)
 A = "http://schemas.openxmlformats.org/drawingml/2006/main"
@@ -343,7 +358,7 @@ async def main():
     prs.core_properties.subject = "Influence Skills"
 
     async with async_playwright() as pw:
-        browser = await pw.chromium.launch(executable_path=CHROME, args=["--no-sandbox"])
+        browser = await pw.chromium.launch(executable_path=CHROME, args=["--no-sandbox"]) if CHROME else await pw.chromium.launch()
         ctx = await browser.new_context(viewport={"width": 1280, "height": 720}, device_scale_factor=1.5)
         page = await ctx.new_page()
         await page.goto("file://" + HTML)
