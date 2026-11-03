@@ -764,7 +764,7 @@ def build_funnel(c: pd.DataFrame) -> tuple[Doc, dict]:
                                    min(auc_pf["n_pos"], auc_pf["n_neg"]))
     inversions = int((fail_s[None, :] >= pass_s[:, None]).sum()) if len(pass_s) and len(fail_s) else 0
     pairs = len(pass_s) * len(fail_s)
-    status_adv = c["screen_status"].astype(str).str.contains("Sent Assessment Center", case=False)
+    status_adv = c["screen_status"].astype(str).str.contains("Interview Schedule Sent|Sent Assessment Center", case=False)
     status_withdrew = c["screen_status"].astype(str).str.contains("not interested", case=False)
 
     # model: probability of invitation given TI percentile (logistic); outliers via simulated fence

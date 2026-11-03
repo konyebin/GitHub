@@ -18,7 +18,8 @@ Planted effects (the analysis should find these without being told):
   7. Later cohorts draw somewhat stronger candidates (a planted cohort-over-cohort trend). Assessor labels are reused
      across cohorts, so Assessor 4 stays lenient in every cohort.
   6. Layout mirrors the real scores workbook (header on row 9, an "Example 1" row, no Buddy column), with one
-     sheet per assessment center day (6 sheets, e.g. "AMER Oct 15"). The screening workbook has a single sheet.
+     sheet per assessment center day (6 sheets, e.g. "AMER Oct 15"). The screening workbook has a single sheet, copied from synthetic/screen_template.xlsx (the real
+     layout, no Person ID column) plus Country; Full name holds the candidateN left by the redactor.
      Blanks in the test files were filled with generated values, so nothing is left empty.
 
 Run: python hiring-analysis/synthetic/make_synthetic.py [--n 360] [--cohorts 3] [--seed 7]
@@ -30,7 +31,7 @@ from __future__ import annotations
 import argparse
 import json
 import random
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 import openpyxl
@@ -161,6 +162,7 @@ def main() -> None:
     for old in ("screen_review.xlsx", "assessment_center.xlsx"):
         (OUT / old).unlink(missing_ok=True)
 
+    cosmetic = random.Random(args.seed + 1000)
     cands = [make_candidate(i, rng) for i in range(1, args.n + 1)]
     per = -(-args.n // args.cohorts)
     for c in cands:
@@ -176,21 +178,23 @@ def main() -> None:
         recruiter = rng.choice(["Recruiter 1", "Recruiter 2", "Recruiter 3"])
         passed = had_ti and ti >= 21
         advance = passed if rng.random() > 0.1 else (not passed)
-        status = ("Sent Assessment Center Instructions and Candidate Confirmed Availability" if advance and rng.random() < 0.7
-                  else "Sent Assessment Center Instructions" if advance else
-                  "Not interested in the role" if (passed and rng.random() < 0.5) else "Did not advance after TI")
+        status = ("Interview Schedule Sent and Candidate Confirmed Attendance/Receipt of Prep Materials" if advance and rng.random() < 0.7
+                  else "Interview Schedule Sent" if advance else
+                  "Not interested in the role" if (passed and rng.random() < 0.5) else "Not moving forward after technical interview")
         c["advance"] = bool(advance and had_ti)
         ti_note, _ = long_note("Technical interview", ti / 8, c, recruiter, rng)
         screen_rows.append({
-            "id": f"candidate{c['n']}", "name": "[NAME]", "graduation": c["grad"], "skills": rng.choice(
+            "id": f"candidate{c['n']}", "graduation": c["grad"], "skills": rng.choice(
                 ["Former Intern", "Holds CCNA", "Studying for AWS", "Bachelor Computer Science", "Experience: help desk", "N/A"]),
             "city": c["city"], "country": rng.choice(["USA", "CAN", "MEX", "BRA", "COL"]), "recruiter": recruiter,
-            "ti_date": "Sep 2026" if had_ti else "N/A", "confirmed": "Yes" if had_ti else "N/A",
+            "ti_date": datetime(2026, 9, cosmetic.randint(1, 26)) if had_ti else "N/A", "confirmed": "Yes" if had_ti else "N/A",
             "score": ti if had_ti else "N/A",
             "comments": rng.choice(["No flags", "Strong English", "Relocation question", "Needs follow-up on networking basics",
                                     "Referred by a current employee"]) if had_ti else "N/A",
             "passfail": ("Pass" if passed else "Fail") if had_ti else "N/A", "notes": ti_note if had_ti else "N/A",
-            "recommended": ("Yes" if advance else "No") if had_ti else "N/A", "status": status})
+            "recommended": ("Yes" if advance else "No") if had_ti else "N/A", "status": status,
+            "slot": f"Oct {cosmetic.randint(5, 16)} - Slot {cosmetic.randint(1, 8)}" if advance and had_ti else "N/A",
+            "invite": bool(advance and had_ti), "sharepoint": bool(advance and had_ti), "email": "[EMAIL]"})
 
     assessors = ["Assessor 1", "Assessor 2", "Assessor 3", "Assessor 4", "Assessor 5"]
     for c in [x for x in cands if x["advance"]]:
@@ -225,7 +229,6 @@ def main() -> None:
              "Assessor - Interview", "Assessor - Role Play", "Assessor - Presentation"]
     example = ["", "Example 1"] + [4, 4, 4, 4, 16, "Yes", "", 4, 4, 4, 4, 16, "Yes", "", 4, 4, 4, 4, 16, "Yes", "",
                                       48, 1.0, "Hire", "", "", "", ""]
-    layout = screen_layout.load_layout()
     cohort_of = {f"candidate{c['n']}": c["cohort"] for c in cands}
 
     for k in range(args.cohorts):
@@ -234,10 +237,7 @@ def main() -> None:
         folder.mkdir(parents=True, exist_ok=True)
         stem = f"FY{27 + k // 4}Q{k % 4 + 1}_AMER_ASE"
 
-        wb = openpyxl.Workbook()
-        ws = wb.active
-        ws.title = layout["sheet_name"]
-        screen_layout.write_screen_sheet(ws, layout, [r for r in screen_rows if cohort_of[r["id"]] == k])
+        wb = screen_layout.new_workbook([r for r in screen_rows if cohort_of[r["id"]] == k], identify_by_id=True)
         wb.save(folder / f"{stem}_Candidate_Screen_Review.xlsx")
 
         # Two weeks of three assessment center days each: one sheet per AC day, like the real workbook.

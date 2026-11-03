@@ -8,7 +8,7 @@ Reads (paths come from hiring-analysis/.env or environment via settings.py, neve
 A *cohort* is a hiring cycle such as "AMER FY27Q1". Its name comes from the workbook filename when it contains one
 (FY27Q1_AMER_ASE_Scores..., AMER FY27Q1 ...), otherwise from the name of the folder the workbook sits in (the redactor
 renames files to candidateN.xlsx, so the folder is the fallback). Workbooks are recognised by content, not filename:
-a sheet with a "Person ID" header is screening data, a sheet with a "Candidate Name" header is assessment center scores.
+a sheet with a "Full name" (or older "Person ID") header is screening data, a sheet with a "Candidate Name" header is assessment center scores.
 Each sheet of a scores workbook is one *AC day* (for example "AMER Oct 15"); its date is worked out from the cohort's
 fiscal quarter.
 
@@ -118,12 +118,12 @@ def find_header(ws, needle: str, max_rows: int = 30) -> int:
 
 
 def workbook_kind(path: Path) -> str | None:
-    """"screen" if any sheet has a Person ID header, "scores" if any has Candidate Name, otherwise None."""
+    """"screen" if any sheet has a Person ID or Full name header, "scores" if any has Candidate Name, otherwise None."""
     wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
     kinds = set()
     for ws in wb.worksheets:
         text = [str(c).lower() for row in ws.iter_rows(min_row=1, max_row=30, values_only=True) for c in row if isinstance(c, str)]
-        if any("person id" in t for t in text):
+        if any("person id" in t or t.strip() == "full name" for t in text):
             kinds.add("screen")
         if any("candidate name" in t for t in text):
             kinds.add("scores")
@@ -151,7 +151,7 @@ def discover(data_dir: Path, out_dir: Path | None, warnings: list) -> dict[str, 
         cohort = cohort or parent
         kind = workbook_kind(p)
         if kind is None:
-            warnings.append(f"{p.name}: not recognised as a screening workbook (Person ID header) or scores workbook (Candidate Name header); skipped")
+            warnings.append(f"{p.name}: not recognised as a screening workbook (Full name or Person ID header) or scores workbook (Candidate Name header); skipped")
             continue
         if cohort is None:
             raise ValueError(f"cannot tell which cohort {p.name!r} belongs to. Put it in a folder named like 'AMER FY27Q1' "
@@ -171,12 +171,15 @@ def load_screen(path: Path, warnings: list) -> pd.DataFrame:
         except ValueError as e:
             warnings.append(f"screening sheet {ws.title!r} skipped: {e}")
     if not parts:
-        raise ValueError(f"no screening sheet with a 'Person ID' header in {path.name}")
+        raise ValueError(f"no screening sheet with a Full name or Person ID header in {path.name}")
     return pd.concat(parts, ignore_index=True)
 
 
 def _load_screen_sheet(ws, warnings: list) -> pd.DataFrame:
-    hr = find_header(ws, "Person ID")
+    hr = next((r for r in range(1, 31) for c in ws[r]
+               if isinstance(c.value, str) and re.match(r"\s*(person\s*id|full\s*name)\s*$", c.value, re.I)), None)
+    if hr is None:
+        raise ValueError("header row containing 'Person ID' or 'Full name' not found")
     headers = [clean(c.value) for c in ws[hr]]
     rows = []
     for r in ws.iter_rows(min_row=hr + 1, values_only=True):
@@ -198,7 +201,7 @@ def _load_screen_sheet(ws, warnings: list) -> pd.DataFrame:
         "screen_comments": r"additional\s*comments", "screen_notes": r"notes", "screen_invited": r"recommended",
         "screen_status": r"status",
     }
-    id_col = col(r"person\s*id")
+    id_col = col(r"person\s*id") or col(r"full\s*name")
     out = pd.DataFrame({"candidate_id": df[id_col].astype(str).str.strip()})
     absent = []
     for field, pat in wanted.items():

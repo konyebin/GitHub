@@ -7,7 +7,7 @@ workbook stays a single sheet.
 
 Outputs (hiring-analysis/testdata/, tracked because it holds only fake names):
   FY27Q3_AMER_ASE_Scores_TEST_DATA.xlsx          6 AC day sheets, source layout minus the Salutation column
-  ASE_Candidate_Screen_Review_TEST_DATA.xlsx     1 sheet, columns as in the real screening workbook
+  ASE_Candidate_Screen_Review_TEST_DATA.xlsx     1 sheet, headers/styles from synthetic/screen_template.xlsx (the real layout) plus Country
 
 Run: python hiring-analysis/synthetic/make_multisheet_testdata.py --source path/to/FY27Q3_AMER_ASE_Scores_TEST_DATA.xlsx
 Requires: openpyxl
@@ -18,7 +18,7 @@ from __future__ import annotations
 import argparse
 import random
 import re
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 import openpyxl
@@ -106,38 +106,39 @@ def build_scores(source: Path, sheets: list[str], out: Path) -> dict[str, int]:
 
 
 def build_screen(names_by_sheet: dict[str, list[str]], out: Path, rng: random.Random) -> None:
-    layout = screen_layout.load_layout()
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = layout["sheet_name"]
     cities = [("Seattle, WA", "USA"), ("Austin, TX", "USA"), ("Raleigh, NC", "USA"), ("Denver, CO", "USA"),
-              ("Chicago, IL", "USA"), ("Toronto, ON", "CAN"), ("Mexico City, MX", "MEX")]
-    skills = ["Former Intern", "Holds CCNA", "Studying for AWS", "Bachelor Computer Science", "Experience: help desk"]
-    recruiters = ["Pat Morales", "Lee Brandt"]
+              ("Chicago, IL", "USA"), ("Toronto, ON, Canada", "CAN"), ("Mexico City, Mexico", "MEX")]
+    skills = ["CCNA; Troubleshooting and root-cause analysis", "CompTIA A+; Active Directory", "Security+; Networking; Help desk",
+              "CCNA (in progress); Python, Bash", "Cisco Networking Academy: CCNA; Linux"]
+    recruiters = ["Marcus Bell", "Priya Natarajan", "Dana Whitfield"]
+    advance = "Interview Schedule Sent and Candidate Confirmed Attendance/Receipt of Prep Materials"
     rows = []
     pid = 1042100
-    for names in names_by_sheet.values():
-        for name in names:
-            pid += rng.randint(3, 40)
-            city, country = rng.choice(cities)
-            rows.append({"id": pid, "name": name, "graduation": f"May 202{rng.choice([5, 6])}", "skills": rng.choice(skills),
-                         "city": city, "country": country, "recruiter": rng.choice(recruiters),
-                         "ti_date": f"Sep {rng.randint(8, 26)}, 2026", "confirmed": "Yes", "score": rng.randint(21, 31),
-                         "comments": "No flags", "passfail": "Pass",
-                         "notes": f"{name} described a help desk escalation clearly and asked good questions about the role.",
-                         "recommended": "Yes",
-                         "status": "Sent Assessment Center Instructions and Candidate Confirmed Availability"})
-    for _ in range(6):
+
+    def person(name: str, passed: bool) -> dict:
+        nonlocal pid
         pid += rng.randint(3, 40)
-        name = rng.choice(["Blair Kent", "Dana Moss", "Eli Park", "Frankie Dunn", "Gray Holt", "Harper Lane"])
         city, country = rng.choice(cities)
-        rows.append({"id": pid, "name": name, "graduation": "May 2026", "skills": rng.choice(skills), "city": city,
-                     "country": country, "recruiter": rng.choice(recruiters), "ti_date": f"Sep {rng.randint(8, 26)}, 2026",
-                     "confirmed": "Yes", "score": rng.randint(10, 20), "comments": "Needs follow-up on networking basics",
-                     "passfail": "Fail", "notes": f"{name} struggled to go deeper than the first layer of the technology.",
-                     "recommended": "No", "status": "Did not advance after TI"})
-    screen_layout.write_screen_sheet(ws, layout, rows)
-    wb.save(out)
+        first, last = name.lower().split()[0], name.lower().split()[-1]
+        return {"id": pid, "name": name, "graduation": f"May 202{rng.choice([4, 5, 6])}", "skills": rng.choice(skills),
+                "city": city, "country": country, "recruiter": rng.choice(recruiters),
+                "ti_date": datetime(2026, 9, rng.randint(1, 26)), "confirmed": "Yes",
+                "score": rng.randint(21, 31) if passed else rng.randint(10, 20),
+                "comments": "No flags" if passed else "Needs follow-up on networking basics",
+                "passfail": "Pass" if passed else "Fail",
+                "notes": (f"{name} described a help desk escalation clearly and asked good questions about the role. "
+                          "Language level: English (native).") if passed else
+                         f"{name} struggled to go deeper than the first layer of the technology. Language level: English (native).",
+                "recommended": "Yes" if passed else "No",
+                "status": advance if passed else "Not moving forward after technical interview",
+                "slot": f"Oct {rng.randint(5, 16)} - Slot {rng.randint(1, 8)}" if passed else "N/A",
+                "invite": passed, "sharepoint": passed, "email": f"{first}.{last}@example.com"}
+
+    for names in names_by_sheet.values():
+        rows += [person(name, True) for name in names]
+    rows += [person(rng.choice(["Blair Kent", "Dana Moss", "Eli Park", "Frankie Dunn", "Gray Holt", "Harper Lane"]), False)
+             for _ in range(6)]
+    screen_layout.new_workbook(rows).save(out)
 
 
 def main() -> None:
