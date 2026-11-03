@@ -186,25 +186,28 @@ def _load_screen_sheet(ws, warnings: list) -> pd.DataFrame:
     df = pd.DataFrame(rows)
     df = df[[c for c in df.columns if c]]
 
-    def col(prefix: str) -> str:
+    def col(pattern: str):
         for c in df.columns:
-            if str(c).lower().startswith(prefix.lower()):
+            if re.match(pattern, str(c).strip(), re.I):
                 return c
-        raise KeyError(prefix)
+        return None
 
-    out = pd.DataFrame({
-        "candidate_id": df[col("Person ID")].astype(str).str.strip(),
-        "proxy_graduation": df[col("Graduation")],
-        "proxy_skills_tag": df[col("Skills")],
-        "proxy_home_city": df[col("Home cities")],
-        "screen_recruiter": df[col("Recruiter")],
-        "screen_score_raw": df[col("Score")],
-        "screen_passfail": df[col("Pass/Fail")],
-        "screen_comments": df[col("Additional Comments")],
-        "screen_notes": df[col("Notes")],
-        "screen_invited": df[col("Recommended")],
-        "screen_status": df[col("Status")],
-    })
+    wanted = {
+        "proxy_graduation": r"graduation", "proxy_skills_tag": r"skills", "proxy_home_city": r"home\s*cit",
+        "screen_recruiter": r"recruiter", "screen_score_raw": r"score", "screen_passfail": r"pass\s*/?\s*fail",
+        "screen_comments": r"additional\s*comments", "screen_notes": r"notes", "screen_invited": r"recommended",
+        "screen_status": r"status",
+    }
+    id_col = col(r"person\s*id")
+    out = pd.DataFrame({"candidate_id": df[id_col].astype(str).str.strip()})
+    absent = []
+    for field, pat in wanted.items():
+        c = col(pat)
+        out[field] = df[c] if c is not None else None
+        if c is None:
+            absent.append(field)
+    if absent:
+        warnings.append(f"screening sheet {ws.title!r} has no column for: {', '.join(absent)} (those fields are left empty)")
     out["screen_score"] = pd.to_numeric(out["screen_score_raw"], errors="coerce")
     out["reached_ti"] = out["screen_score"].notna()
     blanks = int(df.isna().sum().sum())

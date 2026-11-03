@@ -36,6 +36,8 @@ from pathlib import Path
 import openpyxl
 from docx import Document
 
+import screen_layout
+
 OUT = Path(__file__).resolve().parents[1] / "data" / "synthetic"
 
 PATHS = ["help_desk", "intern", "career_changer", "bootcamp", "experienced_se"]
@@ -179,11 +181,16 @@ def main() -> None:
                   "Not interested in the role" if (passed and rng.random() < 0.5) else "Did not advance after TI")
         c["advance"] = bool(advance and had_ti)
         ti_note, _ = long_note("Technical interview", ti / 8, c, recruiter, rng)
-        screen_rows.append([f"candidate{c['n']}", "[NAME]", c["grad"], rng.choice(
-            ["Former Intern", "Holds CCNA", "Studying for AWS", "Bachelor Computer Science", "Experience: help desk", "N/A"]),
-            c["city"], recruiter, "Sep 2026" if had_ti else "N/A", "Yes" if had_ti else "N/A",
-            ti if had_ti else "N/A", rng.choice(["No flags", "Strong English", "Relocation question", "Needs follow-up on networking basics", "Referred by a current employee"]) if had_ti else "N/A", ("Pass" if passed else "Fail") if had_ti else "N/A",
-            ti_note if had_ti else "N/A", ("Yes" if advance else "No") if had_ti else "N/A", status])
+        screen_rows.append({
+            "id": f"candidate{c['n']}", "name": "[NAME]", "graduation": c["grad"], "skills": rng.choice(
+                ["Former Intern", "Holds CCNA", "Studying for AWS", "Bachelor Computer Science", "Experience: help desk", "N/A"]),
+            "city": c["city"], "country": rng.choice(["USA", "CAN", "MEX", "BRA", "COL"]), "recruiter": recruiter,
+            "ti_date": "Sep 2026" if had_ti else "N/A", "confirmed": "Yes" if had_ti else "N/A",
+            "score": ti if had_ti else "N/A",
+            "comments": rng.choice(["No flags", "Strong English", "Relocation question", "Needs follow-up on networking basics",
+                                    "Referred by a current employee"]) if had_ti else "N/A",
+            "passfail": ("Pass" if passed else "Fail") if had_ti else "N/A", "notes": ti_note if had_ti else "N/A",
+            "recommended": ("Yes" if advance else "No") if had_ti else "N/A", "status": status})
 
     assessors = ["Assessor 1", "Assessor 2", "Assessor 3", "Assessor 4", "Assessor 5"]
     for c in [x for x in cands if x["advance"]]:
@@ -218,6 +225,7 @@ def main() -> None:
              "Assessor - Interview", "Assessor - Role Play", "Assessor - Presentation"]
     example = ["", "Example 1"] + [4, 4, 4, 4, 16, "Yes", "", 4, 4, 4, 4, 16, "Yes", "", 4, 4, 4, 4, 16, "Yes", "",
                                       48, 1.0, "Hire", "", "", "", ""]
+    layout = screen_layout.load_layout()
     cohort_of = {f"candidate{c['n']}": c["cohort"] for c in cands}
 
     for k in range(args.cohorts):
@@ -228,14 +236,8 @@ def main() -> None:
 
         wb = openpyxl.Workbook()
         ws = wb.active
-        ws.title = "Screen"
-        ws.append(["Person ID", "Full name", "Graduation Date or Expected Graduation Date", "Skills and Technologies",
-                   "Home cities", "Recruiter", "TI Date", "Confirmed Yes/No", "Score (Passing Score 21)",
-                   "Additional Comments", "Pass/Fail", "Notes (Summary of the TI call)",
-                   "Recommended to be Invited to Insight Day Yes/No", "Status"])
-        for r in screen_rows:
-            if cohort_of[r[0]] == k:
-                ws.append(r)
+        ws.title = layout["sheet_name"]
+        screen_layout.write_screen_sheet(ws, layout, [r for r in screen_rows if cohort_of[r["id"]] == k])
         wb.save(folder / f"{stem}_Candidate_Screen_Review.xlsx")
 
         # Two weeks of three assessment center days each: one sheet per AC day, like the real workbook.

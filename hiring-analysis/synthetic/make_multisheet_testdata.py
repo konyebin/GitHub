@@ -24,6 +24,8 @@ from pathlib import Path
 import openpyxl
 import openpyxl.utils
 
+import screen_layout
+
 OUT = Path(__file__).resolve().parents[1] / "testdata"
 HEADER_ROW, FIRST_ROW = 9, 11
 
@@ -104,33 +106,37 @@ def build_scores(source: Path, sheets: list[str], out: Path) -> dict[str, int]:
 
 
 def build_screen(names_by_sheet: dict[str, list[str]], out: Path, rng: random.Random) -> None:
+    layout = screen_layout.load_layout()
     wb = openpyxl.Workbook()
     ws = wb.active
-    ws.title = "Screen"
-    ws.append(["Person ID", "Full name", "Graduation Date or Expected Graduation Date", "Skills and Technologies",
-               "Home cities", "Recruiter", "TI Date", "Confirmed Yes/No", "Score (Passing Score 21)",
-               "Additional Comments", "Pass/Fail", "Notes (Summary of the TI call)",
-               "Recommended to be Invited to Insight Day Yes/No", "Status"])
-    cities = ["Seattle, WA", "Austin, TX", "Raleigh, NC", "Denver, CO", "Chicago, IL", "Toronto, ON", "Mexico City, MX"]
+    ws.title = layout["sheet_name"]
+    cities = [("Seattle, WA", "USA"), ("Austin, TX", "USA"), ("Raleigh, NC", "USA"), ("Denver, CO", "USA"),
+              ("Chicago, IL", "USA"), ("Toronto, ON", "CAN"), ("Mexico City, MX", "MEX")]
     skills = ["Former Intern", "Holds CCNA", "Studying for AWS", "Bachelor Computer Science", "Experience: help desk"]
     recruiters = ["Pat Morales", "Lee Brandt"]
+    rows = []
     pid = 1042100
-    for sheet, names in names_by_sheet.items():
+    for names in names_by_sheet.values():
         for name in names:
             pid += rng.randint(3, 40)
-            score = rng.randint(21, 31)
-            ws.append([pid, name, f"May 202{rng.choice([5, 6])}", rng.choice(skills), rng.choice(cities),
-                       rng.choice(recruiters), f"Sep {rng.randint(8, 26)}, 2026", "Yes", score, "No flags", "Pass",
-                       f"{name} described a help desk escalation clearly and asked good questions about the role.",
-                       "Yes", "Sent Assessment Center Instructions and Candidate Confirmed Availability"])
+            city, country = rng.choice(cities)
+            rows.append({"id": pid, "name": name, "graduation": f"May 202{rng.choice([5, 6])}", "skills": rng.choice(skills),
+                         "city": city, "country": country, "recruiter": rng.choice(recruiters),
+                         "ti_date": f"Sep {rng.randint(8, 26)}, 2026", "confirmed": "Yes", "score": rng.randint(21, 31),
+                         "comments": "No flags", "passfail": "Pass",
+                         "notes": f"{name} described a help desk escalation clearly and asked good questions about the role.",
+                         "recommended": "Yes",
+                         "status": "Sent Assessment Center Instructions and Candidate Confirmed Availability"})
     for _ in range(6):
         pid += rng.randint(3, 40)
-        name = rng.choice(["Blair Kent", "Dana Moss", "Eli Park", "Frankie Dunn", "Gray Holt", "Harper Lane"]) + ""
-        score = rng.randint(10, 20)
-        ws.append([pid, name, "May 2026", rng.choice(skills), rng.choice(cities), rng.choice(recruiters),
-                   f"Sep {rng.randint(8, 26)}, 2026", "Yes", score, "Needs follow-up on networking basics", "Fail",
-                   f"{name} struggled to go deeper than the first layer of the technology.", "No",
-                   "Did not advance after TI"])
+        name = rng.choice(["Blair Kent", "Dana Moss", "Eli Park", "Frankie Dunn", "Gray Holt", "Harper Lane"])
+        city, country = rng.choice(cities)
+        rows.append({"id": pid, "name": name, "graduation": "May 2026", "skills": rng.choice(skills), "city": city,
+                     "country": country, "recruiter": rng.choice(recruiters), "ti_date": f"Sep {rng.randint(8, 26)}, 2026",
+                     "confirmed": "Yes", "score": rng.randint(10, 20), "comments": "Needs follow-up on networking basics",
+                     "passfail": "Fail", "notes": f"{name} struggled to go deeper than the first layer of the technology.",
+                     "recommended": "No", "status": "Did not advance after TI"})
+    screen_layout.write_screen_sheet(ws, layout, rows)
     wb.save(out)
 
 
