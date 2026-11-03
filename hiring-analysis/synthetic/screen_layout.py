@@ -25,10 +25,9 @@ from openpyxl.utils import get_column_letter as L
 TEMPLATE = Path(__file__).with_name("screen_template.xlsx")
 COUNTRY = "Country"
 COUNTRY_WIDTH = 16
-HEADER_PAT = re.compile(r"\s*(person\s*id|full\s*name)\s*$", re.I)
+HEADER_PAT = re.compile(r"\s*full\s*name\s*$", re.I)
 
 FIELDS = [
-    ("id", r"person\s*id"),
     ("country", r"country"),
     ("name", r"(full|candidate)?\s*name"),
     ("graduation", r"graduation"),
@@ -62,7 +61,7 @@ def header_row_of(ws, max_rows: int = 30) -> int:
     for r in range(1, min(ws.max_row, max_rows) + 1):
         if any(isinstance(c.value, str) and HEADER_PAT.match(c.value) for c in ws[r]):
             return r
-    raise SystemExit(f"no 'Person ID' or 'Full name' header found in the first {max_rows} rows of sheet {ws.title!r}")
+    raise SystemExit(f"no 'Full name' header found in the first {max_rows} rows of sheet {ws.title!r}")
 
 
 def make_template(source: Path, out: Path = TEMPLATE) -> Path:
@@ -119,22 +118,21 @@ def _add_country(ws, hr: int) -> None:
 
 
 def new_workbook(rows: list[dict], identify_by_id: bool = False, template: Path | None = None) -> openpyxl.Workbook:
-    """Template plus Country, filled with rows keyed by field name (id, name, country, city, score, ...).
+    """Template plus Country, filled with rows keyed by field name (name, country, city, score, ...).
 
-    The real workbook has no Person ID column, so the person is identified by Full name. With `identify_by_id`
-    the Full name cell holds the row's id (candidateN), which is what the redactor leaves behind.
+    The person is identified by Full name. With `identify_by_id` the Full name cell holds the row's `candidate` value (candidateN),
+    which is what the redactor leaves behind.
     """
     wb = openpyxl.load_workbook(template or TEMPLATE)
     ws = wb.worksheets[0]
     hr = header_row_of(ws)
     _add_country(ws, hr)
     headers = [c.value for c in ws[hr]]
-    has_id = any(field_of(h) == "id" for h in headers)
     sample = {c: copy(ws.cell(hr + 1, c)._style) for c in range(1, len(headers) + 1)}
     for i, row in enumerate(rows, hr + 1):
         row = dict(row)
-        if identify_by_id and not has_id:
-            row["name"] = row["id"]
+        if identify_by_id:
+            row["name"] = row["candidate"]
         for col, h in enumerate(headers, 1):
             f = field_of(h)
             if not h:

@@ -113,14 +113,11 @@ def build_screen(names_by_sheet: dict[str, list[str]], out: Path, rng: random.Ra
     recruiters = ["Marcus Bell", "Priya Natarajan", "Dana Whitfield"]
     advance = "Interview Schedule Sent and Candidate Confirmed Attendance/Receipt of Prep Materials"
     rows = []
-    pid = 1042100
 
     def person(name: str, passed: bool) -> dict:
-        nonlocal pid
-        pid += rng.randint(3, 40)
         city, country = rng.choice(cities)
         first, last = name.lower().split()[0], name.lower().split()[-1]
-        return {"id": pid, "name": name, "graduation": f"May 202{rng.choice([4, 5, 6])}", "skills": rng.choice(skills),
+        return {"name": name, "graduation": f"May 202{rng.choice([4, 5, 6])}", "skills": rng.choice(skills),
                 "city": city, "country": country, "recruiter": rng.choice(recruiters),
                 "ti_date": datetime(2026, 9, rng.randint(1, 26)), "confirmed": "Yes",
                 "score": rng.randint(21, 31) if passed else rng.randint(10, 20),

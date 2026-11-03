@@ -19,7 +19,7 @@ Planted effects (the analysis should find these without being told):
      across cohorts, so Assessor 4 stays lenient in every cohort.
   6. Layout mirrors the real scores workbook (header on row 9, an "Example 1" row, no Buddy column), with one
      sheet per assessment center day (6 sheets, e.g. "AMER Oct 15"). The screening workbook has a single sheet, copied from synthetic/screen_template.xlsx (the real
-     layout, no Person ID column) plus Country; Full name holds the candidateN left by the redactor.
+     layout) plus Country; Full name holds the candidateN left by the redactor.
      Blanks in the test files were filled with generated values, so nothing is left empty.
 
 Run: python hiring-analysis/synthetic/make_synthetic.py [--n 360] [--cohorts 3] [--seed 7]
@@ -184,7 +184,7 @@ def main() -> None:
         c["advance"] = bool(advance and had_ti)
         ti_note, _ = long_note("Technical interview", ti / 8, c, recruiter, rng)
         screen_rows.append({
-            "id": f"candidate{c['n']}", "graduation": c["grad"], "skills": rng.choice(
+            "candidate": f"candidate{c['n']}", "graduation": c["grad"], "skills": rng.choice(
                 ["Former Intern", "Holds CCNA", "Studying for AWS", "Bachelor Computer Science", "Experience: help desk", "N/A"]),
             "city": c["city"], "country": rng.choice(["USA", "CAN", "MEX", "BRA", "COL"]), "recruiter": recruiter,
             "ti_date": datetime(2026, 9, cosmetic.randint(1, 26)) if had_ti else "N/A", "confirmed": "Yes" if had_ti else "N/A",
@@ -237,7 +237,7 @@ def main() -> None:
         folder.mkdir(parents=True, exist_ok=True)
         stem = f"FY{27 + k // 4}Q{k % 4 + 1}_AMER_ASE"
 
-        wb = screen_layout.new_workbook([r for r in screen_rows if cohort_of[r["id"]] == k], identify_by_id=True)
+        wb = screen_layout.new_workbook([r for r in screen_rows if cohort_of[r["candidate"]] == k], identify_by_id=True)
         wb.save(folder / f"{stem}_Candidate_Screen_Review.xlsx")
 
         # Two weeks of three assessment center days each: one sheet per AC day, like the real workbook.

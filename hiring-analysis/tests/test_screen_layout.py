@@ -78,7 +78,7 @@ def test_workbook_built_from_template_matches_and_loads(tmp_path, monkeypatch):
 
 
 def test_synthetic_style_rows_use_candidate_number_as_id():
-    wb = sl.new_workbook([{"id": "candidate7", "name": "x", "score": 25}], identify_by_id=True)
+    wb = sl.new_workbook([{"candidate": "candidate7", "name": "x", "score": 25}], identify_by_id=True)
     ws = wb.worksheets[0]
     assert ws.cell(2, 1).value == "candidate7"
 
