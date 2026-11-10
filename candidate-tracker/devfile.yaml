@@ -31,6 +31,8 @@ components:
         kind: Deployment
         metadata:
           name: candidate-tracker
+          annotations:
+            image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"candidate-tracker:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"candidate-tracker\")].image"}]'
         spec:
           replicas: 1
           selector:
