@@ -67,21 +67,6 @@ components:
               targetPort: 8080
           selector:
             app: candidate-tracker
-        ---
-        apiVersion: route.openshift.io/v1
-        kind: Route
-        metadata:
-          name: candidate-tracker
-        spec:
-          path: /
-          to:
-            kind: Service
-            name: candidate-tracker
-          port:
-            targetPort: http-8080
-          tls:
-            termination: edge
-            insecureEdgeTerminationPolicy: Redirect
 commands:
   - id: build-image
     apply:
