@@ -1,0 +1,6 @@
+.venv
+__pycache__
+tests
+tracker_state.json
+*_tracked.xlsx
+.git

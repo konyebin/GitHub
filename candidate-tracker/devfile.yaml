@@ -1,0 +1,86 @@
+schemaVersion: 2.2.0
+metadata:
+  name: candidate-tracker
+  displayName: ASE Candidate Tracker
+  description: Streamlit dashboard for tracking hire, standby and no-hire decisions from the ASE scores workbook
+  language: python
+  projectType: python
+  version: 1.0.0
+components:
+  - name: image-build
+    image:
+      imageName: candidate-tracker:latest
+      dockerfile:
+        uri: Dockerfile
+        buildContext: .
+        rootRequired: false
+  - name: kubernetes-deploy
+    attributes:
+      deployment/replicas: 1
+      deployment/cpuRequest: 100m
+      deployment/memoryRequest: 256Mi
+      deployment/container-port: 8080
+    kubernetes:
+      endpoints:
+        - name: http-8080
+          targetPort: 8080
+          secure: true
+          path: /
+      inlined: |
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: candidate-tracker
+          annotations:
+            image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"candidate-tracker:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"candidate-tracker\")].image"}]'
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              app: candidate-tracker
+          template:
+            metadata:
+              labels:
+                app: candidate-tracker
+            spec:
+              containers:
+                - name: candidate-tracker
+                  image: {{CONTAINER_IMAGE}}
+                  ports:
+                    - name: http-8080
+                      containerPort: 8080
+                      protocol: TCP
+                  resources:
+                    requests:
+                      cpu: 100m
+                      memory: 256Mi
+                    limits:
+                      memory: 512Mi
+        ---
+        apiVersion: v1
+        kind: Service
+        metadata:
+          name: candidate-tracker
+        spec:
+          ports:
+            - name: http-8080
+              port: 8080
+              protocol: TCP
+              targetPort: 8080
+          selector:
+            app: candidate-tracker
+commands:
+  - id: build-image
+    apply:
+      component: image-build
+  - id: deploy
+    apply:
+      component: kubernetes-deploy
+  - id: deploy-app
+    composite:
+      commands:
+        - build-image
+        - deploy
+      group:
+        kind: deploy
+        isDefault: true
