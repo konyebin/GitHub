@@ -62,6 +62,24 @@
 
   .quote { margin-top: 4cqw; font-size: 3cqw; color: var(--teal); font-style: italic; }
 
+
+  /* Imagery */
+  .split { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 36cqw; gap: 3.5cqw; align-items: center; }
+  .split ul { align-self: center; font-size: 2.1cqw; gap: 1.2cqw; }
+  figure.art { border-radius: 1.6cqw; overflow: hidden; box-shadow: 0 1.2cqw 3cqw rgba(14,40,65,.22); aspect-ratio: 3 / 2; background: var(--navy); }
+  .slide.center figure.art { box-shadow: 0 1.2cqw 3cqw rgba(0,0,0,.45); outline: .15cqw solid rgba(15,158,213,.35); }
+  figure.art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .slide.center .split { grid-template-columns: 1fr 36cqw; max-width: none; width: 100%; }
+  .slide.center .split .sub { max-width: none; }
+  .slide.center .split ul { font-size: 2cqw; gap: 1cqw; }
+  .slide.center.has-split { align-items: stretch; text-align: left; justify-content: flex-start; }
+  .slide.center.has-split h1 { font-size: 4.2cqw; }
+  .slide.center.has-split h1 + .rule { margin: 1.6cqw 0 3cqw; }
+  .badge-art { position: absolute; top: 3cqw; right: 6cqw; width: 15cqw; aspect-ratio: 1 / 1; border-radius: 1.2cqw; }
+  .slide.hero { align-items: flex-start; text-align: left; justify-content: center; padding-left: 9cqw;
+    background: linear-gradient(90deg, rgba(14,40,65,.97) 0%, rgba(14,40,65,.88) 42%, rgba(14,40,65,.35) 100%), url("img/hero.jpg") center / cover no-repeat, var(--navy); }
+  .slide.hero h1 + .rule { margin: 2cqw 0 0; }
+
   /* Two columns */
   .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 3cqw; flex: 1; min-height: 0; }
   .col { border-radius: 1.4cqw; padding: 2.2cqw 2.6cqw; background: #f4f8fb; border-top: .5cqw solid var(--teal); }
@@ -94,6 +112,7 @@
   .card span { font-size: 16px; color: var(--navy); font-weight: 600; }
 
   @media print {
+    .slide.hero { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     html, body { overflow: visible; background: #fff; }
     .stage { position: static; display: block; }
     .deck { width: 100%; aspect-ratio: auto; box-shadow: none; overflow: visible; container-type: normal; }
@@ -123,6 +142,7 @@
 
     <section class="slide" data-title="Defining our Principles">
       <h1>Defining our Principles</h1><div class="rule"></div>
+      <div class="split">
       <ul>
         <li>Thinking beyond the core competencies, what attributes define the best sellers?</li>
         <li>How can we give our CSAPers the best of each of us?</li>
@@ -130,6 +150,8 @@
         <li>Think beyond the boot camp principles – consider the ’secret sauce’</li>
         <li>Consider both the tangible and intangible aspects of who we are</li>
       </ul>
+      <figure class="art"><img src="img/principles.jpg" alt="Lightbulb, puzzle pieces and compass representing guiding principles" loading="lazy"></figure>
+      </div>
     </section>
 
     <section class="slide" data-title="Our Principles">
@@ -139,12 +161,15 @@
 
     <section class="slide" data-title="Practical Training Exercises">
       <h1>Practical Training Exercises</h1><div class="rule"></div>
+      <div class="split">
       <ul>
         <li>Pick an exercise – scroll though doc</li>
         <li>Break into groups</li>
         <li>Guiding questions</li>
         <li>Their own activities</li>
       </ul>
+      <figure class="art"><img src="img/exercises.jpg" alt="Small groups collaborating on a hands-on workshop exercise" loading="lazy"></figure>
+      </div>
     </section>
 
     <section class="slide center" data-title="Guiding Questions">
@@ -169,9 +194,9 @@
       </div>
     </section>
 
-    <section class="slide center" data-title="AI Judgement">
+    <section class="slide center has-split" data-title="AI Judgement">
       <h1>AI Judgement</h1><div class="rule"></div>
-      <div class="sub"><ul>
+      <div class="split"><div class="sub"><ul>
         <li>How can we teach our associates to balance their views on AI?</li>
         <li>Groups of three:
           <ul>
@@ -183,10 +208,13 @@
           </ul>
         </li>
       </ul></div>
+      <figure class="art"><img src="img/ai-judgement.jpg" alt="Robot and human facing each other across a balance scale with a trust slider" loading="lazy"></figure>
+      </div>
     </section>
 
     <section class="slide" data-title="Certification Pathways">
       <h1>Certification Pathways</h1><div class="rule"></div>
+      <figure class="art badge-art"><img src="img/certification.jpg" alt="Staircase leading to a certification badge" loading="lazy"></figure>
       <div class="cols">
         <div class="col">
           <h2>ASE</h2>
