@@ -53,6 +53,7 @@ export default defineConfig({
           { text: "AI Receptionist deck", link: "/projects/ai-receptionist-deck" },
           { text: "CTFMonopoly", link: "/projects/ctfmonopoly" },
           { text: "Quiz bank", link: "/projects/quiz-bank" },
+          { text: "Competency Board", link: "/projects/competency-board" },
           { text: "Ice breaker", link: "/projects/ice-breaker" },
           { text: "Autonomous-Ai-drone-scripts", link: "/projects/autonomous-ai-drone-scripts" },
         ],

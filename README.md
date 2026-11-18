@@ -24,6 +24,7 @@ Then open the local URL (usually `http://localhost:5173`). Start at the home pag
 | Webex OAuth token | `webex_oauth.py` + `.env` at root |
 | Website crawl → JSON | `scrapeweb/` |
 | Screenshot OCR → Excel | `Lookback/` |
+| Sort Cisco SE core vs nice-to-have skills (drag and drop) | `competency-board/` |
 
 ## Agent context
 
