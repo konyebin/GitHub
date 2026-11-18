@@ -8,3 +8,7 @@ __pycache__/
 docs/node_modules/
 docs/.vitepress/dist/
 docs/.vitepress/cache/
+
+# ASE candidate screen — local workbook output and name lists (candidate data)
+ase-candidate-screen/output/
+ase-candidate-screen/preview-names.txt
