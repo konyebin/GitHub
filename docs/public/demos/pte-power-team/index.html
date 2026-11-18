@@ -88,6 +88,53 @@
   .col ul { font-size: 2cqw; }
   .col .tag { display: inline-block; font-size: 1.5cqw; padding: .25cqw 1cqw; border-radius: 2cqw; background: var(--teal); color: #fff; margin-left: 1cqw; vertical-align: middle; }
 
+
+  /* Framework */
+  .phase-head { display: flex; align-items: center; gap: 2.4cqw; }
+  .phase-head h1 { font-size: 3.6cqw; }
+  .num { flex: none; width: 7cqw; height: 7cqw; border-radius: 50%; display: grid; place-items: center; font-size: 3.8cqw; font-weight: 700;
+    color: #fff; background: var(--c); box-shadow: 0 .6cqw 1.6cqw rgba(14,40,65,.25); }
+  .kicker { font-size: 1.4cqw; letter-spacing: .22em; text-transform: uppercase; font-weight: 700; color: var(--c); margin-bottom: .5cqw; }
+  .chip { align-self: flex-start; margin: 2.2cqw 0 1.8cqw; padding: .6cqw 1.6cqw; border-radius: 3cqw; background: color-mix(in srgb, var(--c) 14%, white);
+    color: var(--navy); border: .15cqw solid var(--c); font-weight: 600; font-size: 1.9cqw; }
+  .lead { font-size: 2.3cqw; line-height: 1.45; max-width: 76cqw; }
+  .focus { margin-top: 2.2cqw; padding: 1.6cqw 2.2cqw; border-left: .6cqw solid var(--c); background: #f4f8fb; border-radius: 0 1.2cqw 1.2cqw 0; font-size: 2.05cqw; line-height: 1.4; max-width: 76cqw; }
+  .focus b { display: block; font-size: 1.3cqw; letter-spacing: .2em; text-transform: uppercase; color: var(--c); margin-bottom: .4cqw; }
+  .body2 { display: grid; grid-template-columns: 31cqw 1fr; gap: 3cqw; margin-top: 2cqw; align-items: start; }
+  .body2 .chip { margin: 0 0 1.4cqw; }
+  .body2 .lead { font-size: 2cqw; }
+  .tech { display: grid; gap: 1cqw; }
+  .tech div { padding: .9cqw 1.5cqw; border-radius: 1cqw; background: #f4f8fb; border-left: .45cqw solid var(--c); font-size: 1.5cqw; line-height: 1.3; }
+  .tech b { display: block; font-size: 1.75cqw; color: var(--navy); margin-bottom: .3cqw; }
+  .phase .lead.tight { font-size: 2cqw; }
+  .phase .focus.tight { margin-top: 1.6cqw; font-size: 1.9cqw; }
+  .steps { position: absolute; left: 7cqw; right: 7cqw; bottom: 4.6cqw; display: flex; gap: .8cqw; }
+  .steps i { flex: 1; height: .7cqw; border-radius: 1cqw; background: #d6e1ea; }
+  .steps i.on { background: var(--c); }
+  .p1 { --c: #156082; } .p2 { --c: #0F9ED5; } .p3 { --c: #196B24; } .p4 { --c: #A02B93; } .p5 { --c: #E97132; }
+
+  .ladder { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.2cqw; align-items: end; padding-bottom: 2.4cqw; }
+  .rung { border-radius: 1.2cqw 1.2cqw 0 0; padding: 1.4cqw 1.3cqw; color: #fff; background: var(--c); display: flex; flex-direction: column; gap: .6cqw; }
+  .rung:nth-child(1) { height: 52%; } .rung:nth-child(2) { height: 64%; } .rung:nth-child(3) { height: 76%; }
+  .rung:nth-child(4) { height: 88%; } .rung:nth-child(5) { height: 100%; }
+  .rung .n { font-size: 3cqw; font-weight: 700; line-height: 1; opacity: .9; }
+  .rung h3 { font-size: 2.1cqw; }
+  .rung p { font-size: 1.35cqw; line-height: 1.35; opacity: .95; }
+  .intro { font-size: 2cqw; color: var(--muted); max-width: 80cqw; margin-bottom: 1.6cqw; }
+
+  .assess { display: grid; grid-template-columns: 1.1fr 1fr; gap: 3cqw; }
+  .crit { display: grid; gap: 1cqw; }
+  .crit div { padding: 1.1cqw 1.6cqw; border-radius: 1cqw; background: #f4f8fb; border-left: .5cqw solid var(--teal); font-size: 1.9cqw; }
+  .levels { display: grid; gap: 1cqw; align-content: start; }
+  .lvl { padding: 1.2cqw 1.6cqw; border-radius: 1cqw; color: #fff; font-size: 1.9cqw; display: flex; justify-content: space-between; align-items: center; }
+  .lvl b { font-size: 2.2cqw; } .lvl span { font-weight: 600; opacity: .95; }
+  .lvl.a { background: #E97132; } .lvl.b { background: #0F9ED5; } .lvl.c { background: #196B24; }
+  .scale { font-size: 1.7cqw; color: var(--muted); margin-bottom: .6cqw; }
+  .prog { position: absolute; left: 7cqw; right: 7cqw; bottom: 4.6cqw; display: flex; align-items: center; gap: .8cqw; }
+  .prog span { flex: 1; text-align: center; padding: .9cqw .4cqw; font-size: 1.45cqw; font-weight: 600; color: #fff; border-radius: .8cqw; line-height: 1.2; }
+  .prog em { font-style: normal; color: var(--muted); font-size: 1.6cqw; }
+  h2.sec { font-size: 1.5cqw; letter-spacing: .18em; text-transform: uppercase; color: var(--teal); margin-bottom: 1cqw; }
+
   /* Footer chrome */
   .chrome { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 1.6cqw;
     padding: 1.1cqw 3cqw 1.1cqw 4cqw; font-size: 1.15cqw; color: var(--muted); z-index: 5; }
@@ -231,9 +278,96 @@
       </div>
     </section>
 
-    <section class="slide" data-title="Difficulty Alignment">
-      <h1>Difficulty Alignment</h1><div class="rule"></div>
-      <div class="placeholder">Content to be added.</div>
+    <section class="slide" data-title="Difficulty Alignment: 5-Phase Progressive Difficulty Framework">
+      <h1>Difficulty Alignment</h1><div class="rule" style="margin-bottom:1.6cqw"></div>
+      <p class="intro"><strong>5-Phase Progressive Difficulty Framework.</strong> The curriculum builds AE/SE readiness through progressively challenging practice—from observing experienced sellers to managing competitive customer conversations.</p>
+      <div class="ladder">
+        <div class="rung p1"><div class="n">1</div><h3>Observe</h3><p>Foundational Masterclass</p></div>
+        <div class="rung p2"><div class="n">2</div><h3>Practice</h3><p>Four Core Technology Roleplays</p></div>
+        <div class="rung p3"><div class="n">3</div><h3>Discover</h3><p>Consultative Scoping and Customer Discovery</p></div>
+        <div class="rung p4"><div class="n">4</div><h3>Analyze</h3><p>Commercial Strategy and RFP Audit</p></div>
+        <div class="rung p5"><div class="n">5</div><h3>Demonstrate</h3><p>Competitive Arena</p></div>
+      </div>
+    </section>
+
+    <section class="slide phase p1" data-title="Phase 1: Observe">
+      <div class="phase-head"><span class="num">1</span><div><div class="kicker">Phase 1 of 5</div><h1>Observe: Foundational Masterclass</h1></div></div>
+      <div class="chip">Full cohort with alumni demonstrator</div>
+      <p class="lead">Observe experienced sellers navigate challenging customer meetings, supported by facilitator breakdowns.</p>
+      <div class="focus"><b>Focus</b>Active listening, objection recognition, meeting control, and tactical execution.</div>
+      <div class="steps"><i class="on"></i><i></i><i></i><i></i><i></i></div>
+    </section>
+
+    <section class="slide phase p2" data-title="Phase 2: Practice">
+      <div class="phase-head"><span class="num">2</span><div><div class="kicker">Phase 2 of 5</div><h1>Practice: Four Core Technology Roleplays</h1></div></div>
+      <div class="body2">
+        <div>
+      <div class="chip">AE/SE pairs</div>
+      <p class="lead tight">Practice connecting architecture to customer needs across:</p>
+      <div class="focus tight"><b>Focus</b>The SE explains the architecture; the AE connects technical capabilities to business outcomes.</div>
+        </div>
+      <div class="tech">
+        <div><b>Enterprise Networking</b>Network modernization, cloud versus on-premises management, and operational efficiency.</div>
+        <div><b>Security</b>Zero Trust, security consolidation, threat response, and business resilience.</div>
+        <div><b>Data Center &amp; Cloud</b>Hybrid cloud, AI infrastructure, workload performance, and total cost of ownership.</div>
+        <div><b>Collaboration</b>Webex migration, hybrid work, AI productivity, interoperability, and workplace value.</div>
+      </div>
+      </div>
+      <div class="steps"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>
+    </section>
+
+    <section class="slide phase p3" data-title="Phase 3: Discover">
+      <div class="phase-head"><span class="num">3</span><div><div class="kicker">Phase 3 of 5</div><h1>Discover: Consultative Scoping and Customer Discovery</h1></div></div>
+      <div class="chip">AE/SE pairs</div>
+      <p class="lead">Map customer architecture, explain Cisco Enterprise Agreement value, and conduct discovery with a simulated buying committee.</p>
+      <div class="focus"><b>Focus</b>Visual storytelling, software value, open-ended questioning, pain mapping, MEDDPICC qualification, and coordinated AE/SE execution.</div>
+      <div class="steps"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div>
+    </section>
+
+    <section class="slide phase p4" data-title="Phase 4: Analyze">
+      <div class="phase-head"><span class="num">4</span><div><div class="kicker">Phase 4 of 5</div><h1>Analyze: Commercial Strategy and RFP Audit</h1></div></div>
+      <div class="chip">Mixed AE/SE groups of 3–4</div>
+      <p class="lead">Review anonymized Gong recordings, CRM history, and RFP specifications, then present an executive deal defense to an FLM board.</p>
+      <div class="focus"><b>Focus</b>Deal analysis, technical defense, risk mitigation, and commercial alignment.</div>
+      <div class="steps"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>
+    </section>
+
+    <section class="slide phase p5" data-title="Phase 5: Demonstrate">
+      <div class="phase-head"><span class="num">5</span><div><div class="kicker">Phase 5 of 5</div><h1>Demonstrate: Competitive Arena</h1></div></div>
+      <div class="chip">Three-person debate teams or 4–6-person panels</div>
+      <p class="lead">Navigate competitive displacement, rebuttals, and challenging objections in a debate or multi-vendor panel.</p>
+      <div class="focus"><b>Focus</b>Competitive differentiation, objection agility, and executive presence.</div>
+      <div class="steps"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>
+    </section>
+
+    <section class="slide" data-title="Consistent Assessment Across All Phases">
+      <h1>Consistent Assessment Across All Phases</h1><div class="rule" style="margin-bottom:2cqw"></div>
+      <div class="assess">
+        <div>
+          <h2 class="sec">Facilitators use a 1–5 scale to assess</h2>
+          <div class="crit">
+            <div>Technology and architecture fluency</div>
+            <div>AE/SE “two-in-a-box” collaboration</div>
+            <div>Consultative discovery and MEDDPICC</div>
+            <div>Competitive and objection agility</div>
+          </div>
+        </div>
+        <div>
+          <h2 class="sec">Performance levels</h2>
+          <div class="levels">
+            <div class="lvl a"><span>Developing</span><b>1–2</b></div>
+            <div class="lvl b"><span>Job-Ready</span><b>3–4</b></div>
+            <div class="lvl c"><span>Exemplary</span><b>5</b></div>
+          </div>
+        </div>
+      </div>
+      <div class="prog" aria-label="Progression">
+        <span class="p1" style="background:var(--c)">Observe</span><em>&rarr;</em>
+        <span class="p2" style="background:var(--c)">Build domain fluency</span><em>&rarr;</em>
+        <span class="p3" style="background:var(--c)">Discover collaboratively</span><em>&rarr;</em>
+        <span class="p4" style="background:var(--c)">Defend deal strategy</span><em>&rarr;</em>
+        <span class="p5" style="background:var(--c)">Perform under competitive pressure</span>
+      </div>
     </section>
 
     <div class="chrome">
