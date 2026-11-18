@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Practical Training Exercises… and the 1% | PTE Power Team</title>
+<style>
+  :root {
+    --navy: #0E2841;
+    --teal: #156082;
+    --orange: #E97132;
+    --green: #196B24;
+    --blue: #0F9ED5;
+    --purple: #A02B93;
+    --paper: #ffffff;
+    --ink: #0E2841;
+    --muted: #4b6074;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #0a1b2c; color: var(--ink);
+    font-family: "Aptos", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif; overflow: hidden; }
+
+  .stage { position: fixed; inset: 0; display: grid; place-items: center; }
+  .deck { position: relative; width: min(100vw, calc(100vh * 16 / 9)); aspect-ratio: 16 / 9;
+    container-type: inline-size; background: var(--paper); box-shadow: 0 20px 60px rgba(0,0,0,.5); overflow: hidden; }
+
+  .slide { position: absolute; inset: 0; padding: 5.5cqw 7cqw 6cqw; display: flex; flex-direction: column;
+    opacity: 0; visibility: hidden; transform: translateX(2cqw); transition: opacity .35s ease, transform .35s ease, visibility 0s .35s; }
+  .slide.active { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
+  .slide.prev { transform: translateX(-2cqw); }
+
+  .slide::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 1cqw;
+    background: linear-gradient(var(--teal), var(--blue)); }
+
+  h1 { font-size: 4.2cqw; line-height: 1.1; color: var(--navy); font-weight: 700; letter-spacing: -.01em; }
+  h1 + .rule { width: 7cqw; height: .45cqw; background: var(--orange); border-radius: 1cqw; margin: 1.6cqw 0 3cqw; }
+
+  ul { list-style: none; font-size: 2.35cqw; line-height: 1.35; display: grid; gap: 1.5cqw; }
+  ul li { position: relative; padding-left: 2.6cqw; }
+  ul li::before { content: ""; position: absolute; left: 0; top: .6em; width: .9cqw; height: .9cqw; border-radius: 50%; background: var(--teal); }
+  ul ul { margin-top: 1.1cqw; font-size: .9em; gap: 1cqw; }
+  ul ul li::before { background: var(--orange); border-radius: 1px; width: .75cqw; height: .75cqw; }
+
+  .placeholder { margin-top: 1cqw; padding: 2.2cqw 2.6cqw; border: .2cqw dashed #9fb4c6; border-radius: 1.2cqw;
+    color: var(--muted); font-size: 2cqw; background: #f4f8fb; }
+  .placeholder strong { color: var(--navy); }
+
+  /* Title / section slides */
+  .slide.center { align-items: center; justify-content: center; text-align: center; background: var(--navy); color: #fff; }
+  .slide.center::before { background: linear-gradient(var(--orange), var(--purple)); }
+  .slide.center h1 { color: #fff; font-size: 5.4cqw; }
+  .slide.center h1 + .rule { margin: 2cqw auto 3cqw; }
+  .slide.center .sub { max-width: 78cqw; text-align: left; }
+  .slide.center ul { color: #e6eef6; font-size: 2.3cqw; text-align: left; }
+  .slide.center ul li::before { background: var(--blue); }
+  .slide.center ul ul li::before { background: var(--orange); }
+  .slide.center p { font-size: 2.1cqw; line-height: 1.5; color: #e6eef6; margin-bottom: 1.4cqw; }
+  .slide.center .thanks { color: var(--orange); font-weight: 700; margin-top: 1cqw; }
+
+  .slide.hero h1 { font-size: 6.6cqw; max-width: 80cqw; }
+  .eyebrow { font-size: 1.6cqw; letter-spacing: .3em; text-transform: uppercase; color: var(--blue); margin-bottom: 2.4cqw; font-weight: 600; }
+
+  .quote { margin-top: 4cqw; font-size: 3cqw; color: var(--teal); font-style: italic; }
+
+  /* Two columns */
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 3cqw; flex: 1; min-height: 0; }
+  .col { border-radius: 1.4cqw; padding: 2.2cqw 2.6cqw; background: #f4f8fb; border-top: .5cqw solid var(--teal); }
+  .col.asr { border-top-color: var(--orange); }
+  .col h2 { font-size: 3cqw; color: var(--navy); margin-bottom: 1.6cqw; }
+  .col ul { font-size: 2cqw; }
+  .col .tag { display: inline-block; font-size: 1.5cqw; padding: .25cqw 1cqw; border-radius: 2cqw; background: var(--teal); color: #fff; margin-left: 1cqw; vertical-align: middle; }
+
+  /* Footer chrome */
+  .chrome { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 1.6cqw;
+    padding: 1.1cqw 3cqw 1.1cqw 4cqw; font-size: 1.15cqw; color: var(--muted); z-index: 5; }
+  .deck.dark .chrome { color: #9fb4c6; }
+  .progress { flex: 1; height: .3cqw; background: rgba(120,140,160,.25); border-radius: 1cqw; overflow: hidden; }
+  .progress i { display: block; height: 100%; width: 0; background: var(--orange); transition: width .35s ease; }
+  .btn { all: unset; cursor: pointer; width: 2.6cqw; height: 2.6cqw; display: grid; place-items: center; border-radius: 50%;
+    font-size: 1.5cqw; background: rgba(120,140,160,.18); color: inherit; }
+  .btn:hover { background: rgba(120,140,160,.38); }
+  .btn:focus-visible { outline: .2cqw solid var(--blue); }
+  .count { min-width: 5cqw; text-align: center; font-variant-numeric: tabular-nums; }
+
+  /* Overview grid */
+  .overview { position: fixed; inset: 0; background: rgba(8,20,32,.96); z-index: 20; display: none; overflow-y: auto; padding: 4vh 4vw; }
+  .overview.open { display: block; }
+  .overview h2 { color: #fff; font-weight: 600; margin-bottom: 2vh; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+  .card { all: unset; cursor: pointer; background: #fff; border-radius: 10px; padding: 14px 16px; min-height: 110px; display: flex; flex-direction: column; gap: 6px; border-top: 5px solid var(--teal); }
+  .card:hover, .card:focus-visible { outline: 3px solid var(--orange); }
+  .card.cur { border-top-color: var(--orange); }
+  .card b { font-size: 12px; color: var(--muted); }
+  .card span { font-size: 16px; color: var(--navy); font-weight: 600; }
+
+  @media print {
+    html, body { overflow: visible; background: #fff; }
+    .stage { position: static; display: block; }
+    .deck { width: 100%; aspect-ratio: auto; box-shadow: none; overflow: visible; container-type: normal; }
+    .slide { position: relative; opacity: 1; visibility: visible; transform: none; width: 297mm; height: 167mm; page-break-after: always; padding: 14mm 18mm; }
+    .chrome, .overview { display: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <main class="deck" id="deck" aria-live="polite">
+
+    <section class="slide center hero" data-title="Practical Training Exercises… and the 1%">
+      <div class="eyebrow">PTE Power Team</div>
+      <h1>Practical Training Exercises… and the 1%</h1>
+      <div class="rule"></div>
+    </section>
+
+    <section class="slide" data-title="Principles/Context">
+      <h1>Principles/Context</h1><div class="rule"></div>
+      <ul>
+        <li>What do we bring to the table as seasoned sellers</li>
+        <li>How best do we impart that knowledge on the associate cohort.</li>
+        <li>How can we best complement both what the associates learned in the Boot Camp and what they’re learning in the OJE</li>
+      </ul>
+    </section>
+
+    <section class="slide" data-title="Defining our Principles">
+      <h1>Defining our Principles</h1><div class="rule"></div>
+      <ul>
+        <li>Thinking beyond the core competencies, what attributes define the best sellers?</li>
+        <li>How can we give our CSAPers the best of each of us?</li>
+        <li>In your experience, what makes a truly great seller.</li>
+        <li>Think beyond the boot camp principles – consider the ’secret sauce’</li>
+        <li>Consider both the tangible and intangible aspects of who we are</li>
+      </ul>
+    </section>
+
+    <section class="slide" data-title="Our Principles">
+      <h1>Our Principles</h1><div class="rule"></div>
+      <div class="placeholder"><strong>To do:</strong> ten principles type slide</div>
+    </section>
+
+    <section class="slide" data-title="Practical Training Exercises">
+      <h1>Practical Training Exercises</h1><div class="rule"></div>
+      <ul>
+        <li>Pick an exercise – scroll though doc</li>
+        <li>Break into groups</li>
+        <li>Guiding questions</li>
+        <li>Their own activities</li>
+      </ul>
+    </section>
+
+    <section class="slide center" data-title="Guiding Questions">
+      <h1>Guiding Questions:</h1><div class="rule"></div>
+      <div class="sub"><ul>
+        <li>What would you need to feel like you could deliver this activity effectively? (consider written/recorded resources, run-throughs/training, physical facilities etc)</li>
+        <li>Where do you think this activity is a good fit?</li>
+        <li>Are there variations of this activity that you think would work better?</li>
+      </ul></div>
+    </section>
+
+    <section class="slide" data-title="Some inspiration…" style="justify-content:center">
+      <h1>Some inspiration…</h1><div class="rule"></div>
+    </section>
+
+    <section class="slide center" data-title="Guiding Questions (inspiration)">
+      <h1>Guiding Questions:</h1><div class="rule"></div>
+      <div class="sub">
+        <p>Thinking back through countless sales training courses and offsites, which practical sales training exercises <em>actually worked</em>? I'm talking about the ones that engaged you right from the start and turned you into a better seller that very same day.</p>
+        <p>Maybe they were from an offsite, new hire onboarding, or that one sales training course you tried to get out of that turned out to be the best thing you ever did.</p>
+        <p class="thanks">Thanks!</p>
+      </div>
+    </section>
+
+    <section class="slide center" data-title="AI Judgement">
+      <h1>AI Judgement</h1><div class="rule"></div>
+      <div class="sub"><ul>
+        <li>How can we teach our associates to balance their views on AI?</li>
+        <li>Groups of three:
+          <ul>
+            <li>Consider:</li>
+            <li>Examples of moments in which your experience as a seller has been critical</li>
+            <li>How could we teach that?</li>
+            <li>How can we teach JUDGEMENT with AI when they have no experience?</li>
+            <li>Trust slider</li>
+          </ul>
+        </li>
+      </ul></div>
+    </section>
+
+    <section class="slide" data-title="Certification Pathways">
+      <h1>Certification Pathways</h1><div class="rule"></div>
+      <div class="cols">
+        <div class="col">
+          <h2>ASE</h2>
+          <ul>
+            <li>How can we best facilitate ASEs doing CCNA in Q2 - how can it benefit them</li>
+            <li>Is it appropriate for ASRs to do the CCNA and ASEs to do CCN</li>
+            <li>CCNA - 1 exam</li>
+            <li>CCNP - 2 exams</li>
+          </ul>
+        </div>
+        <div class="col asr">
+          <h2>ASR</h2>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-title="Difficulty Alignment">
+      <h1>Difficulty Alignment</h1><div class="rule"></div>
+      <div class="placeholder">Content to be added.</div>
+    </section>
+
+    <div class="chrome">
+      <button class="btn" id="prev" aria-label="Previous slide">&#8592;</button>
+      <span class="count" id="count">1 / 11</span>
+      <button class="btn" id="next" aria-label="Next slide">&#8594;</button>
+      <div class="progress"><i id="bar"></i></div>
+      <button class="btn" id="grid" aria-label="Slide overview (G)">&#9638;</button>
+      <button class="btn" id="fs" aria-label="Fullscreen (F)">&#9974;</button>
+    </div>
+  </main>
+</div>
+
+<div class="overview" id="overview" role="dialog" aria-label="Slide overview">
+  <h2>All slides</h2>
+  <div class="grid" id="cards"></div>
+</div>
+
+<script>
+(() => {
+  const slides = [...document.querySelectorAll('.slide')];
+  const deck = document.getElementById('deck');
+  const count = document.getElementById('count');
+  const bar = document.getElementById('bar');
+  const overview = document.getElementById('overview');
+  const cards = document.getElementById('cards');
+  let i = 0;
+
+  slides.forEach((s, n) => {
+    const c = document.createElement('button');
+    c.className = 'card';
+    c.innerHTML = '<b>Slide ' + (n + 1) + '</b><span></span>';
+    c.querySelector('span').textContent = s.dataset.title;
+    c.onclick = () => { go(n); toggleOverview(false); };
+    cards.appendChild(c);
+  });
+
+  function go(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, k) => {
+      s.classList.toggle('active', k === i);
+      s.classList.toggle('prev', k < i);
+    });
+    deck.classList.toggle('dark', slides[i].classList.contains('center'));
+    count.textContent = (i + 1) + ' / ' + slides.length;
+    bar.style.width = ((i + 1) / slides.length * 100) + '%';
+    [...cards.children].forEach((c, k) => c.classList.toggle('cur', k === i));
+    history.replaceState(null, '', '#' + (i + 1));
+  }
+  function toggleOverview(force) {
+    overview.classList.toggle('open', force);
+  }
+
+  document.getElementById('prev').onclick = () => go(i - 1);
+  document.getElementById('next').onclick = () => go(i + 1);
+  document.getElementById('grid').onclick = () => toggleOverview();
+  document.getElementById('fs').onclick = () =>
+    document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+
+  addEventListener('keydown', e => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    switch (e.key) {
+      case 'ArrowRight': case 'PageDown': case ' ': case 'Enter': e.preventDefault(); go(i + 1); break;
+      case 'ArrowLeft': case 'PageUp': case 'Backspace': e.preventDefault(); go(i - 1); break;
+      case 'Home': go(0); break;
+      case 'End': go(slides.length - 1); break;
+      case 'g': case 'G': toggleOverview(); break;
+      case 'f': case 'F': document.getElementById('fs').click(); break;
+      case 'Escape': toggleOverview(false); break;
+    }
+  });
+
+  let x0 = null;
+  addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
+  addEventListener('touchend', e => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 50) go(i + (dx < 0 ? 1 : -1));
+    x0 = null;
+  });
+
+  go((parseInt(location.hash.slice(1), 10) || 1) - 1);
+})();
+</script>
+</body>
+</html>
