@@ -60,6 +60,7 @@ PARSED_COLUMNS = (
 class ParseResult:
     df: pd.DataFrame
     skipped_examples: int
+    sheet: str = ""
 
 
 def _num(value: Any) -> float | None:
@@ -164,11 +165,30 @@ def _section_score(item_values: list[float | None], cached_total: float | None) 
 
 
 def parse_workbook(source: Any, include_examples: bool = False) -> ParseResult:
-    """Read candidates from the ASE scores workbook (path, file object or bytes)."""
+    """Read candidates from the ASE scores workbook (path, file object or bytes).
+
+    Every sheet is checked; sheets without a 'Candidate Name' header and the score
+    sections are ignored, and the sheet holding the most candidates is used.
+    """
     if isinstance(source, (bytes, bytearray)):
         source = io.BytesIO(source)
     wb = openpyxl.load_workbook(source, data_only=True)
-    ws = wb.worksheets[0]
+    best: ParseResult | None = None
+    first_error: ValueError | None = None
+    for ws in wb.worksheets:
+        try:
+            result = _parse_sheet(ws, include_examples)
+        except ValueError as exc:
+            first_error = first_error or exc
+            continue
+        if best is None or len(result.df) > len(best.df):
+            best = result
+    if best is None:
+        raise first_error or ValueError("The workbook has no sheets.")
+    return best
+
+
+def _parse_sheet(ws, include_examples: bool) -> ParseResult:
     header_row = _find_header_row(ws)
     width = ws.max_column
     headers = [_text(ws.cell(header_row, c).value) for c in range(1, width + 1)]
@@ -245,7 +265,7 @@ def parse_workbook(source: Any, include_examples: bool = False) -> ParseResult:
         rows.append(record)
 
     df = pd.DataFrame(rows, columns=None if rows else PARSED_COLUMNS)
-    return ParseResult(df=df, skipped_examples=skipped)
+    return ParseResult(df=df, skipped_examples=skipped, sheet=ws.title)
 
 
 def suggest(pct: float, complete: bool, hire_th: float, standby_th: float) -> str:

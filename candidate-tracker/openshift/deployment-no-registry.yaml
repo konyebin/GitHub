@@ -1,0 +1,123 @@
+# Runs the candidate tracker on a cluster that has no internal image registry.
+# A stock Red Hat Python image starts, downloads this repo branch from GitHub, installs requirements.txt into a
+# temporary virtualenv, and launches Streamlit. No image build or registry push is needed.
+#
+# Before applying: set the Route host below to a name under cloudapps.cisco.com (or cisco.com).
+# Apply with: console "+" (top right) > Import YAML, or `oc apply -f deployment-no-registry.yaml`.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: candidate-tracker-app
+  labels:
+    app: candidate-tracker-app
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: candidate-tracker-app
+  template:
+    metadata:
+      labels:
+        app: candidate-tracker-app
+    spec:
+      containers:
+        - name: app
+          image: registry.access.redhat.com/ubi9/python-312:latest
+          command: ["bash", "-c"]
+          args:
+            - |
+              set -euo pipefail
+              cd /work
+              python - <<'PY'
+              import io, os, tarfile, urllib.request
+              url = os.environ["REPO_TARBALL_URL"]
+              data = urllib.request.urlopen(url, timeout=120).read()
+              with tarfile.open(fileobj=io.BytesIO(data)) as archive:
+                  archive.extractall("src", filter="data")
+              PY
+              cd src/*/candidate-tracker
+              python -m venv /work/venv
+              /work/venv/bin/pip install --no-cache-dir -r requirements.txt
+              exec /work/venv/bin/streamlit run app.py \
+                --server.port=8080 --server.address=0.0.0.0 --server.headless=true \
+                --browser.gatherUsageStats=false
+          env:
+            - name: REPO_TARBALL_URL
+              value: https://codeload.github.com/konyebin/GitHub/tar.gz/refs/heads/cursor/candidate-tracker-cloud-076c
+            - name: TRACKER_DATA_DIR
+              value: /work/workbooks
+            - name: HOME
+              value: /work/home
+            # Uncomment and fill in if the cluster needs a proxy or an internal PyPI mirror:
+            # - name: HTTPS_PROXY
+            #   value: http://proxy.example.com:80
+            # - name: PIP_INDEX_URL
+            #   value: https://pypi.example.com/simple
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 768Mi
+          startupProbe:
+            httpGet:
+              path: /_stcore/health
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 90
+          readinessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: 8080
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: 8080
+            periodSeconds: 20
+            failureThreshold: 6
+          volumeMounts:
+            - name: work
+              mountPath: /work
+      volumes:
+        - name: work
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: candidate-tracker-app
+  labels:
+    app: candidate-tracker-app
+spec:
+  selector:
+    app: candidate-tracker-app
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: candidate-tracker-app
+  labels:
+    app: candidate-tracker-app
+spec:
+  host: csap-candidate-tracker.cloudapps.cisco.com
+  to:
+    kind: Service
+    name: candidate-tracker-app
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

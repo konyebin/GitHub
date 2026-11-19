@@ -657,13 +657,15 @@ if st.session_state.get("digest") != digest:
         dict(zip(parsed.df["Candidate"], parsed.df["Source Status"])) if not parsed.df.empty else {}
     )
     st.session_state.skipped = parsed.skipped_examples
+    st.session_state.sheet = parsed.sheet
     st.session_state.digest = digest
 
 base: pd.DataFrame = st.session_state.base
 if base.empty:
     hidden = st.session_state.get("skipped", 0)
     st.warning(
-        "No candidates found in this workbook. Candidate names go in the 'Candidate Name' column below the header row."
+        "No candidates found on any sheet of this workbook. Candidate names go in the 'Candidate Name' column below the header row, "
+        "on a sheet that also has the Interview, Role Play and Presentation TOTAL columns."
         + (f" {hidden} row(s) named 'Example' are hidden; switch on 'Include Example rows' in the sidebar to see them." if hidden else "")
     )
     if st.session_state.loaded and st.button("Choose another workbook"):
@@ -681,7 +683,7 @@ output_path = APP_DIR / f"{stem}{suffix}.xlsx"
 with st.sidebar:
     st.markdown("### Actions")
     if st.session_state.loaded:
-        st.caption(f"Open: {workbook_name}")
+        st.caption(f"Open: {workbook_name}" + (f" (sheet: {st.session_state.sheet})" if st.session_state.get("sheet") else ""))
         if st.button("Choose another workbook", width="stretch"):
             st.session_state.loaded = None
             st.session_state.digest = None
